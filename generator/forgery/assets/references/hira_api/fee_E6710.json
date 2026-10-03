@@ -1,0 +1,20 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "159.79",
+  "essSelPayDpApvYn": "N",
+  "korNm": "굴절및조절검사[안경처방전교부포함]/",
+  "mdfeeCd": "E6710",
+  "mdfeeDivNo": "나671",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "15280",
+  "unprc2": "13390",
+  "unprc3": "16150",
+  "unprc4": "15760",
+  "unprc5": "0",
+  "unprc6": "16670"
+ }
+]

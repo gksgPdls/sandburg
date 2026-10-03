@@ -1,0 +1,38 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "6.65",
+  "essSelPayDpApvYn": "N",
+  "korNm": "요검사-[화학반응-장비측정]_요백혈구시험지봉검사/",
+  "mdfeeCd": "D2242010",
+  "mdfeeDivNo": "누224나",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "640",
+  "unprc2": "560",
+  "unprc3": "670",
+  "unprc4": "660",
+  "unprc5": "0",
+  "unprc6": "690"
+ },
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "5.79",
+  "essSelPayDpApvYn": "N",
+  "korNm": "요검사-[화학반응-장비측정]_요백혈구시험지봉검사/수탁기관으로 위탁하는 경우",
+  "mdfeeCd": "D2242010Z",
+  "mdfeeDivNo": "누224나",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "550",
+  "unprc2": "490",
+  "unprc3": "590",
+  "unprc4": "570",
+  "unprc5": "0",
+  "unprc6": "600"
+ }
+]

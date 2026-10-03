@@ -1,0 +1,609 @@
+_설명: '심평원 오픈 API 조회 결과 (2026-10-03). 출처 규칙: config/price_sources.yaml, 근거: assets/references/price_evidence.xlsx.
+  price = 종별 고정 단가, range = 비급여 종별 공표 최소·중간값·최대 (생성 시 이 범위에서 뽑음)'
+valid_from: '2026-01-01'
+items:
+  CONSULT_FIRST_clinic:
+    source: 심평원 수가 AA154
+    name: 초진진찰료-의원
+    from: '2026-01-01'
+    price:
+      clinic: 18840
+      hospital: 18840
+      general: 18840
+  CONSULT_REVISIT_clinic:
+    source: 심평원 수가 AA254
+    name: 재진진찰료-의원
+    from: '2026-01-01'
+    price:
+      clinic: 13370
+      hospital: 13370
+      general: 13370
+  CONSULT_FIRST_hospital:
+    source: 심평원 수가 AA155
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과
+    from: '2026-01-01'
+    price:
+      clinic: 17500
+      hospital: 17500
+      general: 17500
+  CONSULT_REVISIT_hospital:
+    source: 심평원 수가 AA255
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과
+    from: '2026-01-01'
+    price:
+      clinic: 12680
+      hospital: 12680
+      general: 12680
+  CONSULT_FIRST_general:
+    source: 심평원 수가 AA156
+    name: 초진진찰료-종합병원
+    from: '2026-01-01'
+    price:
+      clinic: 19470
+      hospital: 19470
+      general: 19470
+  CONSULT_REVISIT_general:
+    source: 심평원 수가 AA256
+    name: 재진진찰료-종합병원
+    from: '2026-01-01'
+    price:
+      clinic: 14650
+      hospital: 14650
+      general: 14650
+  ROOM_4_hospital:
+    source: 심평원 수가 AB3J0
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 4인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 57870
+      hospital: 57870
+      general: 57870
+  ROOM_3_hospital:
+    source: 심평원 수가 AB3N0
+    name: 병원, 정신병원, 한방병원 내 의·치과 3인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 69440
+      hospital: 69440
+      general: 69440
+  ROOM_2_hospital:
+    source: 심평원 수가 AB3S0
+    name: 병원, 정신병원, 한방병원 내 의·치과 2인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 81020
+      hospital: 81020
+      general: 81020
+  ROOM_4_general:
+    source: 심평원 수가 AB2J0
+    name: 종합병원4인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 66440
+      hospital: 66440
+      general: 66440
+  ROOM_3_general:
+    source: 심평원 수가 AB2N0
+    name: 종합병원3인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 79730
+      hospital: 79730
+      general: 79730
+  ROOM_2_general:
+    source: 심평원 수가 AB2S0
+    name: 종합병원2인실기본점수입원료
+    from: '2026-01-01'
+    price:
+      clinic: 99660
+      hospital: 99660
+      general: 99660
+  MEAL_hospital:
+    source: 심평원 수가 Y2300
+    name: 기본식사-일반식(1식당)-병원,정신병원,요양병원,치과병원,한방병원
+    from: '2026-01-01'
+    price:
+      clinic: 5150
+      hospital: 5150
+      general: 5150
+  MEAL_general:
+    source: 심평원 수가 Y2200
+    name: 기본식사-일반식(1식당)-종합병원
+    from: '2026-01-01'
+    price:
+      clinic: 5410
+      hospital: 5410
+      general: 5410
+  XR_ANKLE:
+    source: 심평원 수가 G7402
+    name: 족관절2매
+    from: '2026-01-01'
+    price:
+      clinic: 8730
+      hospital: 7650
+      general: 7650
+  XR_KNEE:
+    source: 심평원 수가 G7202
+    name: 슬관절2매
+    from: '2026-01-01'
+    price:
+      clinic: 8730
+      hospital: 7650
+      general: 7650
+  XR_SHOULDER:
+    source: 심평원 수가 G3302
+    name: 견관절2매
+    from: '2026-01-01'
+    price:
+      clinic: 9570
+      hospital: 8390
+      general: 8390
+  XR_LSPINE:
+    source: 심평원 수가 G4503
+    name: 요추3매
+    from: '2026-01-01'
+    price:
+      clinic: 11390
+      hospital: 9990
+      general: 9990
+  XR_CSPINE:
+    source: 심평원 수가 G4103
+    name: 경추3매
+    from: '2026-01-01'
+    price:
+      clinic: 11390
+      hospital: 9980
+      general: 9980
+  XR_CHEST:
+    source: 심평원 수가 G2101
+    name: 흉부[직접]1매
+    from: '2026-01-01'
+    price:
+      clinic: 8300
+      hospital: 7280
+      general: 7280
+  XR_PNS:
+    source: 심평원 수가 G1201
+    name: 부비동1매
+    from: '2026-01-01'
+    price:
+      clinic: 5350
+      hospital: 4690
+      general: 4690
+  XR_ABD:
+    source: 심평원 수가 G2401
+    name: 복부1매
+    from: '2026-01-01'
+    price:
+      clinic: 5350
+      hospital: 4690
+      general: 4690
+  CT_ABD:
+    source: 심평원 수가 HA435
+    name: 일반전산화단층영상진단-복부-조영제를사용하지않는경우-기타의경우
+    from: '2026-01-01'
+    price:
+      clinic: 105030
+      hospital: 92060
+      general: 92060
+  PT_HOT:
+    source: 심평원 수가 MM010
+    name: 표층열치료
+    from: '2026-01-01'
+    price:
+      clinic: 1010
+      hospital: 890
+      general: 890
+  PT_DEEP:
+    source: 심평원 수가 MM020
+    name: 심층열치료[1일당]
+    from: '2026-01-01'
+    price:
+      clinic: 1440
+      hospital: 1260
+      general: 1260
+  PT_ICT:
+    source: 심평원 수가 MM080
+    name: 간섭파전류치료[ICT]
+    from: '2026-01-01'
+    price:
+      clinic: 4490
+      hospital: 3930
+      general: 3930
+  PT_TENS:
+    source: 심평원 수가 MM070
+    name: 경피적전기신경자극치료[TENS]
+    from: '2026-01-01'
+    price:
+      clinic: 4490
+      hospital: 3930
+      general: 3930
+  INJ_TPI:
+    source: 심평원 수가 MM131
+    name: 근막동통유발점주사자극치료[1일당]
+    from: '2026-01-01'
+    price:
+      clinic: 8570
+      hospital: 7510
+      general: 7510
+  INJ_IM:
+    source: 심평원 수가 KK010
+    name: 피하또는근육내주사
+    from: '2026-01-01'
+    price:
+      clinic: 1720
+      hospital: 1510
+      general: 1510
+  INJ_IV:
+    source: 심평원 수가 KK020
+    name: 정맥내일시주사[1일당]
+    from: '2026-01-01'
+    price:
+      clinic: 2450
+      hospital: 2150
+      general: 2150
+  INJ_IVDRIP:
+    source: 심평원 수가 KK053
+    name: 정맥내점적주사-501ml∼1000ml[1병또는포장단위당]
+    from: '2026-01-01'
+    price:
+      clinic: 4560
+      hospital: 4000
+      general: 4000
+  INJ_IL:
+    source: 심평원 수가 N0091
+    name: 병변내주입요법-25㎠미만
+    from: '2026-01-01'
+    price:
+      clinic: 22680
+      hospital: 19880
+      general: 19880
+  PRC_SIMPLE:
+    source: 심평원 수가 M0111
+    name: 단순처치[1일당]
+    from: '2026-01-01'
+    price:
+      clinic: 7220
+      hospital: 6330
+      general: 6330
+  PRC_INFL:
+    source: 심평원 수가 M0121
+    name: 염증성처치[1일당]
+    from: '2026-01-01'
+    price:
+      clinic: 13520
+      hospital: 11850
+      general: 11850
+  PRC_CRYO:
+    source: 심평원 수가 N1434
+    name: 사마귀제거술-소작술[전기, 레이저, 냉동 포함]-기타
+    from: '2026-01-01'
+    price:
+      clinic: 37190
+      hospital: 32600
+      general: 32600
+  PRC_SPLINT:
+    source: 심평원 수가 T6154
+    name: 부목-단하지[하퇴로부터 족부까지]
+    from: '2026-01-01'
+    price:
+      clinic: 24770
+      hospital: 21710
+      general: 21710
+  PRC_NEB:
+    source: 심평원 수가 MM303
+    name: 상기도증기흡입치료
+    from: '2026-01-01'
+    price:
+      clinic: 2320
+      hospital: 2030
+      general: 2030
+  PRC_EAR:
+    source: 심평원 수가 S5571
+    name: 외이도이물또는이구전색제거[간단한것은 기본진료료에 포함]-복잡한것
+    from: '2026-01-01'
+    price:
+      clinic: 19740
+      hospital: 17310
+      general: 17310
+  PRC_LID:
+    source: 심평원 수가 S5400
+    name: 맥립종절개술
+    from: '2026-01-01'
+    price:
+      clinic: 25380
+      hospital: 22250
+      general: 22250
+  PRC_FB:
+    source: 심평원 수가 S4930
+    name: 결막이물제거술
+    from: '2026-01-01'
+    price:
+      clinic: 18280
+      hospital: 16030
+      general: 16030
+  LAB_CBC:
+    source: 심평원 수가 D0002010 + 심평원 수가 D0002030 + 심평원 수가 D0002050 + 심평원 수가 D0002040
+    name: 일반혈액검사(CBC)-[혈구세포-장비측정]_백혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_적혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_혈색소[광전비색법]
+      + 일반혈액검사(CBC)-[혈구세포-장비측정]_헤마토크리트
+    from: '2026-01-01'
+    price:
+      clinic: 4880
+      hospital: 4280
+      general: 4280
+  LAB_CRP:
+    source: 심평원 수가 D0113
+    name: C-반응성단백-[정밀면역검사](정량)
+    from: '2026-01-01'
+    price:
+      clinic: 8280
+      hospital: 7250
+      general: 7250
+  LAB_LFT:
+    source: 심평원 수가 D1860 + 심평원 수가 D1850
+    name: AST (SGOT) [화학반응-장비측정] + ALT (SGPT) [화학반응-장비측정]
+    from: '2026-01-01'
+    price:
+      clinic: 4410
+      hospital: 3860
+      general: 3860
+  LAB_BUN:
+    source: 심평원 수가 D2300 + 심평원 수가 D2280
+    name: 요소질소[NPN포함][화학반응-장비측정] + 크레아티닌[화학반응-장비측정]
+    from: '2026-01-01'
+    price:
+      clinic: 3750
+      hospital: 3290
+      general: 3290
+  LAB_UA:
+    source: 심평원 수가 D2242010×10
+    name: 요검사-[화학반응-장비측정]_요백혈구시험지봉검사
+    from: '2026-01-01'
+    price:
+      clinic: 6400
+      hospital: 5600
+      general: 5600
+  LAB_ECG:
+    source: 심평원 수가 E6541
+    name: 심전도검사-심전도기록및판독[표준12유도]
+    from: '2026-01-01'
+    price:
+      clinic: 9960
+      hospital: 8730
+      general: 8730
+  LAB_KOH:
+    source: 심평원 수가 D6203
+    name: 일반진균검사-KOH도말-조갑조직
+    from: '2026-01-01'
+    price:
+      clinic: 10540
+      hospital: 9230
+      general: 9230
+  LAB_IGE:
+    source: 심평원 수가 D7440010
+    name: 항원특이면역글로불린[정밀면역검사](정량)_IgE
+    from: '2026-01-01'
+    price:
+      clinic: 19720
+      hospital: 17290
+      general: 17290
+  LAB_PTA:
+    source: 심평원 수가 F6341
+    name: 청력검사[순음청력계기에의한검사]-표준순음청력검사
+    from: '2026-01-01'
+    price:
+      clinic: 23590
+      hospital: 20680
+      general: 20680
+  LAB_TYMP:
+    source: 심평원 수가 F6361
+    name: 청력검사[임피단스오디오메트리에의한검사]-고막운동성계측
+    from: '2026-01-01'
+    price:
+      clinic: 13810
+      hospital: 12110
+      general: 12110
+  LAB_ENDO:
+    source: 심평원 수가 E7540
+    name: 비인강경검사
+    from: '2026-01-01'
+    price:
+      clinic: 15210
+      hospital: 13330
+      general: 13330
+  LAB_SLIT:
+    source: 심평원 수가 E6810
+    name: 세극등현미경검사
+    from: '2026-01-01'
+    price:
+      clinic: 3330
+      hospital: 2920
+      general: 2920
+  LAB_IOP:
+    source: 심평원 수가 E6752
+    name: 안압측정-기타
+    from: '2026-01-01'
+    price:
+      clinic: 3350
+      hospital: 2930
+      general: 2930
+  LAB_REF:
+    source: 심평원 수가 E6710
+    name: 굴절및조절검사[안경처방전교부포함]
+    from: '2026-01-01'
+    price:
+      clinic: 15280
+      hospital: 13390
+      general: 13390
+  MED_ACT_DAY:
+    source: 심평원 수가 J2000
+    name: 입원환자 조제·복약지도료(1일당)
+    from: '2026-01-01'
+    price:
+      clinic: 2000
+      hospital: 1750
+      general: 1750
+  D_DICLO:
+    source: 심평원 약가 143535BIJ
+    name: 디클로페낙나트륨 75mg/2mL
+    from: '2016-01-01'
+    price:
+      clinic: 565
+      hospital: 565
+      general: 565
+  D_DEXA:
+    source: 심평원 약가 142232BIJ
+    name: 덱사메타손포스페이트이나트륨 5mg/1mL
+    from: '2018-07-25'
+    price:
+      clinic: 222
+      hospital: 222
+      general: 222
+  D_TRIAM:
+    source: 심평원 약가 243335BIJ
+    name: 트리암시놀론아세토니드 40mg/1mL
+    from: '2018-07-25'
+    price:
+      clinic: 700
+      hospital: 700
+      general: 700
+  D_CHLOR:
+    source: 심평원 약가 131830BIJ
+    name: 클로르페니라민말레산염 4mg/2mL
+    from: '2017-02-01'
+    price:
+      clinic: 147
+      hospital: 147
+      general: 147
+  D_LIDO:
+    source: 심평원 약가 183935BIJ
+    name: 리도카인염산염 2% 20mL
+    from: '2017-02-01'
+    price:
+      clinic: 519
+      hospital: 519
+      general: 519
+  D_HS1000:
+    source: 심평원 약가 349500BIJ
+    name: 하트만 1000mL
+    from: '2017-02-01'
+    price:
+      clinic: 1586
+      hospital: 1586
+      general: 1586
+  D_CEFA:
+    source: 심평원 약가 125701BIJ
+    name: 세파졸린나트륨 1g
+    from: '2026-01-01'
+    price:
+      clinic: 1025
+      hospital: 1025
+      general: 1025
+  D_FAMO:
+    source: 심평원 약가 157302BIJ
+    name: 파모티딘 20mg 주
+    from: '2026-01-01'
+    price:
+      clinic: 1365
+      hospital: 1365
+      general: 1365
+  D_METO:
+    source: 심평원 약가 193730BIJ
+    name: 메토클로프라미드 10mg/2mL
+    from: '2017-02-01'
+    price:
+      clinic: 447
+      hospital: 447
+      general: 447
+  MED_PO_A:
+    source: 심평원 약가 100901ATB×2 + 심평원 약가 222901ATB×3
+    name: 아세클로페낙 100mg + 레바미피드 100mg
+    from: '2023-09-05'
+    price:
+      clinic: 584
+      hospital: 584
+      general: 584
+  MED_PO_B:
+    source: 심평원 약가 125201ACH×3 + 심평원 약가 157302ATB×2
+    name: 세파클러 250mg + 파모티딘 20mg
+    from: '2023-09-05'
+    price:
+      clinic: 1438
+      hospital: 1438
+      general: 1438
+  MAT_SPLINT:
+    source: 심평원 치료재료 118017
+    name: 합성수지스프린트 (ONE STEP TYPE) - 4" X 30"
+    from: null
+    price:
+      clinic: 27300
+      hospital: 27300
+      general: 27300
+  MAT_DRESS:
+    source: 심평원 치료재료 250212
+    name: 합성거즈 드레싱류(SHEET TYPE/10㎠이상-40㎠미만)
+    from: null
+    price:
+      clinic: 358
+      hospital: 358
+      general: 358
+  MRI_LSPINE:
+    source: 심평원 비급여 HE1110000
+    name: 자기공명영상진단료(MRI-기본검사)/척추-요천추/일반
+    from: null
+    range:
+      hospital:
+        min: 200000
+        med: 450000
+        max: 700000
+      general:
+        min: 317150
+        med: 530000
+        max: 905000
+  MRI_KNEE:
+    source: 심평원 비급여 HE1200000
+    name: 자기공명영상진단료(MRI-기본검사)/근골격계-슬관절/일반
+    from: null
+    range:
+      hospital:
+        min: 250000
+        med: 450000
+        max: 700000
+      general:
+        min: 270052
+        med: 520000
+        max: 927000
+  US_MSK:
+    source: 심평원 비급여 EB4700000
+    name: 초음파검사료(진단초음파)/근골격, 연부-연부조직 초음파/일반
+    from: null
+    range:
+      hospital:
+        min: 10000
+        med: 80000
+        max: 250000
+      general:
+        min: 17000
+        med: 100000
+        max: 300000
+  MANUAL_TX:
+    source: 심평원 비급여 MX1220000
+    name: 이학요법료/도수치료
+    from: null
+    range:
+      hospital:
+        min: 1000
+        med: 100000
+        max: 500000
+      general:
+        min: 10000
+        med: 70000
+        max: 330309
+  CERT_DX:
+    source: 보건복지부 고시 제증명수수료 상한
+    name: 일반진단서 발급 수수료
+    from: null
+    price:
+      clinic: 20000
+      hospital: 20000
+      general: 20000

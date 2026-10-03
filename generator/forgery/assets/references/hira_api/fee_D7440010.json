@@ -1,0 +1,38 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "206.28",
+  "essSelPayDpApvYn": "N",
+  "korNm": "항원특이면역글로불린[정밀면역검사](정량)_IgE/",
+  "mdfeeCd": "D7440010",
+  "mdfeeDivNo": "누744",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "19720",
+  "unprc2": "17290",
+  "unprc3": "20850",
+  "unprc4": "20340",
+  "unprc5": "0",
+  "unprc6": "21520"
+ },
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "179.46",
+  "essSelPayDpApvYn": "N",
+  "korNm": "항원특이면역글로불린[정밀면역검사](정량)_IgE/수탁기관으로 위탁하는 경우",
+  "mdfeeCd": "D7440010Z",
+  "mdfeeDivNo": "누744",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "17160",
+  "unprc2": "15040",
+  "unprc3": "18140",
+  "unprc4": "17690",
+  "unprc5": "0",
+  "unprc6": "18720"
+ }
+]

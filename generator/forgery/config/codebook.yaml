@@ -1,0 +1,262 @@
+# ════════════════════════════════════════════════════════════════
+#  가상 데이터 생성 코드북 (생성 규칙의 모든 수치는 여기서만 정의)
+#  규칙 설명 문서: 가상의료문서_생성로직_보고서.docx
+#
+#  단가: 모든 금액은 공식 자료 단가표 (config/prices.yaml) 에서만 가져옴
+#        출처 규칙 config/price_sources.yaml → tools/fetch_prices.py 로 생성
+#        급여 = 심평원 수가·약가·치료재료 공식 단가 / 비급여 = 심평원 비급여 공개 병원 신고 가격
+#        종별 단가가 없는 항목(의원의 비급여)은 생성하지 않음
+#        각 처방 줄의 data.json 에 price_source 로 출처 코드가 기록됨
+# ════════════════════════════════════════════════════════════════
+
+# ── 1. 요양기관 종류 ────────────────────────────────────────────
+#  weight: 선택 확률 / outpatient_rate: 외래 본인부담률
+institution_types:
+  clinic:   {label: "의원급·보건기관", weight: 0.70, outpatient_rate: 0.30, can_admit: false}
+  hospital: {label: "병원급",         weight: 0.20, outpatient_rate: 0.40, can_admit: true}
+  general:  {label: "종합병원",       weight: 0.10, outpatient_rate: 0.50, can_admit: true}
+
+inpatient_rate: 0.20     # 입원 본인부담률 (식대 제외 전 항목)
+meal_rate: 0.50          # 식대 본인부담률
+
+# 입원 병실 — 계산서 행, 본인부담률, 선택 확률, 단가 키(price_key_종별 → prices.yaml)
+#  본인부담률 근거: 별지 제6호서식 항목별 설명 1번
+#   "병원급 의료기관(치과병원 제외) 입원료: 2인실 40%, 3인실 30%", 그 외 입원 20%
+rooms:
+  room_4: {label: "4인실", row: room_4,  rate: 0.20, weight: 0.70, price_key: ROOM_4}
+  room_3: {label: "3인실", row: room_23, rate: 0.30, weight: 0.15, price_key: ROOM_3}
+  room_2: {label: "2인실", row: room_23, rate: 0.40, weight: 0.15, price_key: ROOM_2}
+meals_per_day: 3         # 식대 = MEAL_종별 단가(1식) × 3식 × 재원일수
+
+# ── 2. 수가 항목 카탈로그 ───────────────────────────────────────
+#  row: 계산서 행 / cover: part(급여 일부본인부담) | nonpay(비급여)
+#  금액 = 단가 × 수량 × 일수. 단가 = config/prices.yaml 의 같은 키 (종별 단가)
+fee_items:
+  # 영상진단료
+  XR_ANKLE:    {name: "발목 단순촬영 2매",       row: imaging,  cover: part}
+  XR_KNEE:     {name: "무릎 단순촬영 2매",       row: imaging,  cover: part}
+  XR_SHOULDER: {name: "어깨 단순촬영 2매",       row: imaging,  cover: part}
+  XR_LSPINE:   {name: "요추 단순촬영 3매",       row: imaging,  cover: part}
+  XR_CSPINE:   {name: "경추 단순촬영 3매",       row: imaging,  cover: part}
+  XR_CHEST:    {name: "흉부 단순촬영 1매",       row: imaging,  cover: part}
+  XR_PNS:      {name: "부비동 단순촬영 1매",     row: imaging,  cover: part}
+  XR_ABD:      {name: "복부 단순촬영 1매",       row: imaging,  cover: part}
+  CT_ABD:      {name: "복부 CT",                 row: ct,       cover: part}
+  # 재활 및 물리치료료
+  PT_HOT:      {name: "표층열치료",              row: rehab,    cover: part}
+  PT_DEEP:     {name: "심층열치료",              row: rehab,    cover: part}
+  PT_ICT:      {name: "간섭파전류치료",          row: rehab,    cover: part}
+  PT_TENS:     {name: "경피적전기신경자극치료",  row: rehab,    cover: part}
+  INJ_TPI:     {name: "근막동통유발점주사자극치료", row: rehab,  cover: part}   # 이학요법 → 재활 및 물리치료료 행
+  # 주사료 — 행위료
+  INJ_IM:      {name: "근육주사 행위료",         row: inj_act,  cover: part}
+  INJ_IV:      {name: "정맥주사 행위료",         row: inj_act,  cover: part}
+  INJ_IVDRIP:  {name: "정맥내 점적주사 행위료",  row: inj_act,  cover: part}
+  # 주사료 — 약품비 (1앰플·1병·1백)
+  D_DICLO:     {name: "디클로페낙나트륨 주 75mg", row: inj_drug, cover: part}
+  D_DEXA:      {name: "덱사메타손 주 5mg",       row: inj_drug, cover: part}
+  D_TRIAM:     {name: "트리암시놀론 주 40mg",    row: inj_drug, cover: part}
+  D_CHLOR:     {name: "클로르페니라민 주 4mg",   row: inj_drug, cover: part}
+  D_LIDO:      {name: "리도카인 주 2% 20mL",     row: inj_drug, cover: part}
+  D_HS1000:    {name: "하트만 1000mL",           row: inj_drug, cover: part}
+  D_CEFA:      {name: "세파졸린 주 1g",          row: inj_drug, cover: part}
+  D_FAMO:      {name: "파모티딘 주 20mg",        row: inj_drug, cover: part}
+  D_METO:      {name: "메토클로프라미드 주 10mg", row: inj_drug, cover: part}
+  # 투약 및 조제료 (입원 원내투약 1일분)
+  MED_ACT_DAY: {name: "입원환자 조제·복약지도료", row: med_act, cover: part}
+  MED_PO_A:    {name: "경구약 1일분(아세클로페낙·레바미피드)", row: med_drug, cover: part}
+  MED_PO_B:    {name: "경구약 1일분(세파클러·파모티딘)",     row: med_drug, cover: part}
+  # 처치 및 수술료
+  INJ_IL:      {name: "병변내주입요법(25㎠미만)", row: proc,    cover: part}   # 처치 → 처치 및 수술료 행
+  PRC_SIMPLE:  {name: "단순처치",                row: proc,     cover: part}
+  PRC_INFL:    {name: "염증성처치",              row: proc,     cover: part}
+  PRC_CRYO:    {name: "사마귀제거술(냉동)",      row: proc,     cover: part}
+  PRC_SPLINT:  {name: "부목(단하지)",            row: proc,     cover: part}
+  PRC_NEB:     {name: "상기도 증기흡입치료",     row: proc,     cover: part}
+  PRC_EAR:     {name: "외이도이물·이구전색제거", row: proc,     cover: part}
+  PRC_LID:     {name: "맥립종 절개술",           row: proc,     cover: part}
+  PRC_FB:      {name: "결막 이물제거술",         row: proc,     cover: part}
+  # 치료재료대
+  MAT_SPLINT:  {name: "합성수지 스프린트",       row: material, cover: part}
+  MAT_DRESS:   {name: "합성거즈 드레싱",         row: material, cover: part}
+  # 검사료
+  LAB_CBC:     {name: "일반혈액검사(CBC)",       row: lab,      cover: part}
+  LAB_CRP:     {name: "C반응성단백(CRP)",        row: lab,      cover: part}
+  LAB_LFT:     {name: "간기능검사(AST/ALT)",     row: lab,      cover: part}
+  LAB_BUN:     {name: "신기능검사(BUN/Cr)",      row: lab,      cover: part}
+  LAB_UA:      {name: "요검사 일반(시험지봉 10항목)", row: lab,  cover: part}
+  LAB_ECG:     {name: "심전도검사",              row: lab,      cover: part}
+  LAB_KOH:     {name: "진균 KOH 도말검사",       row: lab,      cover: part}
+  LAB_IGE:     {name: "알레르기 특이IgE 검사",   row: lab,      cover: part}
+  LAB_PTA:     {name: "순음청력검사",            row: lab,      cover: part}
+  LAB_TYMP:    {name: "고막운동성검사",          row: lab,      cover: part}
+  LAB_ENDO:    {name: "비인강경검사",            row: lab,      cover: part}
+  LAB_SLIT:    {name: "세극등현미경검사",        row: lab,      cover: part}
+  LAB_IOP:     {name: "안압측정",                row: lab,      cover: part}
+  LAB_REF:     {name: "굴절검사",                row: lab,      cover: part}
+  # 비급여 (병원·종합병원만: 의원은 비급여 가격 공개 대상이 아님)
+  MRI_LSPINE:  {name: "요추 MRI",                row: mri,      cover: nonpay}
+  MRI_KNEE:    {name: "무릎 MRI",                row: mri,      cover: nonpay}
+  US_MSK:      {name: "근골격 연부조직 초음파",  row: us,       cover: nonpay}
+  MANUAL_TX:   {name: "도수치료",                row: rehab,    cover: nonpay}
+
+# ── 3. 진료과 ───────────────────────────────────────────────────
+#  diagnoses: code, name, en, onset_days(발병→첫 진료 경과일 범위), weeks(향후 치료기간 주 범위)
+#  revisit_prob: 진료일이 재진(첫 진료 이후 방문)일 확률
+#  orders: 처방 묶음. p_first/p_revisit: 초진/재진일 때 해당 묶음이 나올 확률
+#          dx: 이 진단코드일 때만 적용(생략 시 전체), items: [항목코드, 최소수량, 최대수량]
+#  inpatient_orders: 입원 시 처방 묶음. per_day: true 면 수량 × 재원일수
+departments:
+  피부과:
+    weight: 0.25
+    revisit_prob: 0.45
+    diagnoses:
+      - {code: L20.9, name: "아토피피부염, 상세불명", en: "Atopic dermatitis, unspecified", onset_days: [7, 60], weeks: [2, 6]}
+      - {code: L30.9, name: "상세불명의 피부염", en: "Dermatitis, unspecified", onset_days: [2, 14], weeks: [1, 3]}
+      - {code: L50.0, name: "알레르기성 두드러기", en: "Allergic urticaria", onset_days: [0, 3], weeks: [1, 2]}
+      - {code: B35.1, name: "손발톱백선", en: "Tinea unguium", onset_days: [30, 180], weeks: [8, 12]}
+      - {code: B07, name: "바이러스사마귀", en: "Viral warts", onset_days: [14, 90], weeks: [4, 8]}
+      - {code: L02.4, name: "사지의 피부농양, 종기 및 큰종기", en: "Cutaneous abscess of limb", onset_days: [1, 5], weeks: [1, 2]}
+    orders:
+      - {id: KOH,      p_first: 1.00, p_revisit: 0.00, dx: [B35.1], items: [[LAB_KOH, 1, 1]]}
+      - {id: CRYO,     p_first: 1.00, p_revisit: 1.00, dx: [B07],   items: [[PRC_CRYO, 1, 1]]}
+      - {id: INFL_TX,  p_first: 1.00, p_revisit: 0.00, dx: [L02.4], items: [[PRC_INFL, 1, 1], [MAT_DRESS, 1, 1]]}
+      - {id: DRESSING, p_first: 0.00, p_revisit: 1.00, dx: [L02.4], items: [[PRC_SIMPLE, 1, 1], [MAT_DRESS, 1, 1]]}
+      - {id: ANTIHIST, p_first: 0.50, p_revisit: 0.20, dx: [L50.0, L20.9], items: [[INJ_IM, 1, 1], [D_CHLOR, 1, 1]]}
+      - {id: IL_INJ,   p_first: 0.10, p_revisit: 0.10, dx: [L20.9], items: [[INJ_IL, 1, 1], [D_TRIAM, 1, 1]]}
+      - {id: IGE,      p_first: 0.15, p_revisit: 0.00, dx: [L20.9, L50.0], items: [[LAB_IGE, 1, 1]]}
+    opinions:
+      - "상기 환자는 위 상병으로 본원에서 외래 진료 및 약물치료 시행하였으며, 향후 약 {w}주간의 추가 치료가 필요할 것으로 사료됨."
+      - "상기 병명으로 외래 통원치료 중이며, 증상 호전 여부에 따라 경과 관찰 및 지속적인 약물치료를 요함."
+      - "위 상병으로 국소 처치 및 경구약 처방하였음. 향후 {w}주간 통원치료 요함."
+
+  정형외과:
+    weight: 0.30
+    admit_dx: [S33.50, M54.5, S13.4]   # 입원 가능한 진단
+    admission_prob: 0.35               # 위 진단 + 병원급 이상일 때 입원 확률
+    los_days: [3, 9]                   # 입원 시 재원일수(박) 범위
+    revisit_prob: 0.45
+    diagnoses:
+      - {code: S93.40, name: "발목의 염좌 및 긴장", en: "Sprain and strain of ankle", onset_days: [0, 3], weeks: [2, 4], xray: XR_ANKLE}
+      - {code: S33.50, name: "요추의 염좌 및 긴장", en: "Sprain and strain of lumbar spine", onset_days: [0, 5], weeks: [2, 4], xray: XR_LSPINE, mri: MRI_LSPINE}
+      - {code: S13.4, name: "경추의 염좌 및 긴장", en: "Sprain and strain of cervical spine", onset_days: [0, 5], weeks: [2, 4], xray: XR_CSPINE}
+      - {code: M54.5, name: "요통, 하부", en: "Low back pain", onset_days: [7, 60], weeks: [2, 6], xray: XR_LSPINE, mri: MRI_LSPINE}
+      - {code: M75.1, name: "회전근개 증후군", en: "Rotator cuff syndrome", onset_days: [14, 120], weeks: [4, 8], xray: XR_SHOULDER}
+      - {code: M17.9, name: "상세불명의 무릎관절증", en: "Gonarthrosis, unspecified", onset_days: [30, 365], weeks: [4, 12], xray: XR_KNEE, mri: MRI_KNEE}
+    orders:
+      - {id: XRAY,     p_first: 0.90, p_revisit: 0.15, items: [[$xray, 1, 1]]}
+      - {id: PT,       p_first: 0.70, p_revisit: 0.90, items: [[PT_HOT, 1, 1], [PT_DEEP, 1, 1], [PT_ICT, 1, 1]]}   # 기본물리치료료는 현행 수가목록에 없어 제외
+      - {id: TENS,     p_first: 0.20, p_revisit: 0.30, items: [[PT_TENS, 1, 1]]}
+      - {id: IM_NSAID, p_first: 0.50, p_revisit: 0.30, items: [[INJ_IM, 1, 1], [D_DICLO, 1, 1]]}
+      - {id: TPI,      p_first: 0.15, p_revisit: 0.25, dx: [M54.5, M75.1, S13.4, S33.50], items: [[INJ_TPI, 1, 1], [D_LIDO, 1, 2]]}
+      - {id: SPLINT,   p_first: 0.40, p_revisit: 0.00, dx: [S93.40], items: [[PRC_SPLINT, 1, 1], [MAT_SPLINT, 1, 1]]}
+      - {id: US_NP,    p_first: 0.20, p_revisit: 0.05, items: [[US_MSK, 1, 1]]}
+      - {id: MANUAL,   p_first: 0.10, p_revisit: 0.25, items: [[MANUAL_TX, 1, 1]]}
+    inpatient_orders:
+      - {id: XRAY,     p: 1.00, items: [[$xray, 1, 2]]}
+      - {id: LAB,      p: 1.00, items: [[LAB_CBC, 1, 2], [LAB_CRP, 1, 2], [LAB_LFT, 1, 1], [LAB_BUN, 1, 1], [LAB_ECG, 1, 1]]}
+      - {id: MED,      p: 1.00, per_day: true, items: [[MED_ACT_DAY, 1, 1], [MED_PO_A, 1, 1]]}
+      - {id: IV,       p: 0.90, per_day: true, items: [[INJ_IV, 1, 2], [D_DICLO, 1, 2], [D_HS1000, 1, 1]]}
+      - {id: PT,       p: 0.90, per_day: true, items: [[PT_HOT, 1, 1], [PT_ICT, 1, 1]]}
+      - {id: MRI_NP,   p: 0.40, items: [[$mri, 1, 1]]}
+    opinions:
+      - "상기 환자는 위 상병으로 본원에서 방사선 검사 및 물리치료 시행하였으며, 향후 약 {w}주간의 안정 가료 및 통원치료가 필요할 것으로 사료됨."
+      - "상기 병명으로 보존적 치료 시행 중이며, 향후 {w}주간의 추가 치료를 요함. 경과에 따라 치료기간은 변경될 수 있음."
+      - "위 상병으로 주사치료 및 물리치료 시행함. 향후 약 {w}주간 통원치료 및 경과관찰 요함."
+    inpatient_opinions:
+      - "상기 환자는 위 상병으로 본원에 입원하여 보존적 치료 및 물리치료 시행하였으며, 퇴원 후 약 {w}주간의 통원치료가 필요할 것으로 사료됨."
+
+  내과:
+    weight: 0.25
+    admit_dx: [J18.9, A09.9]
+    admission_prob: 0.40
+    los_days: [2, 6]
+    revisit_prob: 0.35
+    diagnoses:
+      - {code: J00, name: "급성 비인두염[감기]", en: "Acute nasopharyngitis", onset_days: [0, 4], weeks: [1, 1]}
+      - {code: J20.9, name: "상세불명의 급성 기관지염", en: "Acute bronchitis, unspecified", onset_days: [1, 7], weeks: [1, 2]}
+      - {code: K29.7, name: "상세불명의 위염", en: "Gastritis, unspecified", onset_days: [1, 14], weeks: [1, 3]}
+      - {code: A09.9, name: "상세불명 기원의 위장염 및 결장염", en: "Gastroenteritis and colitis of unspecified origin", onset_days: [0, 2], weeks: [1, 1]}
+      - {code: J18.9, name: "상세불명의 폐렴", en: "Pneumonia, unspecified", onset_days: [2, 7], weeks: [2, 3]}
+    orders:
+      - {id: CXR,      p_first: 0.80, p_revisit: 0.30, dx: [J20.9, J18.9], items: [[XR_CHEST, 1, 1]]}
+      - {id: AXR,      p_first: 0.30, p_revisit: 0.00, dx: [A09.9, K29.7], items: [[XR_ABD, 1, 1]]}
+      - {id: BLOOD,    p_first: 0.50, p_revisit: 0.20, dx: [J20.9, J18.9, A09.9], items: [[LAB_CBC, 1, 1], [LAB_CRP, 1, 1]]}
+      - {id: HYDRATE,  p_first: 0.50, p_revisit: 0.10, dx: [A09.9], items: [[INJ_IVDRIP, 1, 1], [D_HS1000, 1, 1], [D_METO, 1, 1], [D_FAMO, 1, 1]]}
+      - {id: IM_COLD,  p_first: 0.30, p_revisit: 0.05, dx: [J00, J20.9], items: [[INJ_IM, 1, 1], [D_DEXA, 1, 1]]}
+    inpatient_orders:
+      - {id: CXR,      p: 1.00, items: [[XR_CHEST, 1, 2]]}
+      - {id: LAB,      p: 1.00, items: [[LAB_CBC, 1, 3], [LAB_CRP, 1, 3], [LAB_LFT, 1, 2], [LAB_BUN, 1, 2], [LAB_UA, 1, 1], [LAB_ECG, 1, 1]]}
+      - {id: MED,      p: 1.00, per_day: true, items: [[MED_ACT_DAY, 1, 1], [MED_PO_B, 1, 1]]}
+      - {id: IV,       p: 1.00, per_day: true, items: [[INJ_IVDRIP, 1, 1], [INJ_IV, 1, 2], [D_HS1000, 1, 2], [D_CEFA, 0, 2], [D_FAMO, 1, 1]]}
+      - {id: CT,       p: 0.25, items: [[CT_ABD, 1, 1]]}
+    opinions:
+      - "상기 환자는 위 상병으로 본원에서 진료 및 약물치료 시행하였으며, 향후 약 {w}주간의 안정 및 추가 치료가 필요할 것으로 사료됨."
+      - "위 병명으로 검사 및 약물치료 시행함. 증상 호전 시까지 경과관찰 요함."
+    inpatient_opinions:
+      - "상기 환자는 위 상병으로 본원에 입원하여 수액 및 항생제 치료 시행하였으며, 퇴원 후 약 {w}주간 외래 추적관찰 요함."
+
+  이비인후과:
+    weight: 0.12
+    revisit_prob: 0.40
+    diagnoses:
+      - {code: J01.9, name: "상세불명의 급성 부비동염", en: "Acute sinusitis, unspecified", onset_days: [2, 10], weeks: [1, 3]}
+      - {code: J02.9, name: "상세불명의 급성 인두염", en: "Acute pharyngitis, unspecified", onset_days: [0, 4], weeks: [1, 1]}
+      - {code: H66.9, name: "상세불명의 중이염", en: "Otitis media, unspecified", onset_days: [1, 7], weeks: [1, 3]}
+      - {code: J30.4, name: "상세불명의 알레르기비염", en: "Allergic rhinitis, unspecified", onset_days: [14, 120], weeks: [2, 4]}
+    orders:
+      - {id: NEB,      p_first: 0.90, p_revisit: 0.90, dx: [J01.9, J30.4, J02.9], items: [[PRC_NEB, 1, 1]]}
+      - {id: EAR,      p_first: 0.90, p_revisit: 0.80, dx: [H66.9], items: [[PRC_EAR, 1, 1]]}
+      - {id: HEARING,  p_first: 0.60, p_revisit: 0.10, dx: [H66.9], items: [[LAB_PTA, 1, 1], [LAB_TYMP, 1, 1]]}
+      - {id: ENDO,     p_first: 0.40, p_revisit: 0.10, dx: [J01.9, J30.4], items: [[LAB_ENDO, 1, 1]]}
+      - {id: PNS,      p_first: 0.30, p_revisit: 0.00, dx: [J01.9], items: [[XR_PNS, 1, 1]]}
+      - {id: IM,       p_first: 0.15, p_revisit: 0.05, items: [[INJ_IM, 1, 1], [D_DEXA, 1, 1]]}
+    opinions:
+      - "상기 환자는 위 상병으로 본원에서 처치 및 약물치료 시행하였으며, 향후 약 {w}주간의 통원치료가 필요할 것으로 사료됨."
+      - "위 병명으로 외래 치료 중이며 증상 호전 시까지 경과관찰 요함."
+
+  안과:
+    weight: 0.08
+    revisit_prob: 0.35
+    diagnoses:
+      - {code: H10.9, name: "상세불명의 결막염", en: "Conjunctivitis, unspecified", onset_days: [0, 5], weeks: [1, 2]}
+      - {code: H00.0, name: "눈꺼풀의 다래끼 및 기타 깊은 염증", en: "Hordeolum and other deep inflammation of eyelid", onset_days: [1, 7], weeks: [1, 2]}
+      - {code: T15.1, name: "결막낭의 이물", en: "Foreign body in conjunctival sac", onset_days: [0, 1], weeks: [1, 1]}
+    orders:
+      - {id: EXAM,     p_first: 1.00, p_revisit: 0.90, items: [[LAB_SLIT, 1, 1]]}
+      - {id: IOP_REF,  p_first: 0.70, p_revisit: 0.10, items: [[LAB_IOP, 1, 1], [LAB_REF, 1, 1]]}
+      - {id: LID_ID,   p_first: 0.50, p_revisit: 0.00, dx: [H00.0], items: [[PRC_LID, 1, 1]]}
+      - {id: FB,       p_first: 1.00, p_revisit: 0.00, dx: [T15.1], items: [[PRC_FB, 1, 1]]}
+    opinions:
+      - "상기 환자는 위 상병으로 본원에서 검사 및 약물치료 시행하였으며, 향후 약 {w}주간의 통원치료가 필요할 것으로 사료됨."
+      - "위 병명으로 안약 처방 및 경과관찰 중임."
+
+# ── 4. 진단서 ───────────────────────────────────────────────────
+purposes: {"보험회사 제출용": 0.70, "회사 제출용": 0.15, "학교 제출용": 0.05, "기타 제출용": 0.10}
+sub_diagnosis_prob: 0.20
+# 진단서 발급 수수료(비급여, 계산서 '제증명수수료' 행) — 단가는 prices.yaml 의 이 키 (보건복지부 고시 상한금액)
+cert_fee_key: CERT_DX
+diagnosis_fee_on_receipt_prob: 0.60
+
+# ── 5. 결제 ────────────────────────────────────────────────────
+payment_mode: {card: 0.70, cash: 0.15, mixed: 0.15}
+cash_receipt_prob: 0.50      # 현금 결제 시 현금영수증 발급 확률
+mixed_card_ratio: [0.2, 0.6] # 혼합결제 시 카드 비율 (100원 단위)
+
+# ── 6. 가상 기관·인물 ──────────────────────────────────────────
+date_range: ["2026-01-01", "2026-09-30"]   # 시작일은 단가 기준일(prices.yaml valid_from) 이후여야 함
+hospital_prefixes: [맑은숲, 바른마디, 새봄, 한결, 푸른솔, 늘봄, 연세이음, 서울참, 다온, 하늘빛, 온누리, 튼튼, 새하늘, 바로선, 해솔, 가온, 미소담, 은빛, 정담, 수목]
+general_suffixes: [종합병원, 의료원, 기독병원, 중앙병원]
+regions:   # [시/도 시군구, 도로명 풀, 지역번호]
+  - ["서울특별시 강남구", [테헤란로, 논현로, 도산대로, 선릉로], "02"]
+  - ["서울특별시 마포구", [월드컵로, 양화로, 독막로], "02"]
+  - ["서울특별시 송파구", [올림픽로, 송파대로, 백제고분로], "02"]
+  - ["경기도 수원시 팔달구", [경수대로, 효원로, 매산로], "031"]
+  - ["경기도 수원시 영통구", [영통로, 봉영로, 매탄로], "031"]
+  - ["경기도 성남시 분당구", [황새울로, 성남대로, 정자일로], "031"]
+  - ["인천광역시 남동구", [인주대로, 예술로, 구월로], "032"]
+  - ["부산광역시 해운대구", [해운대로, 센텀중앙로, 좌동순환로], "051"]
+  - ["대구광역시 수성구", [달구벌대로, 동대구로, 들안로], "053"]
+  - ["대전광역시 서구", [대덕대로, 둔산로, 계룡로], "042"]
+surnames: [김, 이, 박, 최, 정, 강, 조, 윤, 장, 임, 한, 오, 서, 신, 권, 황, 안, 송, 류, 홍]
+given_syllables: [민, 준, 서, 연, 지, 현, 우, 영, 수, 진, 성, 호, 은, 혜, 동, 재, 훈, 희, 정, 경, 태, 승, 아, 윤]
