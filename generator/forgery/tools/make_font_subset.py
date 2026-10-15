@@ -1,4 +1,8 @@
-"""방식 2(rebuild)용 글꼴 파일 생성: config/fonts.yaml 의 글꼴마다 Regular/Bold 서브셋 TTF를 만듦.
+"""[역할] 글꼴 파일 만들기: 서식·값을 그릴 글꼴 4종의 서브셋
+[쓰는 곳] 사람이 글꼴을 바꿀 때 실행
+[입력 → 출력] assets/fonts/src → assets/fonts/rebuild
+
+방식 2(rebuild)용 글꼴 파일 생성: config/fonts.yaml 의 글꼴마다 Regular/Bold 서브셋 TTF를 만듦.
 
 원본: assets/fonts/src/ (Google Fonts 배포 TTF, 모두 SIL Open Font License)
   1. 가변 폰트는 굵기 400(Regular), 700(Bold) 고정 인스턴스를 뽑고

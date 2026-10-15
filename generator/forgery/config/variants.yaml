@@ -1,4 +1,4 @@
-# 서식은 공식 PDF 그대로 쓰고, "값을 적는 방식"만 병원(EMR)마다 다르게 뽑음
+# 서식은 공식 PDF 레이아웃 그대로 다시 그리고, "값을 적는 방식"만 병원(EMR)마다 다르게 뽑음 (값 자체는 바꾸지 않음)
 # 각 값은 사건마다 확률로 하나를 뽑음 (generator/generate.py › pick_variant)
 
 receipt:
@@ -6,7 +6,6 @@ receipt:
   patient_type:     {건강보험: 0.8, 건보: 0.2}     # 환자구분 표기
   mark:             {"■": 0.6, "√": 0.3, "V": 0.1}  # [ ] 체크 표시 문자
   receipt_no_style: {dash: 0.6, plain: 0.4}       # 20250314-0014 / 2025031400014
-  prepaid:          {true: 0.15, false: 0.85}     # ⑨ 이미 납부한 금액 = ⑧ 로 찍히는 형태
 
 diagnosis:
   english_name:     {true: 0.4, false: 0.6}       # 병명 옆 영문 병기

@@ -1,5 +1,5 @@
-_설명: '심평원 오픈 API 조회 결과 (2026-10-03). 출처 규칙: config/price_sources.yaml, 근거: assets/references/price_evidence.xlsx.
-  price = 종별 고정 단가, range = 비급여 종별 공표 최소·중간값·최대 (생성 시 이 범위에서 뽑음)'
+_설명: '심평원 오픈 API 조회 결과 (2026-10-15). 출처 규칙: config/price_sources.yaml, 근거: assets/references/price_evidence.xlsx.
+  price = 종별 단가 (종별가산 전)'
 valid_from: '2026-01-01'
 items:
   CONSULT_FIRST_clinic:
@@ -50,54 +50,702 @@ items:
       clinic: 14650
       hospital: 14650
       general: 14650
-  ROOM_4_hospital:
-    source: 심평원 수가 AB3J0
-    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 4인실기본점수입원료
+  CONSULT_FIRST_clinic_NIGHT:
+    source: 심평원 수가 AA154010
+    name: 초진진찰료-의원/야간
     from: '2026-01-01'
     price:
-      clinic: 57870
-      hospital: 57870
-      general: 57870
-  ROOM_3_hospital:
-    source: 심평원 수가 AB3N0
-    name: 병원, 정신병원, 한방병원 내 의·치과 3인실기본점수입원료
+      clinic: 23310
+      hospital: 23310
+      general: 23310
+  CONSULT_FIRST_clinic_HOLIDAY:
+    source: 심평원 수가 AA154050
+    name: 초진진찰료-의원/공휴일
     from: '2026-01-01'
     price:
-      clinic: 69440
-      hospital: 69440
-      general: 69440
-  ROOM_2_hospital:
-    source: 심평원 수가 AB3S0
-    name: 병원, 정신병원, 한방병원 내 의·치과 2인실기본점수입원료
+      clinic: 23310
+      hospital: 23310
+      general: 23310
+  CONSULT_FIRST_clinic_SAT:
+    source: 심평원 수가 AA154030
+    name: 초진진찰료-의원/토요09-13 및 09시 이전 정규진료
     from: '2026-01-01'
     price:
-      clinic: 81020
-      hospital: 81020
-      general: 81020
-  ROOM_4_general:
-    source: 심평원 수가 AB2J0
-    name: 종합병원4인실기본점수입원료
+      clinic: 4460
+      hospital: 4460
+      general: 4460
+  CONSULT_FIRST_hospital_NIGHT:
+    source: 심평원 수가 AA155010
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/야간
     from: '2026-01-01'
     price:
-      clinic: 66440
-      hospital: 66440
-      general: 66440
-  ROOM_3_general:
-    source: 심평원 수가 AB2N0
-    name: 종합병원3인실기본점수입원료
+      clinic: 21410
+      hospital: 21410
+      general: 21410
+  CONSULT_FIRST_hospital_HOLIDAY:
+    source: 심평원 수가 AA155050
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/공휴일
     from: '2026-01-01'
     price:
-      clinic: 79730
-      hospital: 79730
-      general: 79730
-  ROOM_2_general:
-    source: 심평원 수가 AB2S0
-    name: 종합병원2인실기본점수입원료
+      clinic: 21410
+      hospital: 21410
+      general: 21410
+  CONSULT_FIRST_hospital_SAT:
+    source: 심평원 수가 AA155030
+    name: 초진진찰료-병원, 정신병원, 요양병원 내 의과/토요09-13 및 09시 이전 정규진료
     from: '2026-01-01'
     price:
-      clinic: 99660
-      hospital: 99660
-      general: 99660
+      clinic: 3910
+      hospital: 3910
+      general: 3910
+  CONSULT_FIRST_general_NIGHT:
+    source: 심평원 수가 AA156010
+    name: 초진진찰료-종합병원/야간
+    from: '2026-01-01'
+    price:
+      clinic: 23380
+      hospital: 23380
+      general: 23380
+  CONSULT_FIRST_general_HOLIDAY:
+    source: 심평원 수가 AA156050
+    name: 초진진찰료-종합병원/공휴일
+    from: '2026-01-01'
+    price:
+      clinic: 23380
+      hospital: 23380
+      general: 23380
+  CONSULT_FIRST_general_SAT:
+    source: 심평원 수가 AA156030
+    name: 초진진찰료-종합병원/토요09-13 및 09시 이전 정규진료
+    from: '2026-01-01'
+    price:
+      clinic: 3910
+      hospital: 3910
+      general: 3910
+  CONSULT_REVISIT_clinic_NIGHT:
+    source: 심평원 수가 AA254010
+    name: 재진진찰료-의원/야간
+    from: '2026-01-01'
+    price:
+      clinic: 16180
+      hospital: 16180
+      general: 16180
+  CONSULT_REVISIT_clinic_HOLIDAY:
+    source: 심평원 수가 AA254050
+    name: 재진진찰료-의원/공휴일
+    from: '2026-01-01'
+    price:
+      clinic: 16180
+      hospital: 16180
+      general: 16180
+  CONSULT_REVISIT_clinic_SAT:
+    source: 심평원 수가 AA254030
+    name: 재진진찰료-의원/토요09-13 및 09시 이전 정규진료
+    from: '2026-01-01'
+    price:
+      clinic: 2810
+      hospital: 2810
+      general: 2810
+  CONSULT_REVISIT_hospital_NIGHT:
+    source: 심평원 수가 AA255010
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/야간
+    from: '2026-01-01'
+    price:
+      clinic: 15150
+      hospital: 15150
+      general: 15150
+  CONSULT_REVISIT_hospital_HOLIDAY:
+    source: 심평원 수가 AA255050
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/공휴일
+    from: '2026-01-01'
+    price:
+      clinic: 15150
+      hospital: 15150
+      general: 15150
+  CONSULT_REVISIT_hospital_SAT:
+    source: 심평원 수가 AA255030
+    name: 재진진찰료-병원, 정신병원, 요양병원 내 의과/토요09-13 및 09시 이전 정규진료
+    from: '2026-01-01'
+    price:
+      clinic: 2460
+      hospital: 2460
+      general: 2460
+  CONSULT_REVISIT_general_NIGHT:
+    source: 심평원 수가 AA256010
+    name: 재진진찰료-종합병원/야간
+    from: '2026-01-01'
+    price:
+      clinic: 17120
+      hospital: 17120
+      general: 17120
+  CONSULT_REVISIT_general_HOLIDAY:
+    source: 심평원 수가 AA256050
+    name: 재진진찰료-종합병원/공휴일
+    from: '2026-01-01'
+    price:
+      clinic: 17120
+      hospital: 17120
+      general: 17120
+  CONSULT_REVISIT_general_SAT:
+    source: 심평원 수가 AA256030
+    name: 재진진찰료-종합병원/토요09-13 및 09시 이전 정규진료
+    from: '2026-01-01'
+    price:
+      clinic: 2460
+      hospital: 2460
+      general: 2460
+  MEDKEEP_OUT_clinic:
+    source: 심평원 수가 AL801
+    name: 외래환자 의약품관리료-1일분(의원,치과의원,보건의료원 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 220
+      hospital: 220
+      general: 220
+  MEDKEEP_OUT_hospital:
+    source: 심평원 수가 AL300
+    name: 외래환자 의약품관리료-병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과[방문당]
+    from: '2026-01-01'
+    price:
+      clinic: 70
+      hospital: 70
+      general: 70
+  MEDKEEP_OUT_general:
+    source: 심평원 수가 AL200
+    name: 외래환자 의약품관리료[방문당]-종합병원
+    from: '2026-01-01'
+    price:
+      clinic: 60
+      hospital: 60
+      general: 60
+  MEDKEEP_IN_general_1:
+    source: 심평원 수가 AL651
+    name: 입원환자 의약품관리료-1일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 1560
+      hospital: 1560
+      general: 1560
+  MEDKEEP_IN_general_2:
+    source: 심평원 수가 AL652
+    name: 입원환자 의약품관리료-2일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 2960
+      hospital: 2960
+      general: 2960
+  MEDKEEP_IN_general_3:
+    source: 심평원 수가 AL653
+    name: 입원환자 의약품관리료-3일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 4360
+      hospital: 4360
+      general: 4360
+  MEDKEEP_IN_general_4:
+    source: 심평원 수가 AL654
+    name: 입원환자 의약품관리료-4일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 5300
+      hospital: 5300
+      general: 5300
+  MEDKEEP_IN_general_5:
+    source: 심평원 수가 AL655
+    name: 입원환자 의약품관리료-5일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 6230
+      hospital: 6230
+      general: 6230
+  MEDKEEP_IN_general_6:
+    source: 심평원 수가 AL656
+    name: 입원환자 의약품관리료-6일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 7160
+      hospital: 7160
+      general: 7160
+  MEDKEEP_IN_general_7:
+    source: 심평원 수가 AL657
+    name: 입원환자 의약품관리료-7일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 8100
+      hospital: 8100
+      general: 8100
+  MEDKEEP_IN_general_8:
+    source: 심평원 수가 AL658
+    name: 입원환자 의약품관리료-8일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 9040
+      hospital: 9040
+      general: 9040
+  MEDKEEP_IN_general_9:
+    source: 심평원 수가 AL659
+    name: 입원환자 의약품관리료-9일분(종합병원)
+    from: '2026-01-01'
+    price:
+      clinic: 9980
+      hospital: 9980
+      general: 9980
+  MEDKEEP_IN_hospital_1:
+    source: 심평원 수가 AL751
+    name: 입원환자 의약품관리료-1일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 860
+      hospital: 860
+      general: 860
+  MEDKEEP_IN_hospital_2:
+    source: 심평원 수가 AL752
+    name: 입원환자 의약품관리료-2일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 1640
+      hospital: 1640
+      general: 1640
+  MEDKEEP_IN_hospital_3:
+    source: 심평원 수가 AL753
+    name: 입원환자 의약품관리료-3일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 2410
+      hospital: 2410
+      general: 2410
+  MEDKEEP_IN_hospital_4:
+    source: 심평원 수가 AL754
+    name: 입원환자 의약품관리료-4일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 2930
+      hospital: 2930
+      general: 2930
+  MEDKEEP_IN_hospital_5:
+    source: 심평원 수가 AL755
+    name: 입원환자 의약품관리료-5일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 3450
+      hospital: 3450
+      general: 3450
+  MEDKEEP_IN_hospital_6:
+    source: 심평원 수가 AL756
+    name: 입원환자 의약품관리료-6일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 3960
+      hospital: 3960
+      general: 3960
+  MEDKEEP_IN_hospital_7:
+    source: 심평원 수가 AL757
+    name: 입원환자 의약품관리료-7일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 4480
+      hospital: 4480
+      general: 4480
+  MEDKEEP_IN_hospital_8:
+    source: 심평원 수가 AL758
+    name: 입원환자 의약품관리료-8일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 5000
+      hospital: 5000
+      general: 5000
+  MEDKEEP_IN_hospital_9:
+    source: 심평원 수가 AL759
+    name: 입원환자 의약품관리료-9일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2026-01-01'
+    price:
+      clinic: 5520
+      hospital: 5520
+      general: 5520
+  ROOM_4_general_GS:
+    source: 심평원 수가 AB2JS
+    name: 종합병원S등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 141750
+      hospital: 141750
+      general: 141750
+  ROOM_4_general_GA:
+    source: 심평원 수가 AB2JA
+    name: 종합병원A등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 126560
+      hospital: 126560
+      general: 126560
+  ROOM_4_general_G1:
+    source: 심평원 수가 AB2J1
+    name: 종합병원1등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 113000
+      hospital: 113000
+      general: 113000
+  ROOM_4_general_G2:
+    source: 심평원 수가 AB2J2
+    name: 종합병원2등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 101700
+      hospital: 101700
+      general: 101700
+  ROOM_4_general_G3:
+    source: 심평원 수가 AB2J3
+    name: 종합병원3등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 91530
+      hospital: 91530
+      general: 91530
+  ROOM_4_general_G4:
+    source: 심평원 수가 AB2J4
+    name: 종합병원4등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 82380
+      hospital: 82380
+      general: 82380
+  ROOM_4_general_G5_metro:
+    source: 심평원 수가 AB2L5
+    name: 종합병원5등급간호관리료적용4인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 57660
+      hospital: 57660
+      general: 57660
+  ROOM_4_general_G5:
+    source: 심평원 수가 AB2M5
+    name: 종합병원5등급간호관리료적용4인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 61780
+      hospital: 61780
+      general: 61780
+  ROOM_3_general_GS:
+    source: 심평원 수가 AB2NS
+    name: 종합병원S등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 170100
+      hospital: 170100
+      general: 170100
+  ROOM_3_general_GA:
+    source: 심평원 수가 AB2NA
+    name: 종합병원A등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 151870
+      hospital: 151870
+      general: 151870
+  ROOM_3_general_G1:
+    source: 심평원 수가 AB2N1
+    name: 종합병원1등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 135600
+      hospital: 135600
+      general: 135600
+  ROOM_3_general_G2:
+    source: 심평원 수가 AB2N2
+    name: 종합병원2등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 122040
+      hospital: 122040
+      general: 122040
+  ROOM_3_general_G3:
+    source: 심평원 수가 AB2N3
+    name: 종합병원3등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 109840
+      hospital: 109840
+      general: 109840
+  ROOM_3_general_G4:
+    source: 심평원 수가 AB2N4
+    name: 종합병원4등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 98850
+      hospital: 98850
+      general: 98850
+  ROOM_3_general_G5_metro:
+    source: 심평원 수가 AB2Q5
+    name: 종합병원5등급간호관리료적용3인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 69200
+      hospital: 69200
+      general: 69200
+  ROOM_3_general_G5:
+    source: 심평원 수가 AB2R5
+    name: 종합병원5등급간호관리료적용3인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 74140
+      hospital: 74140
+      general: 74140
+  ROOM_2_general_GS:
+    source: 심평원 수가 AB2SS
+    name: 종합병원S등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 212620
+      hospital: 212620
+      general: 212620
+  ROOM_2_general_GA:
+    source: 심평원 수가 AB2SA
+    name: 종합병원A등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 189840
+      hospital: 189840
+      general: 189840
+  ROOM_2_general_G1:
+    source: 심평원 수가 AB2S1
+    name: 종합병원1등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 169500
+      hospital: 169500
+      general: 169500
+  ROOM_2_general_G2:
+    source: 심평원 수가 AB2S2
+    name: 종합병원2등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 152550
+      hospital: 152550
+      general: 152550
+  ROOM_2_general_G3:
+    source: 심평원 수가 AB2S3
+    name: 종합병원3등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 137300
+      hospital: 137300
+      general: 137300
+  ROOM_2_general_G4:
+    source: 심평원 수가 AB2S4
+    name: 종합병원4등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 123570
+      hospital: 123570
+      general: 123570
+  ROOM_2_general_G5_metro:
+    source: 심평원 수가 AB2U5
+    name: 종합병원5등급간호관리료적용2인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 86500
+      hospital: 86500
+      general: 86500
+  ROOM_2_general_G5:
+    source: 심평원 수가 AB2V5
+    name: 종합병원5등급간호관리료적용2인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 92680
+      hospital: 92680
+      general: 92680
+  ROOM_4_hospital_GA:
+    source: 심평원 수가 AB3JA
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 A등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 112190
+      hospital: 112190
+      general: 112190
+  ROOM_4_hospital_G1:
+    source: 심평원 수가 AB3J1
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 1등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 101990
+      hospital: 101990
+      general: 101990
+  ROOM_4_hospital_G2:
+    source: 심평원 수가 AB3J2
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 2등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 92720
+      hospital: 92720
+      general: 92720
+  ROOM_4_hospital_G3:
+    source: 심평원 수가 AB3J3
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 3등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 84290
+      hospital: 84290
+      general: 84290
+  ROOM_4_hospital_G4:
+    source: 심평원 수가 AB3J4
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 4등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 76630
+      hospital: 76630
+      general: 76630
+  ROOM_4_hospital_G5:
+    source: 심평원 수가 AB3J5
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 5등급간호관리료적용4인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 68970
+      hospital: 68970
+      general: 68970
+  ROOM_4_hospital_G6_metro:
+    source: 심평원 수가 AB3L6
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 6등급간호관리료적용4인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 48280
+      hospital: 48280
+      general: 48280
+  ROOM_4_hospital_G6:
+    source: 심평원 수가 AB3M6
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 6등급간호관리료적용4인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 55170
+      hospital: 55170
+      general: 55170
+  ROOM_3_hospital_GA:
+    source: 심평원 수가 AB3NA
+    name: 병원, 정신병원, 한방병원 내 의·치과 A등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 134630
+      hospital: 134630
+      general: 134630
+  ROOM_3_hospital_G1:
+    source: 심평원 수가 AB3N1
+    name: 병원, 정신병원, 한방병원 내 의·치과 1등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 122390
+      hospital: 122390
+      general: 122390
+  ROOM_3_hospital_G2:
+    source: 심평원 수가 AB3N2
+    name: 병원, 정신병원, 한방병원 내 의·치과 2등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 111270
+      hospital: 111270
+      general: 111270
+  ROOM_3_hospital_G3:
+    source: 심평원 수가 AB3N3
+    name: 병원, 정신병원, 한방병원 내 의·치과 3등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 101150
+      hospital: 101150
+      general: 101150
+  ROOM_3_hospital_G4:
+    source: 심평원 수가 AB3N4
+    name: 병원, 정신병원, 한방병원 내 의·치과 4등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 91960
+      hospital: 91960
+      general: 91960
+  ROOM_3_hospital_G5:
+    source: 심평원 수가 AB3N5
+    name: 병원, 정신병원, 한방병원 내 의·치과 5등급간호관리료적용3인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 82760
+      hospital: 82760
+      general: 82760
+  ROOM_3_hospital_G6_metro:
+    source: 심평원 수가 AB3Q6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용3인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 57930
+      hospital: 57930
+      general: 57930
+  ROOM_3_hospital_G6:
+    source: 심평원 수가 AB3R6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용3인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 66210
+      hospital: 66210
+      general: 66210
+  ROOM_2_hospital_GA:
+    source: 심평원 수가 AB3SA
+    name: 병원, 정신병원, 한방병원 내 의·치과 A등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 157070
+      hospital: 157070
+      general: 157070
+  ROOM_2_hospital_G1:
+    source: 심평원 수가 AB3S1
+    name: 병원, 정신병원, 한방병원 내 의·치과 1등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 142790
+      hospital: 142790
+      general: 142790
+  ROOM_2_hospital_G2:
+    source: 심평원 수가 AB3S2
+    name: 병원, 정신병원, 한방병원 내 의·치과 2등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 129810
+      hospital: 129810
+      general: 129810
+  ROOM_2_hospital_G3:
+    source: 심평원 수가 AB3S3
+    name: 병원, 정신병원, 한방병원 내 의·치과 3등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 118010
+      hospital: 118010
+      general: 118010
+  ROOM_2_hospital_G4:
+    source: 심평원 수가 AB3S4
+    name: 병원, 정신병원, 한방병원 내 의·치과 4등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 107280
+      hospital: 107280
+      general: 107280
+  ROOM_2_hospital_G5:
+    source: 심평원 수가 AB3S5
+    name: 병원, 정신병원, 한방병원 내 의·치과 5등급간호관리료적용2인실입원료
+    from: '2026-01-01'
+    price:
+      clinic: 96550
+      hospital: 96550
+      general: 96550
+  ROOM_2_hospital_G6_metro:
+    source: 심평원 수가 AB3U6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용2인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2026-01-01'
+    price:
+      clinic: 67590
+      hospital: 67590
+      general: 67590
+  ROOM_2_hospital_G6:
+    source: 심평원 수가 AB3V6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용2인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2026-01-01'
+    price:
+      clinic: 77240
+      hospital: 77240
+      general: 77240
   MEAL_hospital:
     source: 심평원 수가 Y2300
     name: 기본식사-일반식(1식당)-병원,정신병원,요양병원,치과병원,한방병원
@@ -114,14 +762,38 @@ items:
       clinic: 5410
       hospital: 5410
       general: 5410
-  XR_ANKLE:
-    source: 심평원 수가 G7402
-    name: 족관절2매
+  MEAL_DIETITIAN:
+    source: 심평원 수가 Z0010
+    name: 일반식가산-영양사(1식당)
     from: '2026-01-01'
     price:
-      clinic: 8730
-      hospital: 7650
-      general: 7650
+      clinic: 650
+      hospital: 650
+      general: 650
+  MEAL_COOK:
+    source: 심평원 수가 Z0011
+    name: 일반식가산-조리사(1식당)
+    from: '2026-01-01'
+    price:
+      clinic: 600
+      hospital: 600
+      general: 600
+  MEAL_DIRECT:
+    source: 심평원 수가 Z0030
+    name: 입원환자 식대-직영가산
+    from: '2026-01-01'
+    price:
+      clinic: 240
+      hospital: 240
+      general: 240
+  MED_ACT_DAY:
+    source: 심평원 수가 J2000
+    name: 입원환자 조제·복약지도료(1일당)
+    from: '2026-01-01'
+    price:
+      clinic: 2000
+      hospital: 1750
+      general: 1750
   XR_KNEE:
     source: 심평원 수가 G7202
     name: 슬관절2매
@@ -146,14 +818,6 @@ items:
       clinic: 11390
       hospital: 9990
       general: 9990
-  XR_CSPINE:
-    source: 심평원 수가 G4103
-    name: 경추3매
-    from: '2026-01-01'
-    price:
-      clinic: 11390
-      hospital: 9980
-      general: 9980
   XR_CHEST:
     source: 심평원 수가 G2101
     name: 흉부[직접]1매
@@ -162,14 +826,6 @@ items:
       clinic: 8300
       hospital: 7280
       general: 7280
-  XR_PNS:
-    source: 심평원 수가 G1201
-    name: 부비동1매
-    from: '2026-01-01'
-    price:
-      clinic: 5350
-      hospital: 4690
-      general: 4690
   XR_ABD:
     source: 심평원 수가 G2401
     name: 복부1매
@@ -178,14 +834,14 @@ items:
       clinic: 5350
       hospital: 4690
       general: 4690
-  CT_ABD:
-    source: 심평원 수가 HA435
-    name: 일반전산화단층영상진단-복부-조영제를사용하지않는경우-기타의경우
+  XR_PNS:
+    source: 심평원 수가 G1201
+    name: 부비동1매
     from: '2026-01-01'
     price:
-      clinic: 105030
-      hospital: 92060
-      general: 92060
+      clinic: 5350
+      hospital: 4690
+      general: 4690
   PT_HOT:
     source: 심평원 수가 MM010
     name: 표층열치료
@@ -194,6 +850,14 @@ items:
       clinic: 1010
       hospital: 890
       general: 890
+  PT_HOT_HALF:
+    source: 심평원 수가 MM015
+    name: 표층열치료(심층열동시)
+    from: '2026-01-01'
+    price:
+      clinic: 510
+      hospital: 440
+      general: 440
   PT_DEEP:
     source: 심평원 수가 MM020
     name: 심층열치료[1일당]
@@ -226,6 +890,14 @@ items:
       clinic: 8570
       hospital: 7510
       general: 7510
+  PRC_NEB:
+    source: 심평원 수가 MM303
+    name: 상기도증기흡입치료
+    from: '2026-01-01'
+    price:
+      clinic: 2320
+      hospital: 2030
+      general: 2030
   INJ_IM:
     source: 심평원 수가 KK010
     name: 피하또는근육내주사
@@ -258,22 +930,6 @@ items:
       clinic: 22680
       hospital: 19880
       general: 19880
-  PRC_SIMPLE:
-    source: 심평원 수가 M0111
-    name: 단순처치[1일당]
-    from: '2026-01-01'
-    price:
-      clinic: 7220
-      hospital: 6330
-      general: 6330
-  PRC_INFL:
-    source: 심평원 수가 M0121
-    name: 염증성처치[1일당]
-    from: '2026-01-01'
-    price:
-      clinic: 13520
-      hospital: 11850
-      general: 11850
   PRC_CRYO:
     source: 심평원 수가 N1434
     name: 사마귀제거술-소작술[전기, 레이저, 냉동 포함]-기타
@@ -282,22 +938,6 @@ items:
       clinic: 37190
       hospital: 32600
       general: 32600
-  PRC_SPLINT:
-    source: 심평원 수가 T6154
-    name: 부목-단하지[하퇴로부터 족부까지]
-    from: '2026-01-01'
-    price:
-      clinic: 24770
-      hospital: 21710
-      general: 21710
-  PRC_NEB:
-    source: 심평원 수가 MM303
-    name: 상기도증기흡입치료
-    from: '2026-01-01'
-    price:
-      clinic: 2320
-      hospital: 2030
-      general: 2030
   PRC_EAR:
     source: 심평원 수가 S5571
     name: 외이도이물또는이구전색제거[간단한것은 기본진료료에 포함]-복잡한것
@@ -314,14 +954,14 @@ items:
       clinic: 25380
       hospital: 22250
       general: 22250
-  PRC_FB:
-    source: 심평원 수가 S4930
-    name: 결막이물제거술
+  PRC_LID_OFFHOURS:
+    source: 심평원 수가 S5400080
+    name: 맥립종절개술/(의원·치과의원(보건의료원포함)) 야간,공휴,토요
     from: '2026-01-01'
     price:
-      clinic: 18280
-      hospital: 16030
-      general: 16030
+      clinic: 33000
+      hospital: 33000
+      general: 33000
   LAB_CBC:
     source: 심평원 수가 D0002010 + 심평원 수가 D0002030 + 심평원 수가 D0002050 + 심평원 수가 D0002040
     name: 일반혈액검사(CBC)-[혈구세포-장비측정]_백혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_적혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_혈색소[광전비색법]
@@ -355,22 +995,23 @@ items:
       clinic: 3750
       hospital: 3290
       general: 3290
-  LAB_UA:
-    source: 심평원 수가 D2242010×10
-    name: 요검사-[화학반응-장비측정]_요백혈구시험지봉검사
+  LAB_HBA1C:
+    source: 심평원 수가 D3061
+    name: 헤모글로빈A1C-[화학반응-장비측정]
     from: '2026-01-01'
     price:
-      clinic: 6400
-      hospital: 5600
-      general: 5600
-  LAB_ECG:
-    source: 심평원 수가 E6541
-    name: 심전도검사-심전도기록및판독[표준12유도]
+      clinic: 8550
+      hospital: 7490
+      general: 7490
+  LAB_LIPID:
+    source: 심평원 수가 D2611 + 심평원 수가 D2263 + 심평원 수가 D2613 + 심평원 수가 D2614
+    name: 콜레스테롤-총콜레스테롤[화학반응-장비측정] + 지질[화학반응-장비측정]-트리글리세라이드 + 콜레스테롤-HDL 콜레스테롤[화학반응-장비측정]
+      + 콜레스테롤-LDL콜레스테롤[화학반응-장비측정]
     from: '2026-01-01'
     price:
-      clinic: 9960
-      hospital: 8730
-      general: 8730
+      clinic: 21230
+      hospital: 18600
+      general: 18600
   LAB_KOH:
     source: 심평원 수가 D6203
     name: 일반진균검사-KOH도말-조갑조직
@@ -387,6 +1028,14 @@ items:
       clinic: 19720
       hospital: 17290
       general: 17290
+  LAB_ECG:
+    source: 심평원 수가 E6541
+    name: 심전도검사-심전도기록및판독[표준12유도]
+    from: '2026-01-01'
+    price:
+      clinic: 9960
+      hospital: 8730
+      general: 8730
   LAB_PTA:
     source: 심평원 수가 F6341
     name: 청력검사[순음청력계기에의한검사]-표준순음청력검사
@@ -435,14 +1084,6 @@ items:
       clinic: 15280
       hospital: 13390
       general: 13390
-  MED_ACT_DAY:
-    source: 심평원 수가 J2000
-    name: 입원환자 조제·복약지도료(1일당)
-    from: '2026-01-01'
-    price:
-      clinic: 2000
-      hospital: 1750
-      general: 1750
   D_DICLO:
     source: 심평원 약가 143535BIJ
     name: 디클로페낙나트륨 75mg/2mL
@@ -491,14 +1132,6 @@ items:
       clinic: 1586
       hospital: 1586
       general: 1586
-  D_CEFA:
-    source: 심평원 약가 125701BIJ
-    name: 세파졸린나트륨 1g
-    from: '2026-01-01'
-    price:
-      clinic: 1025
-      hospital: 1025
-      general: 1025
   D_FAMO:
     source: 심평원 약가 157302BIJ
     name: 파모티딘 20mg 주
@@ -515,6 +1148,14 @@ items:
       clinic: 447
       hospital: 447
       general: 447
+  D_CEFA:
+    source: 심평원 약가 125701BIJ
+    name: 세파졸린나트륨 1g
+    from: '2026-01-01'
+    price:
+      clinic: 1025
+      hospital: 1025
+      general: 1025
   MED_PO_A:
     source: 심평원 약가 100901ATB×2 + 심평원 약가 222901ATB×3
     name: 아세클로페낙 100mg + 레바미피드 100mg
@@ -523,84 +1164,8 @@ items:
       clinic: 584
       hospital: 584
       general: 584
-  MED_PO_B:
-    source: 심평원 약가 125201ACH×3 + 심평원 약가 157302ATB×2
-    name: 세파클러 250mg + 파모티딘 20mg
-    from: '2023-09-05'
-    price:
-      clinic: 1438
-      hospital: 1438
-      general: 1438
-  MAT_SPLINT:
-    source: 심평원 치료재료 118017
-    name: 합성수지스프린트 (ONE STEP TYPE) - 4" X 30"
-    from: null
-    price:
-      clinic: 27300
-      hospital: 27300
-      general: 27300
-  MAT_DRESS:
-    source: 심평원 치료재료 250212
-    name: 합성거즈 드레싱류(SHEET TYPE/10㎠이상-40㎠미만)
-    from: null
-    price:
-      clinic: 358
-      hospital: 358
-      general: 358
-  MRI_LSPINE:
-    source: 심평원 비급여 HE1110000
-    name: 자기공명영상진단료(MRI-기본검사)/척추-요천추/일반
-    from: null
-    range:
-      hospital:
-        min: 200000
-        med: 450000
-        max: 700000
-      general:
-        min: 317150
-        med: 530000
-        max: 905000
-  MRI_KNEE:
-    source: 심평원 비급여 HE1200000
-    name: 자기공명영상진단료(MRI-기본검사)/근골격계-슬관절/일반
-    from: null
-    range:
-      hospital:
-        min: 250000
-        med: 450000
-        max: 700000
-      general:
-        min: 270052
-        med: 520000
-        max: 927000
-  US_MSK:
-    source: 심평원 비급여 EB4700000
-    name: 초음파검사료(진단초음파)/근골격, 연부-연부조직 초음파/일반
-    from: null
-    range:
-      hospital:
-        min: 10000
-        med: 80000
-        max: 250000
-      general:
-        min: 17000
-        med: 100000
-        max: 300000
-  MANUAL_TX:
-    source: 심평원 비급여 MX1220000
-    name: 이학요법료/도수치료
-    from: null
-    range:
-      hospital:
-        min: 1000
-        med: 100000
-        max: 500000
-      general:
-        min: 10000
-        med: 70000
-        max: 330309
   CERT_DX:
-    source: 보건복지부 고시 제증명수수료 상한
+    source: 보건복지부 고시 제2021-34호 제증명수수료 상한
     name: 일반진단서 발급 수수료
     from: null
     price:

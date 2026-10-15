@@ -1,4 +1,8 @@
-"""심평원 통계 API → 처방 규칙 점검용 참고 통계 (assets/references/reference_stats.xlsx).
+"""[역할] 참고 통계 받기: 처방 구성이 실제 진료 통계와 어긋나지 않는지 사람이 확인하는 자료 (생성기는 읽지 않음)
+[쓰는 곳] 사람이 실행
+[입력 → 출력] 심평원 통계 API → assets/references/reference_stats.xlsx
+
+심평원 통계 API → 처방 규칙 점검용 참고 통계 (assets/references/reference_stats.xlsx).
 
 생성기는 이 통계를 직접 읽지 않음. codebook.yaml 의 처방 묶음·약제 선택이 실제 진료 통계와 어긋나지 않는지
 사람이 확인하는 근거 자료 (보고서 부록).
@@ -40,13 +44,17 @@ def main():
     cb = yaml.safe_load((ROOT / "config" / "codebook.yaml").read_text(encoding="utf-8"))
 
     # 약제 항목 → 그 약을 쓰는 진단코드(3자리): codebook 처방 묶음에서 역추적
+    #   외래 묶음: 묶음의 dx (없으면 과의 모든 진단) / 입원 묶음: 묶음의 dx (없으면 입원 가능 진단 admit_dx)
     drug_dx = defaultdict(set)
     for dept in cb["departments"].values():
-        for s in dept["orders"] + dept.get("inpatient_orders", []):
-            dxs = s.get("dx") or [d["code"] for d in dept["diagnoses"]]
+        groups = [(s, [d["code"] for d in dept["diagnoses"]]) for s in dept["orders"]]
+        groups += [(s, dept["admit_dx"]) for s in dept.get("inpatient_orders", [])]
+        for s, default_dx in groups:
+            dxs = s.get("dx") or default_dx
             for code, *_ in s["items"]:
-                if code.startswith(("D_", "MED_PO")):
-                    drug_dx[code].update(d.replace(".", "")[:3] for d in dxs)
+                for c in code.split("|"):
+                    if c.startswith(("D_", "MED_PO")):
+                        drug_dx[c].update(d.replace(".", "")[:3] for d in dxs)
 
     from openpyxl import Workbook
     wb = Workbook()
@@ -100,7 +108,10 @@ def main():
             # 상병기호 앞의 'A'(양방) 표시를 떼고 KCD 3자리로 비교
             kcd = {c: re.sub(r"^[A-Z](?=[A-Z]\d\d$)", "", c) for c in ranked}
             mine = sorted(drug_dx.get(item, set()))
-            ranks = [f"{d}:{next((i + 1 for i, c in enumerate(ranked) if kcd[c] == d), '-')}" for d in mine]
+            if not rows:   # 이 주성분은 API 에 상병별 사용량 자료가 없음 (순위를 매길 수 없음)
+                ranks = ["(상병별 사용량 통계 없음)"]
+            else:
+                ranks = [f"{d}:{next((i + 1 for i, c in enumerate(ranked) if kcd[c] == d), '-')}" for d in mine]
             ws.append([item, p["drug"], rows[0]["gnlNmCdNm"] if rows else "", ", ".join(mine), ", ".join(ranks),
                        *[f"{kcd[c]} {names[c]} ({qty[c]:,})" for c in ranked[:5]]])
             print(f"  약제 {p['drug']} {item:9s} 진단순위 {', '.join(ranks)}", flush=True)

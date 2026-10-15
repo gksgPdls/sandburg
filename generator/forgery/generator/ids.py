@@ -1,4 +1,8 @@
-"""식별번호 생성·검증 (주민번호, 사업자등록번호 등)."""
+"""[역할] 식별번호: 주민번호 검증번호 확인, 사업자등록번호·전화·면허번호 생성
+[쓰는 곳] generate.py, main.py
+[입력 → 출력] -
+
+식별번호 생성·검증 (주민번호, 사업자등록번호 등)."""
 import random
 
 RRN_WEIGHTS = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5]
@@ -26,10 +30,8 @@ def biz_is_valid(bizno: str) -> bool:
     return len(digits) == 10 and biz_check_digit(digits[:9]) == int(digits[9])
 
 
-def make_bizno(rng: random.Random, inst_type: str) -> str:
-    """사업자등록번호 XXX-XX-XXXXX. 가운데 2자리: 개인 면세사업자(의원) 90번대, 비영리법인(병원) 82."""
-    head = f"{rng.randint(101, 899):03d}"
-    mid = f"{rng.choice([90, 91, 92, 96, 97, 98])}" if inst_type == "clinic" else rng.choice(["82", "81"])
+def make_bizno(rng: random.Random, head: str, mid: str) -> str:
+    """사업자등록번호 XXX-XX-XXXXX. head: 관할 세무서 코드, mid: 구분코드 (90~99 개인 면세사업자, 82 비영리법인)."""
     serial = f"{rng.randint(0, 9999):04d}"
     first9 = head + mid + serial
     return f"{head}-{mid}-{serial}{biz_check_digit(first9)}"

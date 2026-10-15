@@ -1,0 +1,1323 @@
+_설명: '심평원 「2025 건강보험요양급여비용」 책자(y2025.pdf)의 상대가치점수 × 2025 환산지수(의원 94.1, 병원 82.2), 10원
+  단위 반올림. 식대는 책자 고시금액. 약가는 tools/build_list_prices.py. 만든 도구: tools/build_book_prices.py'
+valid_from: '2025-01-01'
+items:
+  CONSULT_FIRST_clinic:
+    source: 심평원 2025 요양급여비용 AA154
+    name: 초진진찰료-의원
+    from: '2025-01-01'
+    price:
+      clinic: 18410
+      hospital: 18410
+      general: 18410
+    basis: 상대가치점수 195.63 (2026 197.12)
+  CONSULT_REVISIT_clinic:
+    source: 심평원 2025 요양급여비용 AA254
+    name: 재진진찰료-의원
+    from: '2025-01-01'
+    price:
+      clinic: 13160
+      hospital: 13160
+      general: 13160
+    basis: 상대가치점수 139.85 (2026 139.85)
+  CONSULT_FIRST_hospital:
+    source: 심평원 2025 요양급여비용 AA155
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과
+    from: '2025-01-01'
+    price:
+      clinic: 17170
+      hospital: 17170
+      general: 17170
+    basis: 상대가치점수 208.86 (2026 208.86)
+  CONSULT_REVISIT_hospital:
+    source: 심평원 2025 요양급여비용 AA255
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과
+    from: '2025-01-01'
+    price:
+      clinic: 12440
+      hospital: 12440
+      general: 12440
+    basis: 상대가치점수 151.37 (2026 151.37)
+  CONSULT_FIRST_general:
+    source: 심평원 2025 요양급여비용 AA156
+    name: 초진진찰료-종합병원
+    from: '2025-01-01'
+    price:
+      clinic: 19100
+      hospital: 19100
+      general: 19100
+    basis: 상대가치점수 232.33 (2026 232.33)
+  CONSULT_REVISIT_general:
+    source: 심평원 2025 요양급여비용 AA256
+    name: 재진진찰료-종합병원
+    from: '2025-01-01'
+    price:
+      clinic: 14370
+      hospital: 14370
+      general: 14370
+    basis: 상대가치점수 174.84 (2026 174.84)
+  CONSULT_FIRST_clinic_NIGHT:
+    source: 심평원 2025 요양급여비용 AA154010
+    name: 초진진찰료-의원/야간
+    from: '2025-01-01'
+    price:
+      clinic: 22800
+      hospital: 22800
+      general: 22800
+    basis: 상대가치점수 242.3 (2026 243.79) ← 진찰료 195.63 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_clinic_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA154050
+    name: 초진진찰료-의원/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 22800
+      hospital: 22800
+      general: 22800
+    basis: 상대가치점수 242.3 (2026 243.79) ← 진찰료 195.63 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_clinic_SAT:
+    source: 심평원 2025 요양급여비용 AA154030
+    name: 초진진찰료-의원/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 4390
+      hospital: 4390
+      general: 4390
+    basis: 상대가치점수 46.67 (2026 46.67) ← 기본진찰료 × 30% = 46.67
+  CONSULT_FIRST_hospital_NIGHT:
+    source: 심평원 2025 요양급여비용 AA155010
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/야간
+    from: '2025-01-01'
+    price:
+      clinic: 21000
+      hospital: 21000
+      general: 21000
+    basis: 상대가치점수 255.53 (2026 255.53) ← 진찰료 208.86 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_hospital_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA155050
+    name: 초진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 21000
+      hospital: 21000
+      general: 21000
+    basis: 상대가치점수 255.53 (2026 255.53) ← 진찰료 208.86 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_hospital_SAT:
+    source: 심평원 2025 요양급여비용 AA155030
+    name: 초진진찰료-병원, 정신병원, 요양병원 내 의과/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 3840
+      hospital: 3840
+      general: 3840
+    basis: 상대가치점수 46.67 (2026 46.67) ← 기본진찰료 × 30% = 46.67
+  CONSULT_FIRST_general_NIGHT:
+    source: 심평원 2025 요양급여비용 AA156010
+    name: 초진진찰료-종합병원/야간
+    from: '2025-01-01'
+    price:
+      clinic: 22930
+      hospital: 22930
+      general: 22930
+    basis: 상대가치점수 279.0 (2026 279) ← 진찰료 232.33 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_general_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA156050
+    name: 초진진찰료-종합병원/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 22930
+      hospital: 22930
+      general: 22930
+    basis: 상대가치점수 279.0 (2026 279) ← 진찰료 232.33 + 기본진찰료 × 30% 46.67
+  CONSULT_FIRST_general_SAT:
+    source: 심평원 2025 요양급여비용 AA156030
+    name: 초진진찰료-종합병원/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 3840
+      hospital: 3840
+      general: 3840
+    basis: 상대가치점수 46.67 (2026 46.67) ← 기본진찰료 × 30% = 46.67
+  CONSULT_REVISIT_clinic_NIGHT:
+    source: 심평원 2025 요양급여비용 AA254010
+    name: 재진진찰료-의원/야간
+    from: '2025-01-01'
+    price:
+      clinic: 15930
+      hospital: 15930
+      general: 15930
+    basis: 상대가치점수 169.26 (2026 169.26) ← 진찰료 139.85 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_clinic_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA254050
+    name: 재진진찰료-의원/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 15930
+      hospital: 15930
+      general: 15930
+    basis: 상대가치점수 169.26 (2026 169.26) ← 진찰료 139.85 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_clinic_SAT:
+    source: 심평원 2025 요양급여비용 AA254030
+    name: 재진진찰료-의원/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 2770
+      hospital: 2770
+      general: 2770
+    basis: 상대가치점수 29.41 (2026 29.41) ← 기본진찰료 × 30% = 29.41
+  CONSULT_REVISIT_hospital_NIGHT:
+    source: 심평원 2025 요양급여비용 AA255010
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/야간
+    from: '2025-01-01'
+    price:
+      clinic: 14860
+      hospital: 14860
+      general: 14860
+    basis: 상대가치점수 180.78 (2026 180.78) ← 진찰료 151.37 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_hospital_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA255050
+    name: 재진진찰료-병원, 정신병원, 요양병원·한방병원·치과병원 내 의과/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 14860
+      hospital: 14860
+      general: 14860
+    basis: 상대가치점수 180.78 (2026 180.78) ← 진찰료 151.37 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_hospital_SAT:
+    source: 심평원 2025 요양급여비용 AA255030
+    name: 재진진찰료-병원, 정신병원, 요양병원 내 의과/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 2420
+      hospital: 2420
+      general: 2420
+    basis: 상대가치점수 29.41 (2026 29.41) ← 기본진찰료 × 30% = 29.41
+  CONSULT_REVISIT_general_NIGHT:
+    source: 심평원 2025 요양급여비용 AA256010
+    name: 재진진찰료-종합병원/야간
+    from: '2025-01-01'
+    price:
+      clinic: 16790
+      hospital: 16790
+      general: 16790
+    basis: 상대가치점수 204.25 (2026 204.25) ← 진찰료 174.84 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_general_HOLIDAY:
+    source: 심평원 2025 요양급여비용 AA256050
+    name: 재진진찰료-종합병원/공휴일
+    from: '2025-01-01'
+    price:
+      clinic: 16790
+      hospital: 16790
+      general: 16790
+    basis: 상대가치점수 204.25 (2026 204.25) ← 진찰료 174.84 + 기본진찰료 × 30% 29.41
+  CONSULT_REVISIT_general_SAT:
+    source: 심평원 2025 요양급여비용 AA256030
+    name: 재진진찰료-종합병원/토요09-13 및 09시 이전 정규진료
+    from: '2025-01-01'
+    price:
+      clinic: 2420
+      hospital: 2420
+      general: 2420
+    basis: 상대가치점수 29.41 (2026 29.41) ← 기본진찰료 × 30% = 29.41
+  MEDKEEP_OUT_clinic:
+    source: 심평원 2025 요양급여비용 AL801
+    name: 외래환자 의약품관리료-1일분(의원,치과의원,보건의료원 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 220
+      hospital: 220
+      general: 220
+    basis: 상대가치점수 2.34 (2026 2.34)
+  MEDKEEP_OUT_hospital:
+    source: 심평원 2025 요양급여비용 AL300
+    name: 외래환자 의약품관리료-병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과[방문당]
+    from: '2025-01-01'
+    price:
+      clinic: 70
+      hospital: 70
+      general: 70
+    basis: 상대가치점수 0.87 (2026 0.87)
+  MEDKEEP_OUT_general:
+    source: 심평원 2025 요양급여비용 AL200
+    name: 외래환자 의약품관리료[방문당]-종합병원
+    from: '2025-01-01'
+    price:
+      clinic: 60
+      hospital: 60
+      general: 60
+    basis: 상대가치점수 0.68 (2026 0.68)
+  MEDKEEP_IN_general_1:
+    source: 심평원 2025 요양급여비용 AL651
+    name: 입원환자 의약품관리료-1일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 1530
+      hospital: 1530
+      general: 1530
+    basis: 상대가치점수 18.6 (2026 18.6)
+  MEDKEEP_IN_general_2:
+    source: 심평원 2025 요양급여비용 AL652
+    name: 입원환자 의약품관리료-2일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 2900
+      hospital: 2900
+      general: 2900
+    basis: 상대가치점수 35.33 (2026 35.33)
+  MEDKEEP_IN_general_3:
+    source: 심평원 2025 요양급여비용 AL653
+    name: 입원환자 의약품관리료-3일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 4280
+      hospital: 4280
+      general: 4280
+    basis: 상대가치점수 52.04 (2026 52.04)
+  MEDKEEP_IN_general_4:
+    source: 심평원 2025 요양급여비용 AL654
+    name: 입원환자 의약품관리료-4일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 5200
+      hospital: 5200
+      general: 5200
+    basis: 상대가치점수 63.28 (2026 63.28)
+  MEDKEEP_IN_general_5:
+    source: 심평원 2025 요양급여비용 AL655
+    name: 입원환자 의약품관리료-5일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 6110
+      hospital: 6110
+      general: 6110
+    basis: 상대가치점수 74.37 (2026 74.37)
+  MEDKEEP_IN_general_6:
+    source: 심평원 2025 요양급여비용 AL656
+    name: 입원환자 의약품관리료-6일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 7030
+      hospital: 7030
+      general: 7030
+    basis: 상대가치점수 85.48 (2026 85.48)
+  MEDKEEP_IN_general_7:
+    source: 심평원 2025 요양급여비용 AL657
+    name: 입원환자 의약품관리료-7일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 7950
+      hospital: 7950
+      general: 7950
+    basis: 상대가치점수 96.71 (2026 96.71)
+  MEDKEEP_IN_general_8:
+    source: 심평원 2025 요양급여비용 AL658
+    name: 입원환자 의약품관리료-8일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 8860
+      hospital: 8860
+      general: 8860
+    basis: 상대가치점수 107.82 (2026 107.82)
+  MEDKEEP_IN_general_9:
+    source: 심평원 2025 요양급여비용 AL659
+    name: 입원환자 의약품관리료-9일분(종합병원)
+    from: '2025-01-01'
+    price:
+      clinic: 9790
+      hospital: 9790
+      general: 9790
+    basis: 상대가치점수 119.05 (2026 119.05)
+  MEDKEEP_IN_hospital_1:
+    source: 심평원 2025 요양급여비용 AL751
+    name: 입원환자 의약품관리료-1일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 850
+      hospital: 850
+      general: 850
+    basis: 상대가치점수 10.28 (2026 10.28)
+  MEDKEEP_IN_hospital_2:
+    source: 심평원 2025 요양급여비용 AL752
+    name: 입원환자 의약품관리료-2일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 1600
+      hospital: 1600
+      general: 1600
+    basis: 상대가치점수 19.52 (2026 19.52)
+  MEDKEEP_IN_hospital_3:
+    source: 심평원 2025 요양급여비용 AL753
+    name: 입원환자 의약품관리료-3일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 2360
+      hospital: 2360
+      general: 2360
+    basis: 상대가치점수 28.76 (2026 28.76)
+  MEDKEEP_IN_hospital_4:
+    source: 심평원 2025 요양급여비용 AL754
+    name: 입원환자 의약품관리료-4일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 2880
+      hospital: 2880
+      general: 2880
+    basis: 상대가치점수 34.98 (2026 34.98)
+  MEDKEEP_IN_hospital_5:
+    source: 심평원 2025 요양급여비용 AL755
+    name: 입원환자 의약품관리료-5일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 3380
+      hospital: 3380
+      general: 3380
+    basis: 상대가치점수 41.13 (2026 41.13)
+  MEDKEEP_IN_hospital_6:
+    source: 심평원 2025 요양급여비용 AL756
+    name: 입원환자 의약품관리료-6일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 3890
+      hospital: 3890
+      general: 3890
+    basis: 상대가치점수 47.28 (2026 47.28)
+  MEDKEEP_IN_hospital_7:
+    source: 심평원 2025 요양급여비용 AL757
+    name: 입원환자 의약품관리료-7일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 4400
+      hospital: 4400
+      general: 4400
+    basis: 상대가치점수 53.49 (2026 53.49)
+  MEDKEEP_IN_hospital_8:
+    source: 심평원 2025 요양급여비용 AL758
+    name: 입원환자 의약품관리료-8일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 4900
+      hospital: 4900
+      general: 4900
+    basis: 상대가치점수 59.61 (2026 59.61)
+  MEDKEEP_IN_hospital_9:
+    source: 심평원 2025 요양급여비용 AL759
+    name: 입원환자 의약품관리료-9일분(병원, 정신병원, 치과병원, 요양병원·한방병원 내 의·치과)
+    from: '2025-01-01'
+    price:
+      clinic: 5410
+      hospital: 5410
+      general: 5410
+    basis: 상대가치점수 65.82 (2026 65.82)
+  ROOM_4_general_GS:
+    source: 심평원 2025 요양급여비용 AB2JS
+    name: 종합병원S등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 139040
+      hospital: 139040
+      general: 139040
+    basis: 상대가치점수 1691.51 (2026 1691.51) ← AB2J1 책자 점수 × 1.2544
+  ROOM_4_general_GA:
+    source: 심평원 2025 요양급여비용 AB2JA
+    name: 종합병원A등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 124150
+      hospital: 124150
+      general: 124150
+    basis: 상대가치점수 1510.28 (2026 1510.28) ← AB2J1 책자 점수 × 1.1200
+  ROOM_4_general_G1:
+    source: 심평원 2025 요양급여비용 AB2J1
+    name: 종합병원1등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 110840
+      hospital: 110840
+      general: 110840
+    basis: 상대가치점수 1348.46 (2026 1348.46)
+  ROOM_4_general_G2:
+    source: 심평원 2025 요양급여비용 AB2J2
+    name: 종합병원2등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 99760
+      hospital: 99760
+      general: 99760
+    basis: 상대가치점수 1213.61 (2026 1213.61) ← AB2J1 책자 점수 × 0.9000
+  ROOM_4_general_G3:
+    source: 심평원 2025 요양급여비용 AB2J3
+    name: 종합병원3등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 89780
+      hospital: 89780
+      general: 89780
+    basis: 상대가치점수 1092.25 (2026 1092.25) ← AB2J1 책자 점수 × 0.8100
+  ROOM_4_general_G4:
+    source: 심평원 2025 요양급여비용 AB2J4
+    name: 종합병원4등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 80810
+      hospital: 80810
+      general: 80810
+    basis: 상대가치점수 983.03 (2026 983.03) ← AB2J1 책자 점수 × 0.7290
+  ROOM_4_general_G5_metro:
+    source: 심평원 2025 요양급여비용 AB2L5
+    name: 종합병원5등급간호관리료적용4인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 56560
+      hospital: 56560
+      general: 56560
+    basis: 상대가치점수 688.12 (2026 688.12) ← AB2J1 책자 점수 × 0.5103
+  ROOM_4_general_G5:
+    source: 심평원 2025 요양급여비용 AB2M5
+    name: 종합병원5등급간호관리료적용4인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 60600
+      hospital: 60600
+      general: 60600
+    basis: 상대가치점수 737.27 (2026 737.27) ← AB2J1 책자 점수 × 0.5467
+  ROOM_3_general_GS:
+    source: 심평원 2025 요양급여비용 AB2NS
+    name: 종합병원S등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 166850
+      hospital: 166850
+      general: 166850
+    basis: 상대가치점수 2029.81 (2026 2029.81) ← AB2N1 책자 점수 × 1.2544
+  ROOM_3_general_GA:
+    source: 심평원 2025 요양급여비용 AB2NA
+    name: 종합병원A등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 148970
+      hospital: 148970
+      general: 148970
+    basis: 상대가치점수 1812.33 (2026 1812.33) ← AB2N1 책자 점수 × 1.1200
+  ROOM_3_general_G1:
+    source: 심평원 2025 요양급여비용 AB2N1
+    name: 종합병원1등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 133010
+      hospital: 133010
+      general: 133010
+    basis: 상대가치점수 1618.15 (2026 1618.15)
+  ROOM_3_general_G2:
+    source: 심평원 2025 요양급여비용 AB2N2
+    name: 종합병원2등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 119710
+      hospital: 119710
+      general: 119710
+    basis: 상대가치점수 1456.34 (2026 1456.34) ← AB2N1 책자 점수 × 0.9000
+  ROOM_3_general_G3:
+    source: 심평원 2025 요양급여비용 AB2N3
+    name: 종합병원3등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 107740
+      hospital: 107740
+      general: 107740
+    basis: 상대가치점수 1310.71 (2026 1310.71) ← AB2N1 책자 점수 × 0.8100
+  ROOM_3_general_G4:
+    source: 심평원 2025 요양급여비용 AB2N4
+    name: 종합병원4등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 96970
+      hospital: 96970
+      general: 96970
+    basis: 상대가치점수 1179.64 (2026 1179.64) ← AB2N1 책자 점수 × 0.7290
+  ROOM_3_general_G5_metro:
+    source: 심평원 2025 요양급여비용 AB2Q5
+    name: 종합병원5등급간호관리료적용3인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 67880
+      hospital: 67880
+      general: 67880
+    basis: 상대가치점수 825.75 (2026 825.75) ← AB2N1 책자 점수 × 0.5103
+  ROOM_3_general_G5:
+    source: 심평원 2025 요양급여비용 AB2R5
+    name: 종합병원5등급간호관리료적용3인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 72720
+      hospital: 72720
+      general: 72720
+    basis: 상대가치점수 884.73 (2026 884.73) ← AB2N1 책자 점수 × 0.5468
+  ROOM_2_general_GS:
+    source: 심평원 2025 요양급여비용 AB2SS
+    name: 종합병원S등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 208560
+      hospital: 208560
+      general: 208560
+    basis: 상대가치점수 2537.26 (2026 2537.26) ← AB2S1 책자 점수 × 1.2544
+  ROOM_2_general_GA:
+    source: 심평원 2025 요양급여비용 AB2SA
+    name: 종합병원A등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 186220
+      hospital: 186220
+      general: 186220
+    basis: 상대가치점수 2265.41 (2026 2265.41) ← AB2S1 책자 점수 × 1.1200
+  ROOM_2_general_G1:
+    source: 심평원 2025 요양급여비용 AB2S1
+    name: 종합병원1등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 166270
+      hospital: 166270
+      general: 166270
+    basis: 상대가치점수 2022.69 (2026 2022.69)
+  ROOM_2_general_G2:
+    source: 심평원 2025 요양급여비용 AB2S2
+    name: 종합병원2등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 149640
+      hospital: 149640
+      general: 149640
+    basis: 상대가치점수 1820.42 (2026 1820.42) ← AB2S1 책자 점수 × 0.9000
+  ROOM_2_general_G3:
+    source: 심평원 2025 요양급여비용 AB2S3
+    name: 종합병원3등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 134670
+      hospital: 134670
+      general: 134670
+    basis: 상대가치점수 1638.38 (2026 1638.38) ← AB2S1 책자 점수 × 0.8100
+  ROOM_2_general_G4:
+    source: 심평원 2025 요양급여비용 AB2S4
+    name: 종합병원4등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 121210
+      hospital: 121210
+      general: 121210
+    basis: 상대가치점수 1474.54 (2026 1474.54) ← AB2S1 책자 점수 × 0.7290
+  ROOM_2_general_G5_metro:
+    source: 심평원 2025 요양급여비용 AB2U5
+    name: 종합병원5등급간호관리료적용2인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 84850
+      hospital: 84850
+      general: 84850
+    basis: 상대가치점수 1032.18 (2026 1032.18) ← AB2S1 책자 점수 × 0.5103
+  ROOM_2_general_G5:
+    source: 심평원 2025 요양급여비용 AB2V5
+    name: 종합병원5등급간호관리료적용2인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 90910
+      hospital: 90910
+      general: 90910
+    basis: 상대가치점수 1105.91 (2026 1105.91) ← AB2S1 책자 점수 × 0.5468
+  ROOM_4_hospital_GA:
+    source: 심평원 2025 요양급여비용 AB3JA
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 A등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 110050
+      hospital: 110050
+      general: 110050
+    basis: 상대가치점수 1338.82 (2026 1338.82) ← AB3J4 책자 점수 × 1.4641
+  ROOM_4_hospital_G1:
+    source: 심평원 2025 요양급여비용 AB3J1
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 1등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 100050
+      hospital: 100050
+      general: 100050
+    basis: 상대가치점수 1217.11 (2026 1217.11) ← AB3J4 책자 점수 × 1.3310
+  ROOM_4_hospital_G2:
+    source: 심평원 2025 요양급여비용 AB3J2
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 2등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 90950
+      hospital: 90950
+      general: 90950
+    basis: 상대가치점수 1106.46 (2026 1106.46) ← AB3J4 책자 점수 × 1.2100
+  ROOM_4_hospital_G3:
+    source: 심평원 2025 요양급여비용 AB3J3
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 3등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 82680
+      hospital: 82680
+      general: 82680
+    basis: 상대가치점수 1005.87 (2026 1005.87) ← AB3J4 책자 점수 × 1.1000
+  ROOM_4_hospital_G4:
+    source: 심평원 2025 요양급여비용 AB3J4
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 4등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 75170
+      hospital: 75170
+      general: 75170
+    basis: 상대가치점수 914.43 (2026 914.43)
+  ROOM_4_hospital_G5:
+    source: 심평원 2025 요양급여비용 AB3J5
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 5등급간호관리료적용4인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 67650
+      hospital: 67650
+      general: 67650
+    basis: 상대가치점수 822.99 (2026 822.99) ← AB3J4 책자 점수 × 0.9000
+  ROOM_4_hospital_G6_metro:
+    source: 심평원 2025 요양급여비용 AB3L6
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 6등급간호관리료적용4인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 47350
+      hospital: 47350
+      general: 47350
+    basis: 상대가치점수 576.09 (2026 576.09) ← AB3J4 책자 점수 × 0.6300
+  ROOM_4_hospital_G6:
+    source: 심평원 2025 요양급여비용 AB3M6
+    name: 병원, 정신병원, 치과병원, 한방병원 내 의·치과 6등급간호관리료적용4인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 54120
+      hospital: 54120
+      general: 54120
+    basis: 상대가치점수 658.39 (2026 658.39) ← AB3J4 책자 점수 × 0.7200
+  ROOM_3_hospital_GA:
+    source: 심평원 2025 요양급여비용 AB3NA
+    name: 병원, 정신병원, 한방병원 내 의·치과 A등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 132060
+      hospital: 132060
+      general: 132060
+    basis: 상대가치점수 1606.59 (2026 1606.59) ← AB3N4 책자 점수 × 1.4641
+  ROOM_3_hospital_G1:
+    source: 심평원 2025 요양급여비용 AB3N1
+    name: 병원, 정신병원, 한방병원 내 의·치과 1등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 120060
+      hospital: 120060
+      general: 120060
+    basis: 상대가치점수 1460.54 (2026 1460.54) ← AB3N4 책자 점수 × 1.3310
+  ROOM_3_hospital_G2:
+    source: 심평원 2025 요양급여비용 AB3N2
+    name: 병원, 정신병원, 한방병원 내 의·치과 2등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 109140
+      hospital: 109140
+      general: 109140
+    basis: 상대가치점수 1327.76 (2026 1327.76) ← AB3N4 책자 점수 × 1.2100
+  ROOM_3_hospital_G3:
+    source: 심평원 2025 요양급여비용 AB3N3
+    name: 병원, 정신병원, 한방병원 내 의·치과 3등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 99220
+      hospital: 99220
+      general: 99220
+    basis: 상대가치점수 1207.05 (2026 1207.05) ← AB3N4 책자 점수 × 1.1000
+  ROOM_3_hospital_G4:
+    source: 심평원 2025 요양급여비용 AB3N4
+    name: 병원, 정신병원, 한방병원 내 의·치과 4등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 90200
+      hospital: 90200
+      general: 90200
+    basis: 상대가치점수 1097.32 (2026 1097.32)
+  ROOM_3_hospital_G5:
+    source: 심평원 2025 요양급여비용 AB3N5
+    name: 병원, 정신병원, 한방병원 내 의·치과 5등급간호관리료적용3인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 81180
+      hospital: 81180
+      general: 81180
+    basis: 상대가치점수 987.59 (2026 987.59) ← AB3N4 책자 점수 × 0.9000
+  ROOM_3_hospital_G6_metro:
+    source: 심평원 2025 요양급여비용 AB3Q6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용3인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 56830
+      hospital: 56830
+      general: 56830
+    basis: 상대가치점수 691.31 (2026 691.31) ← AB3N4 책자 점수 × 0.6300
+  ROOM_3_hospital_G6:
+    source: 심평원 2025 요양급여비용 AB3R6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용3인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 64940
+      hospital: 64940
+      general: 64940
+    basis: 상대가치점수 790.07 (2026 790.07) ← AB3N4 책자 점수 × 0.7200
+  ROOM_2_hospital_GA:
+    source: 심평원 2025 요양급여비용 AB3SA
+    name: 병원, 정신병원, 한방병원 내 의·치과 A등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 154070
+      hospital: 154070
+      general: 154070
+    basis: 상대가치점수 1874.33 (2026 1874.33) ← AB3S4 책자 점수 × 1.4641
+  ROOM_2_hospital_G1:
+    source: 심평원 2025 요양급여비용 AB3S1
+    name: 병원, 정신병원, 한방병원 내 의·치과 1등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 140060
+      hospital: 140060
+      general: 140060
+    basis: 상대가치점수 1703.94 (2026 1703.94) ← AB3S4 책자 점수 × 1.3310
+  ROOM_2_hospital_G2:
+    source: 심평원 2025 요양급여비용 AB3S2
+    name: 병원, 정신병원, 한방병원 내 의·치과 2등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 127330
+      hospital: 127330
+      general: 127330
+    basis: 상대가치점수 1549.04 (2026 1549.04) ← AB3S4 책자 점수 × 1.2100
+  ROOM_2_hospital_G3:
+    source: 심평원 2025 요양급여비용 AB3S3
+    name: 병원, 정신병원, 한방병원 내 의·치과 3등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 115760
+      hospital: 115760
+      general: 115760
+    basis: 상대가치점수 1408.22 (2026 1408.22) ← AB3S4 책자 점수 × 1.1000
+  ROOM_2_hospital_G4:
+    source: 심평원 2025 요양급여비용 AB3S4
+    name: 병원, 정신병원, 한방병원 내 의·치과 4등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 105230
+      hospital: 105230
+      general: 105230
+    basis: 상대가치점수 1280.2 (2026 1280.2)
+  ROOM_2_hospital_G5:
+    source: 심평원 2025 요양급여비용 AB3S5
+    name: 병원, 정신병원, 한방병원 내 의·치과 5등급간호관리료적용2인실입원료
+    from: '2025-01-01'
+    price:
+      clinic: 94710
+      hospital: 94710
+      general: 94710
+    basis: 상대가치점수 1152.18 (2026 1152.18) ← AB3S4 책자 점수 × 0.9000
+  ROOM_2_hospital_G6_metro:
+    source: 심평원 2025 요양급여비용 AB3U6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용2인실입원료-서울특별시및광역시구지역소재요양기관
+    from: '2025-01-01'
+    price:
+      clinic: 66300
+      hospital: 66300
+      general: 66300
+    basis: 상대가치점수 806.53 (2026 806.53) ← AB3S4 책자 점수 × 0.6300
+  ROOM_2_hospital_G6:
+    source: 심평원 2025 요양급여비용 AB3V6
+    name: 병원, 정신병원, 한방병원 내 의·치과 6등급간호관리료적용2인실입원료-의료취약지역,서울특별시및광역시구지역소재요양기관이아닌경우
+    from: '2025-01-01'
+    price:
+      clinic: 75770
+      hospital: 75770
+      general: 75770
+    basis: 상대가치점수 921.74 (2026 921.74) ← AB3S4 책자 점수 × 0.7200
+  MEAL_hospital:
+    source: 심평원 2025 요양급여비용 Y2300
+    name: 기본식사-일반식(1식당)-병원,정신병원,요양병원,치과병원,한방병원
+    from: '2025-01-01'
+    price:
+      clinic: 5030
+      hospital: 5030
+      general: 5030
+    basis: 고시금액 5,030원
+  MEAL_general:
+    source: 심평원 2025 요양급여비용 Y2200
+    name: 기본식사-일반식(1식당)-종합병원
+    from: '2025-01-01'
+    price:
+      clinic: 5290
+      hospital: 5290
+      general: 5290
+    basis: 고시금액 5,290원
+  MEAL_DIETITIAN:
+    source: 심평원 2025 요양급여비용 Z0010
+    name: 일반식가산-영양사(1식당)
+    from: '2025-01-01'
+    price:
+      clinic: 640
+      hospital: 640
+      general: 640
+    basis: 고시금액 640원
+  MEAL_COOK:
+    source: 심평원 2025 요양급여비용 Z0011
+    name: 일반식가산-조리사(1식당)
+    from: '2025-01-01'
+    price:
+      clinic: 590
+      hospital: 590
+      general: 590
+    basis: 고시금액 590원
+  MEAL_DIRECT:
+    source: 심평원 2025 요양급여비용 Z0030
+    name: 입원환자 식대-직영가산
+    from: '2025-01-01'
+    price:
+      clinic: 230
+      hospital: 230
+      general: 230
+    basis: 고시금액 230원
+  MED_ACT_DAY:
+    source: 심평원 2025 요양급여비용 J2000
+    name: 입원환자 조제·복약지도료(1일당)
+    from: '2025-01-01'
+    price:
+      clinic: 1970
+      hospital: 1720
+      general: 1720
+    basis: 상대가치점수 20.9 (2026 20.9)
+  XR_KNEE:
+    source: 심평원 2025 요양급여비용 G7202
+    name: 슬관절2매
+    from: '2025-01-01'
+    price:
+      clinic: 8590
+      hospital: 7510
+      general: 7510
+    basis: 상대가치점수 91.31 (2026 91.31)
+  XR_SHOULDER:
+    source: 심평원 2025 요양급여비용 G3302
+    name: 견관절2매
+    from: '2025-01-01'
+    price:
+      clinic: 9420
+      hospital: 8230
+      general: 8230
+    basis: 상대가치점수 100.08 (2026 100.08)
+  XR_LSPINE:
+    source: 심평원 2025 요양급여비용 G4503
+    name: 요추3매
+    from: '2025-01-01'
+    price:
+      clinic: 11210
+      hospital: 9790
+      general: 9790
+    basis: 상대가치점수 119.16 (2026 119.16)
+  XR_CHEST:
+    source: 심평원 2025 요양급여비용 G2101
+    name: 흉부[직접]1매
+    from: '2025-01-01'
+    price:
+      clinic: 8170
+      hospital: 7140
+      general: 7140
+    basis: 상대가치점수 86.86 (2026 86.86)
+  XR_ABD:
+    source: 심평원 2025 요양급여비용 G2401
+    name: 복부1매
+    from: '2025-01-01'
+    price:
+      clinic: 5270
+      hospital: 4600
+      general: 4600
+    basis: 상대가치점수 55.99 (2026 55.99)
+  XR_PNS:
+    source: 심평원 2025 요양급여비용 G1201
+    name: 부비동1매
+    from: '2025-01-01'
+    price:
+      clinic: 5270
+      hospital: 4600
+      general: 4600
+    basis: 상대가치점수 55.99 (2026 55.99)
+  PT_HOT:
+    source: 심평원 2025 요양급여비용 MM010
+    name: 표층열치료
+    from: '2025-01-01'
+    price:
+      clinic: 1000
+      hospital: 870
+      general: 870
+    basis: 상대가치점수 10.58 (2026 10.58)
+  PT_HOT_HALF:
+    source: 심평원 2025 요양급여비용 MM015
+    name: 표층열치료(심층열동시)
+    from: '2025-01-01'
+    price:
+      clinic: 500
+      hospital: 430
+      general: 430
+    basis: 상대가치점수 5.29 (2026 5.29) ← MM010 책자 점수 × 0.5000
+  PT_DEEP:
+    source: 심평원 2025 요양급여비용 MM020
+    name: 심층열치료[1일당]
+    from: '2025-01-01'
+    price:
+      clinic: 1420
+      hospital: 1240
+      general: 1240
+    basis: 상대가치점수 15.08 (2026 15.08)
+  PT_ICT:
+    source: 심평원 2025 요양급여비용 MM080
+    name: 간섭파전류치료[ICT]
+    from: '2025-01-01'
+    price:
+      clinic: 4420
+      hospital: 3860
+      general: 3860
+    basis: 상대가치점수 46.95 (2026 46.95) ← MM070 소정점수
+  PT_TENS:
+    source: 심평원 2025 요양급여비용 MM070
+    name: 경피적전기신경자극치료[TENS]
+    from: '2025-01-01'
+    price:
+      clinic: 4420
+      hospital: 3860
+      general: 3860
+    basis: 상대가치점수 46.95 (2026 46.95)
+  INJ_TPI:
+    source: 심평원 2025 요양급여비용 MM131
+    name: 근막동통유발점주사자극치료[1일당]
+    from: '2025-01-01'
+    price:
+      clinic: 8430
+      hospital: 7370
+      general: 7370
+    basis: 상대가치점수 89.61 (2026 89.61)
+  PRC_NEB:
+    source: 심평원 2025 요양급여비용 MM303
+    name: 상기도증기흡입치료
+    from: '2025-01-01'
+    price:
+      clinic: 2280
+      hospital: 1990
+      general: 1990
+    basis: 상대가치점수 24.27 (2026 24.27)
+  INJ_IM:
+    source: 심평원 2025 요양급여비용 KK010
+    name: 피하또는근육내주사
+    from: '2025-01-01'
+    price:
+      clinic: 1690
+      hospital: 1480
+      general: 1480
+    basis: 상대가치점수 17.97 (2026 17.97)
+  INJ_IV:
+    source: 심평원 2025 요양급여비용 KK020
+    name: 정맥내일시주사[1일당]
+    from: '2025-01-01'
+    price:
+      clinic: 2420
+      hospital: 2110
+      general: 2110
+    basis: 상대가치점수 25.67 (2026 25.67)
+  INJ_IVDRIP:
+    source: 심평원 2025 요양급여비용 KK053
+    name: 정맥내점적주사-501ml∼1000ml[1병또는포장단위당]
+    from: '2025-01-01'
+    price:
+      clinic: 4490
+      hospital: 3920
+      general: 3920
+    basis: 상대가치점수 47.68 (2026 47.68)
+  INJ_IL:
+    source: 심평원 2025 요양급여비용 N0091
+    name: 병변내주입요법-25㎠미만
+    from: '2025-01-01'
+    price:
+      clinic: 22320
+      hospital: 19500
+      general: 19500
+    basis: 상대가치점수 237.2 (2026 237.2)
+  PRC_CRYO:
+    source: 심평원 2025 요양급여비용 N1434
+    name: 사마귀제거술-소작술[전기, 레이저, 냉동 포함]-기타
+    from: '2025-01-01'
+    price:
+      clinic: 36610
+      hospital: 31980
+      general: 31980
+    basis: 상대가치점수 389.06 (2026 389.06)
+  PRC_EAR:
+    source: 심평원 2025 요양급여비용 S5571
+    name: 외이도이물또는이구전색제거[간단한것은 기본진료료에 포함]-복잡한것
+    from: '2025-01-01'
+    price:
+      clinic: 19430
+      hospital: 16980
+      general: 16980
+    basis: 상대가치점수 206.52 (2026 206.52)
+  PRC_LID:
+    source: 심평원 2025 요양급여비용 S5400
+    name: 맥립종절개술
+    from: '2025-01-01'
+    price:
+      clinic: 24980
+      hospital: 21820
+      general: 21820
+    basis: 상대가치점수 265.51 (2026 265.51)
+  PRC_LID_OFFHOURS:
+    source: 심평원 2025 요양급여비용 S5400080
+    name: 맥립종절개술/(의원·치과의원(보건의료원포함)) 야간,공휴,토요
+    from: '2025-01-01'
+    price:
+      clinic: 32480
+      hospital: 32480
+      general: 32480
+    basis: 상대가치점수 345.16 (2026 345.16) ← S5400 책자 점수 × 1.3000
+  LAB_CBC:
+    source: 심평원 2025 요양급여비용 D0002010 + D0002030 + D0002050 + D0002040
+    name: 일반혈액검사(CBC)-[혈구세포-장비측정]_백혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_적혈구수 + 일반혈액검사(CBC)-[혈구세포-장비측정]_혈색소[광전비색법]
+      + 일반혈액검사(CBC)-[혈구세포-장비측정]_헤마토크리트
+    from: '2025-01-01'
+    price:
+      clinic: 4800
+      hospital: 4200
+      general: 4200
+    basis: 상대가치점수 12.75 (2026 12.75) / 상대가치점수 12.75 (2026 12.75) / 상대가치점수 12.75 (2026
+      12.75) / 상대가치점수 12.75 (2026 12.75)
+  LAB_CRP:
+    source: 심평원 2025 요양급여비용 D0113
+    name: C-반응성단백-[정밀면역검사](정량)
+    from: '2025-01-01'
+    price:
+      clinic: 8150
+      hospital: 7120
+      general: 7120
+    basis: 상대가치점수 86.57 (2026 86.57)
+  LAB_LFT:
+    source: 심평원 2025 요양급여비용 D1860 + D1850
+    name: AST (SGOT) [화학반응-장비측정] + ALT (SGPT) [화학반응-장비측정]
+    from: '2025-01-01'
+    price:
+      clinic: 4330
+      hospital: 3790
+      general: 3790
+    basis: 상대가치점수 23.32 (2026 23.32) / 상대가치점수 22.77 (2026 22.77)
+  LAB_BUN:
+    source: 심평원 2025 요양급여비용 D2300 + D2280
+    name: 요소질소[NPN포함][화학반응-장비측정] + 크레아티닌[화학반응-장비측정]
+    from: '2025-01-01'
+    price:
+      clinic: 3700
+      hospital: 3230
+      general: 3230
+    basis: 상대가치점수 18.77 (2026 18.77) / 상대가치점수 20.54 (2026 20.54)
+  LAB_HBA1C:
+    source: 심평원 2025 요양급여비용 D3061
+    name: 헤모글로빈A1C-[화학반응-장비측정]
+    from: '2025-01-01'
+    price:
+      clinic: 8410
+      hospital: 7350
+      general: 7350
+    basis: 상대가치점수 89.42 (2026 89.42)
+  LAB_LIPID:
+    source: 심평원 2025 요양급여비용 D2611 + D2263 + D2613 + D2614
+    name: 콜레스테롤-총콜레스테롤[화학반응-장비측정] + 지질[화학반응-장비측정]-트리글리세라이드 + 콜레스테롤-HDL 콜레스테롤[화학반응-장비측정]
+      + 콜레스테롤-LDL콜레스테롤[화학반응-장비측정]
+    from: '2025-01-01'
+    price:
+      clinic: 20900
+      hospital: 18250
+      general: 18250
+    basis: 상대가치점수 19.27 (2026 19.27) / 상대가치점수 46.12 (2026 46.12) / 상대가치점수 78.21 (2026
+      78.21) / 상대가치점수 78.5 (2026 78.5)
+  LAB_KOH:
+    source: 심평원 2025 요양급여비용 D6203
+    name: 일반진균검사-KOH도말-조갑조직
+    from: '2025-01-01'
+    price:
+      clinic: 10370
+      hospital: 9060
+      general: 9060
+    basis: 상대가치점수 110.2 (2026 110.2)
+  LAB_IGE:
+    source: 심평원 2025 요양급여비용 D7440010
+    name: 항원특이면역글로불린[정밀면역검사](정량)_IgE
+    from: '2025-01-01'
+    price:
+      clinic: 19410
+      hospital: 16960
+      general: 16960
+    basis: 상대가치점수 206.28 (2026 206.28)
+  LAB_ECG:
+    source: 심평원 2025 요양급여비용 E6541
+    name: 심전도검사-심전도기록및판독[표준12유도]
+    from: '2025-01-01'
+    price:
+      clinic: 9800
+      hospital: 8560
+      general: 8560
+    basis: 상대가치점수 104.17 (2026 104.17)
+  LAB_PTA:
+    source: 심평원 2025 요양급여비용 F6341
+    name: 청력검사[순음청력계기에의한검사]-표준순음청력검사
+    from: '2025-01-01'
+    price:
+      clinic: 23220
+      hospital: 20290
+      general: 20290
+    basis: 상대가치점수 246.8 (2026 246.8)
+  LAB_TYMP:
+    source: 심평원 2025 요양급여비용 F6361
+    name: 청력검사[임피단스오디오메트리에의한검사]-고막운동성계측
+    from: '2025-01-01'
+    price:
+      clinic: 13590
+      hospital: 11870
+      general: 11870
+    basis: 상대가치점수 144.46 (2026 144.46)
+  LAB_ENDO:
+    source: 심평원 2025 요양급여비용 E7540
+    name: 비인강경검사
+    from: '2025-01-01'
+    price:
+      clinic: 14970
+      hospital: 13080
+      general: 13080
+    basis: 상대가치점수 159.11 (2026 159.11)
+  LAB_SLIT:
+    source: 심평원 2025 요양급여비용 E6810
+    name: 세극등현미경검사
+    from: '2025-01-01'
+    price:
+      clinic: 3280
+      hospital: 2860
+      general: 2860
+    basis: 상대가치점수 34.81 (2026 34.81)
+  LAB_IOP:
+    source: 심평원 2025 요양급여비용 E6752
+    name: 안압측정-기타
+    from: '2025-01-01'
+    price:
+      clinic: 3290
+      hospital: 2880
+      general: 2880
+    basis: 상대가치점수 35.01 (2026 35.01)
+  LAB_REF:
+    source: 심평원 2025 요양급여비용 E6710
+    name: 굴절및조절검사[안경처방전교부포함]
+    from: '2025-01-01'
+    price:
+      clinic: 15040
+      hospital: 13130
+      general: 13130
+    basis: 상대가치점수 159.79 (2026 159.79)
+  D_DICLO:
+    source: 심평원 약가 143535BIJ
+    name: 디클로페낙나트륨 75mg/2mL
+    from: '2025-01-01'
+    price:
+      clinic: 565
+      hospital: 565
+      general: 565
+    basis: 'drug_2025-01-01.xlsx: 18/21개 품목 565원'
+  D_DEXA:
+    source: 심평원 약가 142232BIJ
+    name: 덱사메타손포스페이트이나트륨 5mg/1mL
+    from: '2025-01-01'
+    price:
+      clinic: 222
+      hospital: 222
+      general: 222
+    basis: 'drug_2025-01-01.xlsx: 2/5개 품목 222원'
+  D_TRIAM:
+    source: 심평원 약가 243335BIJ
+    name: 트리암시놀론아세토니드 40mg/1mL
+    from: '2025-01-01'
+    price:
+      clinic: 700
+      hospital: 700
+      general: 700
+    basis: 'drug_2025-01-01.xlsx: 5/5개 품목 700원'
+  D_CHLOR:
+    source: 심평원 약가 131830BIJ
+    name: 클로르페니라민말레산염 4mg/2mL
+    from: '2025-01-01'
+    price:
+      clinic: 147
+      hospital: 147
+      general: 147
+    basis: 'drug_2025-01-01.xlsx: 3/4개 품목 147원'
+  D_LIDO:
+    source: 심평원 약가 183935BIJ
+    name: 리도카인염산염 2% 20mL
+    from: '2025-01-01'
+    price:
+      clinic: 519
+      hospital: 519
+      general: 519
+    basis: 'drug_2025-01-01.xlsx: 1/3개 품목 519원'
+  D_HS1000:
+    source: 심평원 약가 349500BIJ
+    name: 하트만 1000mL
+    from: '2025-01-01'
+    price:
+      clinic: 1586
+      hospital: 1586
+      general: 1586
+    basis: 'drug_2025-01-01.xlsx: 1/3개 품목 1,586원'
+  D_FAMO:
+    source: 심평원 약가 157302BIJ
+    name: 파모티딘 20mg 주
+    from: '2025-01-01'
+    price:
+      clinic: 1300
+      hospital: 1300
+      general: 1300
+    basis: 'drug_2025-01-01.xlsx: 1/3개 품목 1,300원'
+  D_METO:
+    source: 심평원 약가 193730BIJ
+    name: 메토클로프라미드 10mg/2mL
+    from: '2025-01-01'
+    price:
+      clinic: 447
+      hospital: 447
+      general: 447
+    basis: 'drug_2025-01-01.xlsx: 2/3개 품목 447원'
+  D_CEFA:
+    source: 심평원 약가 125701BIJ
+    name: 세파졸린나트륨 1g
+    from: '2025-01-01'
+    price:
+      clinic: 913
+      hospital: 913
+      general: 913
+    basis: 'drug_2025-01-01.xlsx: 1/3개 품목 913원'
+  MED_PO_A:
+    source: 심평원 약가 100901ATB×2 + 심평원 약가 222901ATB×3
+    name: 아세클로페낙 100mg + 레바미피드 100mg
+    from: '2025-01-01'
+    price:
+      clinic: 584
+      hospital: 584
+      general: 584
+    basis: 'drug_2025-01-01.xlsx: 65/119개 품목 160원 / drug_2025-01-01.xlsx: 77/125개
+      품목 88원'
+  CERT_DX:
+    source: 보건복지부 고시 제2021-34호 제증명수수료 상한
+    name: 일반진단서 발급 수수료
+    from: null
+    price:
+      clinic: 20000
+      hospital: 20000
+      general: 20000
+    basis: 보건복지부고시 제2021-34호 (2021-02-05 시행) 일반진단서 상한금액

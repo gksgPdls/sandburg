@@ -1,20 +1,18 @@
-"""심평원 오픈 API → 수가 항목별 공식 단가 (config/prices.yaml).
+"""[역할] 2026 단가표 만들기: 심평원 오픈 API 조회
+[쓰는 곳] 사람이 단가 개정 시 실행
+[입력 → 출력] config/price_sources.yaml → config/prices.yaml, assets/references/price_evidence.xlsx
+
+심평원 오픈 API → 수가 항목별 공식 단가 (config/prices.yaml).
 
 출처 규칙: config/price_sources.yaml
 사용 API (공공데이터포털, 같은 인증키로 각각 활용신청 필요):
   fee   건강보험심사평가원_수가기준정보조회서비스     https://www.data.go.kr/data/15021028/openapi.do
         mdfeeCrtrInfoService/getDiagnossMdfeeList          수가코드로 조회
-        unprc1 = 의원, unprc2 = 병원·종합병원 (진찰료·입원료·식대는 종별 코드가 따로 있어 한쪽 칸만 값이 있음)
+        unprc1 = 의원, unprc2 = 병원·종합병원 (진찰료는 종별 코드가 따로 있어 한쪽 칸만 값이 있음)
+        종별가산 전 금액 (점수 × 환산지수, 10원 반올림). 가산은 생성 시 generator/pricing.py 에서
   drug  건강보험심사평가원_약가기준정보조회서비스     https://www.data.go.kr/data/15054445/openapi.do
         dgamtCrtrInfoService1.2/getDgamtList               품목명으로 조회 → 주성분코드로 거름
         급여구분 '급여'·'임의불가' 품목의 상한금액(mxCprc) 최빈값
-  mat   건강보험심사평가원_치료재료정보조회서비스     https://www.data.go.kr/data/3074384/openapi.do
-        mcatInfoService1.2/getPaymentNonPaymentList1.2     품목명으로 조회 → 중분류명으로 거름
-        급여 품목의 상한단가(mxUnprc) 최빈값
-  npay  건강보험심사평가원_비급여진료비정보조회서비스 https://www.data.go.kr/data/15001700/openapi.do
-        nonPaymentDamtInfoService/getNonPaymentItemClcdList      비급여코드별 종별 최소·평균·중간값·최대 (전체 1회 조회)
-        병원(prc*Hosp) / 종합병원(prc*Gnhp) 의 최소·중간값·최대 = 생성기가 뽑는 범위
-        ※ 병원급 이상만 공개 → 의원은 비급여 단가 없음
   notice 보건복지부 고시 금액 (API 아님) — 제증명수수료 상한
 
 인증키: config/hira_api_key.txt (한 줄, Encoding/Decoding 키 모두 가능) 또는 환경변수 HIRA_API_KEY
@@ -47,11 +45,8 @@ BASE = "https://apis.data.go.kr/B551182/"
 SEARCH = {   # API 종류 → (경로, 검색 변수)
     "fee": ("mdfeeCrtrInfoService/getDiagnossMdfeeList", "mdfeeCd"),
     "drug": ("dgamtCrtrInfoService1.2/getDgamtList", "itmNm"),
-    "mat": ("mcatInfoService1.2/getPaymentNonPaymentList1.2", "itmNm"),
 }
-NPAY = "nonPaymentDamtInfoService/"
-NPAY_TYPE = {"hospital": "Hosp", "general": "Gnhp"}   # 비급여 종별 통계 필드 접미사: 병원 / 종합병원
-SOURCE_LABEL = {"fee": "심평원 수가", "drug": "심평원 약가", "mat": "심평원 치료재료", "notice": "보건복지부 고시"}
+SOURCE_LABEL = {"fee": "심평원 수가", "drug": "심평원 약가", "notice": "보건복지부 고시"}
 TYPES = ("clinic", "hospital", "general")
 
 
@@ -115,12 +110,6 @@ def search(key: str, api: str, query: str) -> list:
     return cached(f"{api}_{query}", lambda: call(key, path, **{param: query}))
 
 
-def npay_stats(key: str) -> dict:
-    """비급여코드별 종별 가격 통계 전체 (한 번에 조회) → {비급여코드: item}."""
-    rows = cached("npay_clcd", lambda: call(key, NPAY + "getNonPaymentItemClcdList", rows=1000))
-    return {it["npayCd"]: it for it in rows}
-
-
 def won(x) -> int:
     try:
         return int(float(x or 0))
@@ -167,36 +156,10 @@ def resolve_part(key: str, part: dict, valid_from: str) -> dict:
                 "from": min(iso(p.get("adtStaDd", "")) or "9999" for p in same),
                 "price": {t: price for t in TYPES},
                 "evidence": f"급여 품목 {len(prods)}개 중 {len(same)}개가 상한금액 {price:,}원"}
-    if "mat" in part:
-        mdiv = part["mat"]
-        prods = [it for it in search(key, "mat", part["q"])
-                 if it.get("mdivCdNm") == mdiv and it.get("payTpNm") == "급여"]
-        price, same = mode_price(prods, "mxUnprc")
-        if not price:
-            raise LookupError(f"중분류 '{mdiv}' 의 급여 품목 없음 (검색어 '{part['q']}')")
-        return {"api": "mat", "code": same[0]["mdivCd"], "name": mdiv, "from": None,
-                "price": {t: price for t in TYPES},
-                "evidence": f"급여 품목 {len(prods)}개 중 {len(same)}개가 상한단가 {price:,}원"}
     if "notice" in part:
-        return {"api": "notice", "code": "제증명수수료 상한", "name": part["name"], "from": None,
+        return {"api": "notice", "code": part["label"], "name": part["name"], "from": None,
                 "price": {t: int(part["notice"]) for t in TYPES}, "evidence": part["ref"]}
     raise ValueError(f"알 수 없는 출처 규칙: {part}")
-
-
-def resolve_npay(rule: dict, stats: dict) -> dict:
-    """비급여 항목 → 종별 {min, med, max} (공표된 최소·중간값·최대). 의원은 공개 대상이 아니라 없음."""
-    code = rule["npay"]
-    st = stats.get(code)
-    if not st:
-        raise LookupError(f"비급여코드 {code} 없음")
-    rng = {}
-    for t, sfx in NPAY_TYPE.items():
-        lo, med, hi = (won(st.get(f + sfx)) for f in ("prcMin", "middAvg", "prcMax"))
-        if hi > 0:
-            rng[t] = {"min": lo, "med": med, "max": hi}
-    if not rng:
-        raise LookupError(f"비급여코드 {code} 의 병원·종합병원 가격 없음")
-    return {"code": code, "name": st.get("npayKorNm", ""), "range": rng, "std_date": iso(st.get("stdDate", ""))}
 
 
 def main():
@@ -204,22 +167,9 @@ def main():
     src = yaml.safe_load((ROOT / "config" / "price_sources.yaml").read_text(encoding="utf-8"))
     rules, valid_from = src["items"], str(src["valid_from"])
     RAW.mkdir(parents=True, exist_ok=True)
-    stats = None
     out, evidence, missing = {}, [], []
     for item, rule in rules.items():
         try:
-            if isinstance(rule, dict) and "npay" in rule:
-                stats = stats or npay_stats(key)
-                r = resolve_npay(rule, stats)
-                out[item] = {"source": f"심평원 비급여 {r['code']}", "name": r["name"], "from": None,
-                             "range": r["range"]}
-                for t, v in r["range"].items():
-                    evidence.append([item, "심평원 비급여", r["code"], r["name"], 1, r["std_date"], t, None,
-                                     f"공표 최소 {v['min']:,} / 중간값 {v['med']:,} / 최대 {v['max']:,}"])
-                print(f"  {item:26s} {out[item]['source']:34s} "
-                      + " / ".join(f"{t} {v['min']:,}~{v['med']:,}~{v['max']:,}" for t, v in r["range"].items()),
-                      flush=True)
-                continue
             parts = rule if isinstance(rule, list) else [rule]
             got = [(resolve_part(key, p, valid_from), p.get("n", 1)) for p in parts]
         except (LookupError, RuntimeError) as e:
@@ -241,8 +191,7 @@ def main():
               flush=True)
 
     doc = {"_설명": f"심평원 오픈 API 조회 결과 ({date.today()}). 출처 규칙: config/price_sources.yaml, "
-                    "근거: assets/references/price_evidence.xlsx. price = 종별 고정 단가, "
-                    "range = 비급여 종별 공표 최소·중간값·최대 (생성 시 이 범위에서 뽑음)",
+                    "근거: assets/references/price_evidence.xlsx. price = 종별 단가 (종별가산 전)",
            "valid_from": valid_from,
            "items": out}
     (ROOT / "config" / "prices.yaml").write_text(yaml.safe_dump(doc, allow_unicode=True, sort_keys=False),
@@ -251,7 +200,7 @@ def main():
     wb = Workbook()
     ws = wb.active
     ws.title = "단가 근거"
-    ws.append(["항목", "API", "코드", "명칭", "수량 배수", "적용시작일", "의원 단가(비급여는 종별)", "병원 단가", "근거"])
+    ws.append(["항목", "API", "코드", "명칭", "수량 배수", "적용시작일", "의원 단가", "병원·종합병원 단가", "근거"])
     for r in evidence:
         ws.append(r)
     wb.save(ROOT / "assets" / "references" / "price_evidence.xlsx")

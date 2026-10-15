@@ -1,4 +1,8 @@
-"""서식별 값 칸 좌표표 + 값 기입 함수 (실제 그리기·저장은 render_rebuild.py).
+"""[역할] 서식별 값 칸 좌표와 값 기입 함수 (진단서·계산서)
+[쓰는 곳] render_rebuild.py
+[입력 → 출력] case dict → 서식 페이지에 글자
+
+서식별 값 칸 좌표표 + 값 기입 함수 (실제 그리기·저장은 render_rebuild.py).
 
 서식 원본: assets/forms/ (법제처 국가법령정보센터 별표·서식 PDF, 수정하지 않음)
 좌표 단위: PDF 포인트(pt, 1pt = 1/72인치), 원점은 페이지 왼쪽 위.
@@ -30,14 +34,15 @@ VAL_X = (475.3, 536.2)                               # 금액산정내용 값 �
 
 R6 = {
     # 제목 [ ]외래 [ ]입원 ([ ]퇴원[ ]중간) 체크 위치 (x 중심, 기준선 y)
-    "chk_out": (130.5, 41.0), "chk_in": (184.5, 41.0), "chk_dis": (243.5, 41.0), "chk_mid": (291.5, 41.0),
+    "chk_out": (130.5, 41.0), "chk_in": (184.5, 41.0), "chk_dis": (243.5, 41.0),
+    # 야간(공휴일)진료 [ ]야간 [ ]공휴일
+    "chk_night": (459.85, 70.0), "chk_holiday": (499.85, 70.0),
     # 상단 값 칸 (x0, y0, x1, y1)
     "chart_no": (58.6, 61.1, 169.1, 73.6),
     "name": (169.1, 61.1, 316.3, 73.6),
     # 진료기간 ". . .부터 . . .까지" 의 점(.) 바로 왼쪽 x 좌표 → 숫자를 오른쪽 정렬로 찍음
     "period_start": (331.0, 346.0, 361.0), "period_end": (400.0, 415.0, 430.0), "period_y": (61.1, 73.6),
     "dept": (58.6, 86.2, 169.1, 98.7),
-    "drg": (169.1, 86.2, 316.3, 98.7),
     "room": (316.3, 86.2, 365.3, 98.7),
     "ptype": (365.3, 86.2, 423.1, 98.7),
     "receipt_no": (423.1, 86.2, 536.2, 98.7),
@@ -46,7 +51,7 @@ R6 = {
     "card": (236.5, 249.0), "cash_receipt": (249.0, 261.6), "cash": (261.6, 274.0), "paid": (274.0, 286.6),
     "unpaid": (286.6, 299.1),
     # 하단
-    "inst_chk": {"clinic": 185.5, "hospital": 285.5, "general": 345.5, "tertiary": 413.5}, "inst_y": 546.4,
+    "inst_chk": {"clinic": 185.5, "hospital": 285.5, "general": 345.5}, "inst_y": 546.4,
     "bizno": (169.1, 549.6, 292.4, 562.2),
     "hosp_name": (315.4, 549.6, 410.3, 562.2),
     "phone": (466.7, 549.6, 536.2, 562.2),
@@ -70,13 +75,12 @@ D52 = {
     "dx_main": (255.0, 233.0, 416.0, 252.0), "dx_sub": (255.0, 260.5, 416.0, 279.5),
     "code_main": (418.2, 244.0, 534.8, 257.0), "code_sub": (418.2, 258.0, 534.8, 271.0),
     # 날짜: 서식에 인쇄된 (년 시작, 년 끝, 월 시작, 월 끝, 일 시작) x 좌표
-    "onset": (243.9, 253.4, 271.1, 280.5, 298.0), "diag_date": (464.0, 473.5, 486.6, 496.1, 509.1),
-    "date_y": (285.8, 315.5),
-    "opinion": (180.0, 318.0, 530.0, 387.0),
+    "diag_date": (464.0, 473.5, 486.6, 496.1, 509.1),
     "admit": (263.9, 274.4, 288.6, 299.1, 313.2), "discharge": (446.4, 457.0, 471.1, 481.7, 495.8),
     "adm_y": (389.3, 419.2),
+    "date_y": (285.8, 315.5),
+    "opinion": (180.0, 318.0, 530.0, 387.0),
     "purpose": (180.0, 419.2, 534.8, 446.2),
-    "remark": (180.0, 446.2, 534.8, 473.1),
     "issue": (450.1, 459.1, 481.4, 490.4, 512.8), "issue_y": (504.0, 517.5),
     "hosp_name": (214.0, 526.0, 534.0, 540.0),
     "hosp_addr": (214.0, 548.0, 534.0, 562.0),
@@ -155,17 +159,21 @@ def draw_receipt(page: fitz.Page, case: dict, writer_cls):
     v = case["variant"]["receipt"]
     m = v["mark"]
 
-    # 제목 체크
+    # 제목 체크: 외래 / 입원(퇴원)
     if rc["kind"] == "outpatient":
         w.mark(m, *R6["chk_out"], size=11)
     else:
         w.mark(m, *R6["chk_in"], size=11)
         w.mark(m, *R6["chk_dis"], size=11)
+    if rc.get("night"):
+        w.mark(m, *R6["chk_night"], size=8)
+    if rc.get("holiday"):
+        w.mark(m, *R6["chk_holiday"], size=8)
 
     # 상단
     w.cell(p["chart_no"], R6["chart_no"])
     w.cell(p["name"], R6["name"])
-    for key, dt in (("period_start", d["start"]), ("period_end", d["end"])):
+    for key, dt in (("period_start", d["visit"]), ("period_end", d["end"])):
         xy, xm, xd = R6[key]
         w.right_at(dt.year, xy - 0.3, R6["period_y"], size=6.0)
         w.right_at(f"{dt.month:02d}", xm - 0.3, R6["period_y"], size=6.0)
@@ -228,6 +236,7 @@ def draw_diagnosis(page: fitz.Page, case: dict, writer_cls):
     w.cell(p["phone"], D52["phone"], align="l", size=9)
 
     w.mark(m, *(D52["chk_final"] if dc["final"] else D52["chk_clinical"]), size=10)
+
     def dx_text(dx):
         """영문 병기(변형)는 칸에 9pt로 들어갈 때만. 글자를 작게 줄여 넣지 않음."""
         text = f"{dx['name']} ({dx['en']})"
@@ -248,14 +257,13 @@ def draw_diagnosis(page: fitz.Page, case: dict, writer_cls):
         w.center_at(f"{dt.month:02d}", (y_end + m_start) / 2, band, size)
         w.center_at(f"{dt.day:02d}", (m_end + d_start) / 2, band, size)
 
-    ymd(d["onset"], D52["onset"], D52["date_y"])
+    # 발병 연월일·비고는 비워 둠 (진료기록 없이 정할 수 없음)
     ymd(d["diagnosis"], D52["diag_date"], D52["date_y"], size=8.2)
     w.paragraph(dc["opinion"], D52["opinion"], size=9)
     if case["admitted"]:
-        ymd(d["start"], D52["admit"], D52["adm_y"])
+        ymd(d["visit"], D52["admit"], D52["adm_y"])
         ymd(d["end"], D52["discharge"], D52["adm_y"])
     w.cell(dc["purpose"], D52["purpose"], align="l", size=9.5)
-    w.cell(dc["remark"], D52["remark"], align="l", size=9.5)
 
     ymd(d["issue"], D52["issue"], D52["issue_y"], size=9)
     w.cell(h["name"], D52["hosp_name"], align="l", size=10, bold=True)
@@ -270,4 +278,3 @@ DOCS = {
     "diagnosis": ("form5-2_diagnosis.pdf", draw_diagnosis, "진단서"),
     "receipt": ("form6_receipt.pdf", draw_receipt, "진료비 계산서·영수증"),
 }
-

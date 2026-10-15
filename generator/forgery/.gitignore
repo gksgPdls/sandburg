@@ -2,4 +2,4 @@ config/hira_api_key.txt
 .venv/
 __pycache__/
 .DS_Store
-out_rebuild/
+out/
