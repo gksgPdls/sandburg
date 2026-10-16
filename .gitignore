@@ -1,0 +1,37 @@
+# 비밀, 실행환경
+.env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# 모든 이미지 제외 (문서 사진이 들어 있어 git에는 올리지 않음, 공유)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tif
+*.tiff
+
+# 이미지 데이터 폴더 (용량 큼, 공유). 라벨·CSV·README는 git에 포함
+dataset/original/**/*.jpg
+dataset/original/**/*.jpeg
+dataset/original/**/*.png
+dataset/original/real_docs/
+dataset/tampered/
+dataset/samples/**/*.jpg
+dataset/samples/**/*.png
+dataset/labels/masks/
+
+# 결과물: 텍스트 결과(성능표, 튜닝 결과)만 포함, 이미지·업로드용 폴더·zip은 제외
+outputs/*
+!outputs/reports/
+outputs/reports/evidence/
+outputs/reports/catalog_v1/catalog.html
+outputs/reports/catalog_v1/detection_cache.jsonl
+outputs/reports/_archive/
+outputs/reports/*_cache*.jsonl
+outputs/reports/detector_raw_scores.jsonl
+*.zip
+*.tar

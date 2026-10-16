@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>문서 위변조 탐지기</title>
+<style>
+:root{
+  --paper:#E8ECF0; --sheet:#FFFFFF; --ink:#1E2833; --muted:#5F6E7D; --line:#CBD3DB;
+  --mark:#F2C94C; --mark-soft:rgba(242,201,76,.22); --forged:#B83227; --forged-soft:#F8E3E0;
+  --clean:#2B7A4B; --clean-soft:#E1F1E7; --off:#98A4AF;
+  --font:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;
+  font-feature-settings:"tnum"}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+header{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;padding:18px 24px 6px}
+header h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(340px,1fr);gap:18px;padding:12px 24px 28px;align-items:start}
+.viewer{background:var(--sheet);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:999px;padding:7px 16px;cursor:pointer;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.hint{color:var(--muted);font-size:13px;margin-left:auto}
+.stage{position:relative;min-height:520px;display:flex;align-items:center;justify-content:center;background:#DDE2E7}
+.drop{border:2px dashed var(--off);border-radius:10px;padding:56px 40px;text-align:center;color:var(--muted);cursor:pointer;max-width:420px;background:var(--sheet)}
+.drop strong{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+.stage.dragover .drop{border-color:var(--ink);background:var(--mark-soft)}
+.canvas{position:relative;display:none;max-width:100%;user-select:none}
+.canvas img{display:block;max-width:100%;max-height:78vh;cursor:crosshair}
+.canvas svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.verdict{border-left:6px solid var(--off)}
+.verdict.forged{border-left-color:var(--forged);background:linear-gradient(90deg,var(--forged-soft),var(--sheet) 55%)}
+.verdict.clean{border-left-color:var(--clean);background:linear-gradient(90deg,var(--clean-soft),var(--sheet) 55%)}
+.verdict h2{margin:0;font-size:30px;line-height:1.2;letter-spacing:-.02em}
+.verdict.forged h2{color:var(--forged)} .verdict.clean h2{color:var(--clean)}
+.verdict p{margin:6px 0 0;color:var(--muted)}
+.empty{color:var(--muted)}
+.method{padding:12px 0;border-top:1px solid var(--line)}
+.method:first-of-type{border-top:0;padding-top:4px}
+.mhead{display:flex;align-items:center;gap:8px}
+.mname{font-weight:700}
+.chip{font-size:12px;border-radius:999px;padding:1px 9px;border:1px solid currentColor}
+.chip.hit{color:var(--forged);background:var(--forged-soft)} .chip.pass{color:var(--clean);background:var(--clean-soft)}
+.chip.off{color:var(--off)}
+.sentence{margin:4px 0 8px}
+.method.disabled .sentence{color:var(--muted);font-size:13px;margin-bottom:0}
+.strip{position:relative;height:22px;border-radius:4px;background:linear-gradient(90deg,#E5EAEF 0%,#E5EAEF 50.8%,#F6DCD8 50.8%,#F6DCD8 100%)}
+.strip .cut{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--forged)}
+.strip .dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--ink);border:2px solid #fff;box-shadow:0 0 0 1px var(--ink)}
+.strip-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:3px}
+.meta{font-size:12px;color:var(--muted);margin-top:6px}
+.cands{list-style:none;margin:0;padding:0}
+.cands li button{width:100%;text-align:left;display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;
+  background:none;border:0;border-top:1px solid var(--line);padding:8px 2px;cursor:pointer}
+.cands li:first-child button{border-top:0}
+.cands li button[aria-current="true"]{background:var(--mark-soft)}
+.cands .no{font-weight:700;text-align:center}
+.cands .rare{font-size:13px;color:var(--muted)}
+.cands .rare.hit{color:var(--forged);font-weight:700}
+.evidence{grid-column:1/-1}
+.evidence h3,.card h3{margin:0 0 10px;font-size:16px}
+.ev-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:start}
+.ev-grid img.zoom{max-width:100%;border-radius:4px;border:1px solid var(--line)}
+.tiles{display:grid;grid-template-columns:78px repeat(6,minmax(0,1fr));gap:6px 8px;align-items:center;font-size:12px;color:var(--muted)}
+.tiles img{max-width:100%;image-rendering:pixelated;border:1px solid var(--line);display:block}
+.tiles .rowlabel{color:var(--ink);font-weight:600}
+.tiles figure{margin:0}
+.tiles figcaption{margin-top:2px}
+.tiles figure.inside img{outline:3px solid var(--mark);outline-offset:-1px}
+.formula{margin-top:12px;font-size:14px}
+.status{font-size:14px;color:var(--muted)}
+.error{color:var(--forged)}
+@media (max-width:980px){.layout{grid-template-columns:1fr}.ev-grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.verdict h2{transition:color .2s}}
+</style>
+</head>
+<body>
+<header>
+  <h1>문서 위변조 탐지기</h1>
+  <p>문서 이미지를 올리고 의심 가는 숫자 칸을 고르면, 같은 문서의 비슷한 칸들과 비교해 위조 여부를 판정합니다. 이미지는 이 컴퓨터 밖으로 나가지 않습니다.</p>
+</header>
+
+<div class="layout">
+  <section class="viewer" aria-label="문서">
+    <div class="toolbar">
+      <button class="btn" id="openBtn">이미지 열기</button>
+      <button class="btn ghost" id="autoBtn" disabled>자동으로 칸 찾기</button>
+      <input type="file" id="file" accept="image/*" hidden>
+      <span class="hint" id="hint">이미지를 열면 숫자 칸을 마우스로 드래그해서 검사할 수 있어요</span>
+    </div>
+    <div class="stage" id="stage">
+      <div class="drop" id="drop" role="button" tabindex="0">
+        <strong>문서 이미지를 여기에 끌어다 놓으세요</strong>
+        또는 눌러서 파일을 고르세요 (JPG, PNG)
+      </div>
+      <div class="canvas" id="canvas">
+        <img id="doc" alt="올린 문서 이미지">
+        <svg id="overlay"></svg>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <section class="card verdict" id="verdict" aria-live="polite">
+      <h2 id="vTitle">검사 전</h2>
+      <p id="vSub">문서를 열고 검사할 칸을 고르세요.</p>
+    </section>
+    <section class="card" id="candCard" hidden>
+      <h3 id="candTitle">자동으로 찾은 칸</h3>
+      <ul class="cands" id="cands"></ul>
+    </section>
+    <section class="card" id="methodsCard" hidden>
+      <h3>탐지법별 결과</h3>
+      <div id="methods"></div>
+    </section>
+  </aside>
+
+  <section class="card evidence" id="evidence" hidden>
+    <h3>판정 근거: 무엇과 비교했나</h3>
+    <div class="ev-grid">
+      <div><img class="zoom" id="zoom" alt="의심 영역 확대"></div>
+      <div>
+        <div class="tiles" id="tiles"></div>
+        <div class="formula" id="formula"></div>
+        <p class="meta">노이즈 지도는 웨이블릿으로 분리한 노이즈 성분으로, 밝을수록 노이즈가 많습니다. 새로 그려 넣은 글자는 스캔 노이즈가 없어 주변보다 어둡게 나옵니다.
+        노이즈분석은 비교 패치 1~5의 중앙값과, FFT와 픽셀통계는 비교 1과 비교합니다.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const S = {id:null, w:0, h:0, sel:null, cands:[], active:-1, busy:false};
+const CUT = 0.03;  // 탐지법별 기준선: 정상 문서 중 3%
+
+function post(url, body){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(async r=>{const j=await r.json(); if(!r.ok) throw new Error(j.error||'요청 실패'); return j;});
+}
+function setStatus(title, sub, cls){
+  $('verdict').className='card verdict '+(cls||''); $('vTitle').textContent=title; $('vSub').textContent=sub||'';
+}
+
+// 파일 열기
+$('openBtn').onclick=()=>$('file').click();
+$('drop').onclick=()=>$('file').click();
+$('drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' ')$('file').click();};
+$('file').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+['dragover','dragenter'].forEach(t=>$('stage').addEventListener(t,e=>{e.preventDefault();$('stage').classList.add('dragover');}));
+['dragleave','drop'].forEach(t=>$('stage').addEventListener(t,e=>{e.preventDefault();$('stage').classList.remove('dragover');}));
+$('stage').addEventListener('drop',e=>e.dataTransfer.files[0]&&load(e.dataTransfer.files[0]));
+
+function load(file){
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    setStatus('이미지 올리는 중','');
+    try{
+      const r=await post('/api/upload',{image:rd.result});
+      Object.assign(S,{id:r.id,w:r.width,h:r.height,sel:null,cands:[],active:-1});
+      $('doc').src=rd.result; $('drop').style.display='none'; $('canvas').style.display='block';
+      $('autoBtn').disabled=false; $('candCard').hidden=true; $('methodsCard').hidden=true; $('evidence').hidden=true;
+      $('hint').textContent='의심 가는 숫자 칸을 드래그해서 감싸세요';
+      setStatus('검사 전','숫자 칸을 드래그하거나 자동으로 칸 찾기를 누르세요.');
+      draw();
+    }catch(err){setStatus('열지 못함',err.message,'');}
+  };
+  rd.readAsDataURL(file);
+}
+
+// 영역 드래그
+let start=null;
+const toNat=(e)=>{const b=$('doc').getBoundingClientRect(); return [(e.clientX-b.left)*S.w/b.width,(e.clientY-b.top)*S.h/b.height];};
+$('doc').style.touchAction='none';
+$('doc').addEventListener('pointerdown',e=>{e.preventDefault(); if(!S.id||S.busy)return; start=toNat(e); S.sel=[...start,0,0];});
+window.addEventListener('pointermove',e=>{if(!start)return; const p=toNat(e);
+  S.sel=[Math.min(start[0],p[0]),Math.min(start[1],p[1]),Math.abs(p[0]-start[0]),Math.abs(p[1]-start[1])]; draw();});
+window.addEventListener('pointerup',()=>{if(!start)return; start=null;
+  if(S.sel&&S.sel[2]>4&&S.sel[3]>4){S.active=-1; renderCands(); run(S.sel);} else {S.sel=null; draw();}});
+
+function draw(){
+  const svg=$('overlay'); svg.setAttribute('viewBox',`0 0 ${S.w} ${S.h}`); svg.setAttribute('preserveAspectRatio','none');
+  const sw=Math.max(2,S.w/400);
+  let h='';
+  S.cands.forEach((c,i)=>{const [x,y,w,hh]=c.bbox; const hit=c.rarity!=null&&c.rarity<CUT;
+    h+=`<rect x="${x-3}" y="${y-3}" width="${w+6}" height="${hh+6}" fill="none" stroke="${hit?'#B83227':'#5F6E7D'}" stroke-width="${sw}" ${i===S.active?'':'stroke-dasharray="'+sw*3+' '+sw*2+'"'}/>
+          <text x="${x-3}" y="${y-6}" font-size="${sw*7}" font-weight="700" fill="${hit?'#B83227':'#1E2833'}">${i+1}</text>`;});
+  if(S.sel){const [x,y,w,hh]=S.sel; h+=`<rect x="${x}" y="${y}" width="${w}" height="${hh}" fill="rgba(242,201,76,.22)" stroke="#E0B232" stroke-width="${sw*1.2}"/>`;}
+  svg.innerHTML=h;
+}
+
+// 자동 탐색
+$('autoBtn').onclick=async()=>{
+  if(!S.id||S.busy)return; S.busy=true; $('autoBtn').disabled=true;
+  setStatus('칸 찾는 중','OCR로 금액과 날짜 칸을 찾고 하나씩 검사하고 있어요. 몇 초 걸립니다.');
+  try{
+    const r=await post('/api/locate',{id:S.id}); S.cands=r.candidates; S.sel=null;
+    $('candTitle').textContent=`자동으로 찾은 칸 ${r.candidates.length}개 (의심스러운 순)`;
+    renderCands(); draw();
+    if(r.candidates.length){ setStatus(r.suspicious?'위조 의심':'정상 판정', r.summary, r.suspicious?'forged':'clean'); pick(0,false);}
+    else setStatus('찾은 칸 없음','금액이나 날짜 모양의 글자를 찾지 못했어요. 숫자 칸을 직접 드래그해서 검사하세요.','');
+  }catch(err){setStatus('자동 탐색 실패',err.message,'');}
+  S.busy=false; $('autoBtn').disabled=false;
+};
+function renderCands(){
+  const ul=$('cands'); ul.innerHTML=''; $('candCard').hidden=!S.cands.length;
+  S.cands.forEach((c,i)=>{const hit=c.rarity!=null&&c.rarity<CUT; const li=document.createElement('li');
+    li.innerHTML=`<button aria-current="${i===S.active}"><span class="no">${i+1}</span><span>${esc(c.text)}${c.flagged_methods.length?`<span class="meta"> &nbsp;${c.flagged_methods.map(shortName).join(', ')}</span>`:''}</span>
+      <span class="rare ${hit?'hit':''}">${c.rarity==null?'-':'정상 중 '+pct(c.rarity)}</span></button>`;
+    li.firstChild.onclick=()=>pick(i,true); ul.appendChild(li);});
+}
+function pick(i,keepVerdict){S.active=i; renderCands(); draw(); run(S.cands[i].bbox, !keepVerdict);}
+
+// 분석
+async function run(bbox, fromAuto){
+  S.busy=true; const prev=[$('vTitle').textContent,$('vSub').textContent,$('verdict').className];
+  if(!fromAuto) setStatus('분석 중','선택한 칸을 주변 칸들과 비교하고 있어요.');
+  try{
+    const r=await post('/api/analyze',{id:S.id,bbox:bbox.map(Math.round)});
+    const v=r.verdict;
+    if(!fromAuto) setStatus(v.suspicious?'위조 의심':'정상 판정',
+      `${v.enabled_methods}개 탐지법 중 ${v.votes}개에서 이상 신호 (기준: ${v.min_votes}개 이상이면 위조 의심)`, v.suspicious?'forged':'clean');
+    renderMethods(r); renderEvidence(r);
+  }catch(err){ if(!fromAuto) setStatus('분석 실패',err.message,''); else {$('vTitle').textContent=prev[0];} }
+  S.busy=false;
+}
+function renderMethods(r){
+  $('methodsCard').hidden=false;
+  const order=r.methods.slice().sort((a,b)=>(b.enabled-a.enabled));
+  $('methods').innerHTML=order.map(m=>{
+    if(!m.enabled) return `<div class="method disabled"><div class="mhead"><span class="mname">${esc(m.name)}</span><span class="chip off">사용 안 함</span></div><p class="sentence">${esc(m.sentence)}</p></div>`;
+    const pos=m.rarity==null?null:Math.min(100,Math.max(0,Math.log10(1/m.rarity)/3*100));
+    const cut=Math.log10(1/CUT)/3*100;
+    return `<div class="method"><div class="mhead"><span class="mname">${esc(m.name)}</span>
+        <span class="chip ${m.flagged?'hit':'pass'}">${m.flagged?'걸림':'통과'}</span></div>
+      <p class="sentence">${esc(m.sentence)}</p>
+      ${pos==null?'':`<div class="strip" title="정상 문서들 사이에서 이 값의 위치"><span class="cut" style="left:${cut}%"></span><span class="dot" style="left:${pos}%"></span></div>
+      <div class="strip-scale"><span>정상 문서에서 흔함</span><span>기준선 3%</span><span>정상 문서 0.1% 미만</span></div>`}
+      <div class="meta">측정값 ${fmt(m.score)} (의심 영역 ${fmt(m.inside)}, 비교 ${fmt(m.outside)}), 위조 기준 ${esc(m.rule)}</div></div>`;
+  }).join('');
+}
+function renderEvidence(r){
+  $('evidence').hidden=false; $('zoom').src=r.zoom;
+  const t=r.tiles; let h='<span></span>'+t.map(x=>`<span>${x.label}</span>`).join('')+'<span></span>'.repeat(6-t.length);
+  h+='<span class="rowlabel">패치</span>'+t.map((x,i)=>`<figure class="${i?'':'inside'}"><img src="${x.patch}" alt="${x.label}"></figure>`).join('')+'<span></span>'.repeat(6-t.length);
+  h+='<span class="rowlabel">노이즈 지도</span>'+t.map(x=>`<figure><img src="${x.map}" alt="${x.label} 노이즈"><figcaption>노이즈 ${x.noise}</figcaption></figure>`).join('')+'<span></span>'.repeat(6-t.length);
+  $('tiles').innerHTML=h;
+  const f=r.noise_formula;
+  $('formula').innerHTML=f.score==null?'':`노이즈 비교: 의심 영역 <b>${fmt(f.inside)}</b> ÷ 비교 패치 중앙값 <b>${fmt(f.outside)}</b> = <b>${fmt(f.score)}</b>`;
+}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=v=>v==null?'-':(typeof v==='number'?(Math.abs(v)>=100?v.toFixed(0):v.toFixed(3).replace(/\.?0+$/,'')):String(v));
+const pct=r=>r<0.001?'0.1% 미만':(r*100).toFixed(r<0.1?1:0)+'%';
+const shortName=n=>n.replace(/^.*_/,'');
+window.addEventListener('resize',draw);
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{
+  "_설명": "탐지기 기준값. 숫자를 바꾸면 코드 수정 없이 판정이 바뀐다. evidence는 scripts/detect/tune.py가 채움.",
+  "verdict": {
+    "min_votes": 1,
+    "evidence": {
+      "검증_정탐률": 0.8489,
+      "검증_오탐률": 0.0835,
+      "검증_정확도": 0.8827,
+      "검증_정밀도": 0.9104,
+      "튜닝일": "2026-10-16",
+      "데이터": "1005쌍 (튜닝 502 / 검증 503)"
+    }
+  },
+  "methods": {
+    "noise": {
+      "name": "신호패턴_노이즈분석",
+      "enabled": true,
+      "direction": "low",
+      "rule": {
+        "low": 0.6561,
+        "high": null
+      },
+      "meaning": "의심영역 노이즈 ÷ 비슷한 주변 노이즈. AI가 새로 그린 영역엔 스캔 노이즈가 없어서 주변보다 매끈하게(낮게) 나온다.",
+      "evidence": {
+        "검증_정탐률": 0.6501,
+        "검증_오탐률": 0.0358,
+        "검증_정확도": 0.8072,
+        "오탐목표": 0.03
+      },
+      "comparison": {
+        "top_k": 5,
+        "min_edge_ratio": 0.5,
+        "근거": "비교 패치 1개는 빈 종이나 굵은 글씨 칸이 걸리면 판정이 틀어짐(AIP_0026 미탐, AIP_0046 오탐). 5개 중앙값+빈 칸 제외로 AUC 0.817에서 0.881"
+      }
+    },
+    "fft": {
+      "name": "신호패턴_FFT주파수",
+      "enabled": true,
+      "direction": "two_sided",
+      "rule": {
+        "low": -0.0323,
+        "high": 0.1902
+      },
+      "meaning": "고주파 비율 차이(안쪽-주변). 0에서 멀수록 질감의 세밀함이 주변과 다르다.",
+      "evidence": {
+        "검증_정탐률": 0.3499,
+        "검증_오탐률": 0.0159,
+        "검증_정확도": 0.667,
+        "오탐목표": 0.03
+      },
+      "comparison": {
+        "top_k": 1,
+        "min_edge_ratio": 0.0,
+        "근거": "여러 개 쓰면 오히려 AUC 하락(0.668에서 0.549)"
+      }
+    },
+    "pixel_std": {
+      "name": "AI탐지_픽셀통계",
+      "enabled": true,
+      "direction": "two_sided",
+      "rule": {
+        "low": 0.7879,
+        "high": 1.9396
+      },
+      "meaning": "픽셀 밝기 표준편차 안쪽 ÷ 주변. 1에서 멀수록 이상. (예전 노이즈지문분석·패치통계이상을 통합)",
+      "evidence": {
+        "검증_정탐률": 0.332,
+        "검증_오탐률": 0.0398,
+        "검증_정확도": 0.6461,
+        "오탐목표": 0.03
+      },
+      "comparison": {
+        "top_k": 1,
+        "min_edge_ratio": 0.0,
+        "근거": "여러 개 쓰면 오히려 AUC 하락(0.710에서 0.635)"
+      }
+    },
+    "boundary": {
+      "name": "영역불일치_합성경계분석",
+      "enabled": false,
+      "direction": "high",
+      "rule": {
+        "high": 1.6
+      },
+      "why_disabled": "구분력 없음 (AUC 0.53, 위조/정상 측정값 분포가 거의 같음) — 재설계 필요",
+      "meaning": "마스크 테두리 1px 밝기 변화 ÷ 배경."
+    },
+    "ela": {
+      "name": "압축흔적_ELA",
+      "enabled": false,
+      "direction": "high",
+      "rule": {
+        "high": 1.5,
+        "min_inside": 5.0
+      },
+      "why_disabled": "적용불가 — 테스트셋 위조본은 PNG, 정상 원본은 JPEG라 위조 흔적이 아니라 파일 형식 차이를 잡음",
+      "meaning": "JPEG 재압축 손실 안쪽 ÷ 바깥."
+    }
+  },
+  "locate": {
+    "doc_max_rarity": 0.00994,
+    "근거": "튜닝용 정상 문서 200장 중 오탐 10% 지점, outputs/reports/locate_evaluation.json"
+  }
+}
