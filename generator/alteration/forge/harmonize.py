@@ -104,7 +104,7 @@ def clean_area(img, orig, box, ink_fn, stroke_fn, seed=0, margin=6):
     base_c = cv2.inpaint(b8, old_d, 5, cv2.INPAINT_TELEA).astype(np.float32)
     grain = float(resid[(old_d == 0) & ~keep].std()) if ((old_d == 0) & ~keep).sum() > 30 else 2.0
     dark = (base_c - base).mean(axis=2)
-    ghost = (dark > max(1.5 * grain, 2.0)) & (old_d > 0)
+    ghost = (dark > max(1.0 * grain, 1.5)) & (old_d > 0)   # 10/23: 1.5배에서 낮춤 (옅은 흔적이 남던 경우)
     if ghost.sum() < 3:
         return None
     ghost = cv2.dilate(ghost.astype(np.uint8), np.ones((3, 3), np.uint8))
@@ -220,3 +220,77 @@ def save_like(bgr, orig_path, out_path):
     p = out_path.with_suffix(".png")
     im.save(p)
     return p
+
+
+# ---------- C2 ----------
+
+def match_noise(img, box, ink_fn, seed=0, ring=8):
+    """C2: 다 만든 뒤 칸 안 종이의 잔결 세기를 칸 바로 바깥 종이와 같게 맞춘다.
+    칸 안이 매끈하면 모자란 만큼 잡음을 더하고, 거칠면 잔결을 줄인다. 글자 획과 그 둘레 2px는 건드리지 않는다.
+    (안 잔결, 바깥 잔결, 조정 후 안 잔결)"""
+    x, y, w, h = box
+    H, W = img.shape[:2]
+    X0, Y0, X1, Y1 = max(x - ring, 0), max(y - ring, 0), min(x + w + ring, W), min(y + h + ring, H)
+    reg = img[Y0:Y1, X0:X1].astype(np.float32)
+    g = cv2.cvtColor(img[Y0:Y1, X0:X1], cv2.COLOR_BGR2GRAY)
+    ink = cv2.dilate((ink_fn(g) > 0).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+    inside = np.zeros(g.shape, bool)
+    inside[y - Y0:y - Y0 + h, x - X0:x - X0 + w] = True
+    base, resid = _resid(reg, 3)
+    rg = resid.mean(axis=2)
+    pin, pout = inside & ~ink, ~inside & ~ink
+    if pin.sum() < 30 or pout.sum() < 30:
+        return None
+    s_in, s_out = float(rg[pin].std()), float(rg[pout].std())
+    wgt = cv2.GaussianBlur((inside & ~ink).astype(np.float32), (0, 0), 1.5)[..., None]
+    if s_in < 0.9 * s_out:
+        rng = np.random.default_rng(seed + 29)
+        n = cv2.GaussianBlur(rng.normal(0, 1, g.shape).astype(np.float32), (0, 0), 0.6)
+        n *= np.sqrt(s_out ** 2 - s_in ** 2) / (n.std() + 1e-6)
+        reg = reg + n[..., None] * wgt
+    elif s_in > 1.15 * s_out:
+        f = s_out / s_in
+        reg = base + resid * (1 - wgt * (1 - f))
+    else:
+        return round(s_in, 2), round(s_out, 2), round(s_in, 2)
+    img[Y0:Y1, X0:X1] = np.clip(reg, 0, 255).astype(np.uint8)
+    g2 = cv2.cvtColor(img[Y0:Y1, X0:X1], cv2.COLOR_BGR2GRAY).astype(np.float32)
+    r2 = g2 - cv2.GaussianBlur(g2, (0, 0), 3)
+    return round(s_in, 2), round(s_out, 2), round(float(r2[pin].std()), 2)
+
+
+# ---------- C5 ----------
+
+def clean_leftover(img, before_write, orig_gray, box, stroke_fn, seed=0, rounds=2):
+    """C5: 새 글자를 다 쓴 뒤 마지막 검사. 원래 획이 있던 자리(둘레 2px)에서 새 글자가 아닌데 종이보다 어두운 픽셀이
+    남아 있으면 그 픽셀만 주변 종이로 다시 메운다 (SD가 옅은 획을 다시 그리거나, 옅은 가장자리가 남은 경우).
+    표 선과 새 글자는 건드리지 않는다. 다시 메운 픽셀 수."""
+    x, y, w, h = box
+    old, lines = stroke_fn(orig_gray, box)
+    old = cv2.dilate(old, np.ones((5, 5), np.uint8)) > 0
+    total = 0
+    for r in range(rounds):
+        cur = cv2.cvtColor(img[y:y + h, x:x + w], cv2.COLOR_BGR2GRAY).astype(np.float32)
+        bef = cv2.cvtColor(before_write[y:y + h, x:x + w], cv2.COLOR_BGR2GRAY).astype(np.float32)
+        new_glyph = cv2.dilate(((bef - cur) > 4).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+        free = ~old | new_glyph
+        paper_px = cur[~old & ~new_glyph & (lines == 0)]
+        if paper_px.size < 20:
+            break
+        paper = float(np.median(paper_px))
+        res = cur - cv2.GaussianBlur(cur, (0, 0), 3)
+        grain = float(res[~old & ~new_glyph & (lines == 0)].std())
+        bad = old & ~new_glyph & (lines == 0) & (cur < paper - max(2.0 * grain, 5.0))
+        bad = cv2.dilate(bad.astype(np.uint8), np.ones((3, 3), np.uint8)) & (~new_glyph).astype(np.uint8) & (lines == 0).astype(np.uint8)
+        n = int(bad.sum())
+        if n == 0:
+            break
+        total += n
+        sub = img[y:y + h, x:x + w]
+        filled = cv2.inpaint(sub, bad * 255, 3, cv2.INPAINT_TELEA).astype(np.float32)
+        rng = np.random.default_rng(seed + 41 + r)
+        noise = cv2.GaussianBlur(rng.normal(0, 1, bad.shape).astype(np.float32), (0, 0), 0.6)
+        noise *= grain / (noise.std() + 1e-6)
+        out = np.where(bad[..., None] > 0, np.clip(filled + noise[..., None], 0, 255), sub.astype(np.float32))
+        img[y:y + h, x:x + w] = out.astype(np.uint8)
+    return total
