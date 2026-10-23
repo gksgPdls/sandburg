@@ -35,3 +35,7 @@ outputs/reports/*_cache*.jsonl
 outputs/reports/detector_raw_scores.jsonl
 *.zip
 *.tar
+
+# 글꼴 파일 (라이선스, 용량) - fonts/README.md 만 올림
+fonts/*
+!fonts/README.md
