@@ -108,7 +108,72 @@ def _font(path, index, digit_h):
     return _size_cache[key]
 
 
-def render_alpha(text, path, index, digit_h, tracking, weight, blur, rotate=0.0, big=False):
+def _render_layout(f, lay, syms, weight, pad, t0, H, blur=0.0):
+    """C1: 글자를 정해진 가운데 자리(lay, 오른쪽 끝 기준 px)에 하나씩 그리고, 기호는 원본에서 뜬 모양(syms)을 붙인다.
+    (캔버스, 기준점(오른쪽 끝) 열). 기준점 열은 SS의 배수가 되게 맞춘다 (줄일 때 반 픽셀 어긋나지 않게)."""
+    half = 2 * f.size
+    cs = [c for _, c in lay]
+    cmin, cmax = min(cs + [0.0]), max(cs + [0.0])
+    X = lambda c: pad + half + (c - cmin) * SS
+    shift = (-X(0.0)) % SS
+    Xs = lambda c: X(c) + shift
+    Wc = int(Xs(cmax) + half + pad) + SS
+    canvas = Image.new("L", (Wc, H), 0)
+    d = ImageDraw.Draw(canvas)
+    # 정해진 자리 간격보다 글자가 넓으면 글자끼리 닿으므로 가로만 줄인다 (최소 1px 틈)
+    dig = [(ch, c) for ch, c in lay if ch.isdigit()]
+    sx = 1.0
+    if len(dig) >= 2:
+        dmin = min(b - a for (_, a), (_, b) in zip(dig, dig[1:]) if b > a) if any(b > a for (_, a), (_, b) in zip(dig, dig[1:])) else None
+        wmax = max(_ink_x(f, ch)[1] - _ink_x(f, ch)[0] for ch, _ in dig)
+        # 틈은 0.3px까지만 두고, 가로로 줄이는 건 88%까지만 (10/23: 1px 틈, 60%까지 줄였더니 글자가 홀쭉하다는 의견, auto00094)
+        if dmin and wmax > dmin * SS - 0.3 * SS:
+            sx = max((dmin * SS - 0.3 * SS) / wmax, 0.88)
+    if sx < 1.0 and weight < 0:   # 가로로 줄인 글자를 또 깎으면 너무 가늘고 연해짐
+        weight = 0
+    pieces = []
+    for ch, c in lay:
+        if syms and ch in syms:
+            continue
+        l, r = _ink_x(f, ch)
+        if sx == 1.0:
+            d.text((Xs(c) - (l + r) / 2, pad - t0), ch, font=f, fill=255)
+        else:
+            tmp = Image.new("L", (int(r - l) + 2 * f.size, H), 0)
+            ImageDraw.Draw(tmp).text((f.size - l, pad - t0), ch, font=f, fill=255)
+            t = cv2.resize(np.asarray(tmp, np.uint8), (max(int(round(tmp.width * sx)), 1), H), interpolation=cv2.INTER_AREA)
+            pieces.append((t, int(round(Xs(c) - (f.size + (r - l) / 2) * sx))))
+    arr = np.asarray(canvas, np.uint8).copy()
+    for t, x0 in pieces:
+        a0, a1 = max(x0, 0), min(x0 + t.shape[1], arr.shape[1])
+        if a1 > a0:
+            arr[:, a0:a1] = np.maximum(arr[:, a0:a1], t[:, a0 - x0:a1 - x0])
+    if weight > 0:
+        arr = cv2.dilate(arr, np.ones((weight + 1, weight + 1), np.uint8))
+    elif weight < 0:
+        arr = cv2.erode(arr, np.ones((1 - weight, 1 - weight), np.uint8))
+    for ch, c in lay:
+        if not syms or syms.get(ch) is None:
+            continue
+        a, top, cx_in = syms[ch]
+        if blur > 0:   # 뒤에서 글자 전체에 흐림을 한 번 더 주므로, 원본에서 뜬 기호는 그만큼 미리 또렷하게 (쉼표 꼬리가 사라져 점처럼 보였음)
+            a = np.clip(a + 1.0 * (a - cv2.GaussianBlur(a, (0, 0), blur)), 0, 1)
+        big = cv2.resize(a, (a.shape[1] * SS, a.shape[0] * SS), interpolation=cv2.INTER_NEAREST)
+        # 원본 픽셀 격자에 딱 맞게 놓는다 (반 픽셀 어긋나면 줄일 때 두 칸에 나뉘어 쉼표 꼬리가 옅어짐)
+        x0 = int(round((Xs(c) - cx_in * SS) / SS)) * SS
+        y0 = int(round(pad + top * SS))
+        hh, ww = big.shape
+        sx0, sy0 = max(0, -x0), max(0, -y0)
+        dx0, dy0 = max(x0, 0), max(y0, 0)
+        dx1, dy1 = min(x0 + ww, arr.shape[1]), min(y0 + hh, arr.shape[0])
+        if dx1 > dx0 and dy1 > dy0:
+            piece = np.clip(big[sy0:sy0 + dy1 - dy0, sx0:sx0 + dx1 - dx0] * 255, 0, 255).astype(np.uint8)
+            arr[dy0:dy1, dx0:dx1] = np.maximum(arr[dy0:dy1, dx0:dx1], piece)
+    return arr, int(Xs(0.0))
+
+
+def render_alpha(text, path, index, digit_h, tracking, weight, blur, rotate=0.0, big=False, lay=None, syms=None,
+                 sym_blur=None):
     """글자 모양(0~1). (alpha, 오른쪽 끝 x, 왼쪽 끝 x, '0' 윗선 y) 원래 크기 기준.
     rotate(도, getRotationMatrix2D 방향)를 주면 크게 그린 상태에서 '오른쪽 끝, 숫자 윗선' 점을 중심으로 돌린 뒤
     줄인다(작은 그림을 돌릴 때 생기는 계단 현상 방지). 이때 오른쪽 끝·윗선 값은 회전 중심점 위치."""
@@ -119,27 +184,31 @@ def render_alpha(text, path, index, digit_h, tracking, weight, blur, rotate=0.0,
     pad = 6 * SS + (int(abs(np.sin(np.radians(rotate))) * total) + SS if rotate else 0)
     _, t0, _, b0 = f.getbbox("0")
     H = int(b0 - t0 + digit_h * SS * 1.2) + 2 * pad
-    canvas = Image.new("L", (int(total) + 2 * pad, H), 0)
-    d = ImageDraw.Draw(canvas)
-    x = pad
-    for ch, a in zip(text, adv):
-        d.text((x, pad - t0), ch, font=f, fill=255)
-        x += a + track
-    arr = np.asarray(canvas, np.uint8)
-    if weight > 0:
-        arr = cv2.dilate(arr, np.ones((weight + 1, weight + 1), np.uint8))
-    elif weight < 0:
-        arr = cv2.erode(arr, np.ones((1 - weight, 1 - weight), np.uint8))
+    ref = None
+    if lay:
+        arr, ref = _render_layout(f, lay, syms, weight, pad, t0, H, blur if sym_blur is None else sym_blur)
+    else:
+        canvas = Image.new("L", (int(total) + 2 * pad, H), 0)
+        d = ImageDraw.Draw(canvas)
+        x = pad
+        for ch, a in zip(text, adv):
+            d.text((x, pad - t0), ch, font=f, fill=255)
+            x += a + track
+        arr = np.asarray(canvas, np.uint8)
+        if weight > 0:
+            arr = cv2.dilate(arr, np.ones((weight + 1, weight + 1), np.uint8))
+        elif weight < 0:
+            arr = cv2.erode(arr, np.ones((1 - weight, 1 - weight), np.uint8))
     if rotate:
         c = np.nonzero(arr.max(axis=0) > 64)[0]
-        ax = float(c.max()) if len(c) else float(arr.shape[1] - 1)
+        ax = float(ref) if ref is not None else (float(c.max()) if len(c) else float(arr.shape[1] - 1))
         M = cv2.getRotationMatrix2D((ax, float(pad)), rotate, 1.0)
         arr = cv2.warpAffine(arr, M, (arr.shape[1], arr.shape[0]), flags=cv2.INTER_CUBIC,
                              borderMode=cv2.BORDER_CONSTANT, borderValue=0)
     if big:   # 크게 그린 상태 그대로 (원근 변형을 크게 한 뒤 줄이려고). 오른쪽 끝, '0' 윗선도 큰 좌표
         c = np.nonzero(arr.max(axis=0) > 25)[0]
-        return arr.astype(np.float32) / 255.0, (int(c.max()) if len(c) else arr.shape[1] - 1), \
-            (int(c.min()) if len(c) else 0), pad
+        right_big = ref if ref is not None else (int(c.max()) if len(c) else arr.shape[1] - 1)
+        return arr.astype(np.float32) / 255.0, right_big, (int(c.min()) if len(c) else 0), pad
     small = cv2.resize(arr, (arr.shape[1] // SS, arr.shape[0] // SS), interpolation=cv2.INTER_AREA)
     alpha = small.astype(np.float32) / 255.0
     if blur > 0:
@@ -149,6 +218,8 @@ def render_alpha(text, path, index, digit_h, tracking, weight, blur, rotate=0.0,
     left = int(cols.min()) if len(cols) else 0
     if rotate:
         right = int(round(ax / SS))
+    elif ref is not None:
+        right = ref // SS
     return alpha, right, left, pad // SS
 
 
@@ -259,6 +330,10 @@ def _glyph_score(targets, path, idx, height, wgt, ink_threshold=0.45):
     return float(np.mean(losses))
 
 
+FONT_HINT = None    # (path, index): 같은 이미지에서 앞서 고른 글꼴
+HINT_MARGIN = 0.08
+LAST_CHOICE = None
+_ALL = ("*",)       # choose(only=_ALL): 모든 글꼴, 자간 기준 없이
 SPACING_W = 1.0   # 글자 간격 차이 가중치
 
 
@@ -298,7 +373,7 @@ def choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs=None, only=Non
     thr = float(np.clip(35.0 / max(paper - gm["ink"], 1.0), 0.05, 0.95))
     results = []
     for path, idx, name in candidates():
-        if only is not None and (path, idx) != only:
+        if only is not None and only is not _ALL and (path, idx) != only:
             continue
         a0, r0, l0, _ = render_alpha(value, path, idx, gm["height"], 0, 0, 0.6)
         tracking = (target_w - (r0 - l0 + 1)) / max(len(value) - 1, 1)
@@ -313,8 +388,20 @@ def choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs=None, only=Non
             score += SPACING_W * sp
             results.append({"score": score, "간격": round(sp, 3), "path": path, "index": idx, "by": "글자별" if targets else "전체",
                             "name": name, "tracking": tracking, "weight": wgt, "blur": 0.6, "ink": ink})
+    if not results and only is None:   # 자간 기준에 다 걸리면(칸 크기를 잘못 잰 경우 등) 기준 없이 다시
+        return choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs, only=_ALL)
+    if not results:
+        raise ValueError("글꼴 후보를 하나도 못 그림")
     results.sort(key=lambda r: r["score"])
     best = dict(results[0])
+    # 같은 문서에서 먼저 고친 칸의 글꼴이 거의 같은 점수면 그 글꼴로 (합계 맞추기에서 두 칸 글꼴이 달라 보이지 않게)
+    if FONT_HINT is not None and only is None or only is _ALL and FONT_HINT is not None:
+        same = [r for r in results if (r["path"], r["index"]) == FONT_HINT]
+        if same and same[0]["score"] <= best["score"] + HINT_MARGIN:
+            best = dict(same[0])
+            best["글꼴맞춤"] = "앞칸"
+    global LAST_CHOICE
+    LAST_CHOICE = (best["path"], best["index"])
     # 2차: 고른 폰트로 굵기, 흐림, 진하기를 함께 맞춘다. 칸 안 밝기 분포(어두운 쪽 분위수)를 원본과 비교한다.
     # 픽셀끼리 비교하면 획 위치가 조금만 어긋나도 옅은 글자가 유리해져서(시험 결과 너무 옅게 나옴),
     # 위치와 상관없는 분포 비교를 쓴다. 어두운 픽셀의 양은 굵기, 밝기는 진하기와 흐림을 반영한다
@@ -359,8 +446,11 @@ def write_matched(img, erased_for_scoring, orig_gray, box, original_value, new_v
     """원래 값으로 폰트를 고르고, 그 조합으로 new_value를 img에 쓴다. (쓴 영역, 고른 조합, 상위 5개).
     orig_bgr를 주면 글자색(파란 볼펜 같은 색)도 원본 획 색에 맞춘다. 진하기는 고른 값을 유지."""
     best, top = choose(erased_for_scoring, orig_gray, box, original_value, gm, ink_mask_fn, glyphs)
+    lay, syms = _plan(orig_gray, box, gm, original_value, new_value, ink_mask_fn, best)
+    _SYM_FRAME.clear(); _SYM_FRAME.update({k: v for k, v in (syms or {}).items() if v is not None})
+    syms_r, sym_img = _split_syms(orig_bgr, orig_gray, box, original_value, ink_mask_fn, lay, syms, best)
     alpha, ar, al, at = render_alpha(new_value, best["path"], best["index"], gm["height"],
-                                     best["tracking"], best["weight"], best["blur"])
+                                     best["tracking"], best["weight"], best["blur"], lay=lay, syms=syms_r)
     ink = best["ink"]
     if orig_bgr is not None:
         col, col_gray = ink_color(orig_bgr, orig_gray, box, ink_mask_fn)
@@ -368,6 +458,9 @@ def write_matched(img, erased_for_scoring, orig_gray, box, original_value, new_v
             ink = np.clip(col * (best["ink"] / col_gray), 0, 255)
             best["글자색"] = "#%02x%02x%02x" % tuple(int(v) for v in col[::-1])
     written = composite(img, alpha, gm["right"], gm["top"], ar, at, ink)
+    if sym_img:
+        import layout
+        layout.paste_symbols(img, sym_img, _sym_points(lay, syms, sym_img, gm, lambda fx, fy: (fx, fy)))
     ys, xs = np.nonzero(alpha > 0.1)
     x0 = gm["right"] - ar
     y0 = gm["top"] - at
@@ -394,10 +487,13 @@ def write_matched_rotated(img, scoring_bg, orig_gray, orig_bgr, box, original_va
     bg = rot(scoring_bg[Y0:Y1, X0:X1])
     gm = metrics_fn(og, bx)
     best, top = choose(bg, og, bx, original_value, gm, ink_mask_fn)
+    lay, syms = _plan(og, bx, gm, original_value, new_value, ink_mask_fn, best)
+    _SYM_FRAME.clear(); _SYM_FRAME.update({k: v for k, v in (syms or {}).items() if v is not None})
+    syms_r, sym_img = _split_syms(orig_bgr, orig_gray, box, original_value, ink_mask_fn, lay, syms, best)
     # 반듯한 상태에서 잰 '오른쪽 끝, 숫자 윗선'을 원래(기울어진) 위치로 옮기고, 글자는 크게 그린 상태에서 기울여 얹는다
     anchor = Rinv @ np.array([gm["right"], gm["top"], 1.0])
     alpha, ar, al, at = render_alpha(new_value, best["path"], best["index"], gm["height"],
-                                     best["tracking"], best["weight"], best["blur"], rotate=-theta)
+                                     best["tracking"], best["weight"], best["blur"], rotate=-theta, lay=lay, syms=syms_r)
     ink = best["ink"]
     col, col_gray = ink_color(ob, og, bx, ink_mask_fn)
     if col is not None and col_gray > 0:
@@ -406,6 +502,12 @@ def write_matched_rotated(img, scoring_bg, orig_gray, orig_bgr, box, original_va
     sub = img[Y0:Y1, X0:X1]
     composite(sub, alpha, int(round(anchor[0])), int(round(anchor[1])), ar, at, ink)
     img[Y0:Y1, X0:X1] = sub
+    if sym_img:
+        import layout
+        def to_image(fx, fy):
+            p = Rinv @ np.array([fx, fy, 1.0])
+            return p[0] + X0, p[1] + Y0
+        layout.paste_symbols(img, sym_img, _sym_points(lay, syms, sym_img, gm, to_image))
     A = np.zeros((ch, cw), np.float32)
     ax0, ay0 = int(round(anchor[0])) - ar, int(round(anchor[1])) - at
     ah, aw = alpha.shape
@@ -436,6 +538,59 @@ def _min_gap(text, path, index, height):
         lb, _ = _ink_x(f, b)
         gaps.append(f.getlength(a) - ra + lb)
     return min(gaps) / SS if gaps else 0.0
+
+
+USE_LAYOUT = True   # C1: 원본 글자 자리·원본 기호 쓰기 (끄면 예전처럼 값 전체 폭만 맞춤)
+
+
+def _plan(gray, box, gm, original_value, new_value, ink_mask_fn, best):
+    if not USE_LAYOUT:
+        return None, None
+    try:
+        import layout
+        r = layout.plan(gray, box, gm, original_value, new_value, ink_mask_fn)
+    except Exception as e:   # 배치를 못 하면 예전 방식
+        best["배치"] = f"실패({type(e).__name__})"
+        return None, None
+    if r is None:
+        best["배치"] = "못읽음"
+        return None, None
+    lay, syms, note = r
+    best["배치"] = note
+    return lay, syms
+
+
+def _split_syms(orig_bgr, orig_gray, box, original_value, ink_mask_fn, lay, syms, best):
+    """기호를 원본 이미지 픽셀로 옮길 수 있으면 그리기에서 빼고(None), 옮길 목록을 돌려준다."""
+    if not lay or not syms or orig_bgr is None:
+        return syms, {}
+    import layout
+    try:
+        sym_img = layout.image_symbols(orig_bgr, orig_gray, box, original_value, ink_mask_fn)
+    except Exception:
+        sym_img = {}
+    sym_img = {k: v for k, v in sym_img.items() if syms.get(k) is not None}
+    if sym_img:
+        best["배치"] = best.get("배치", "") + " 기호원본픽셀"
+    return {k: (None if k in sym_img else v) for k, v in syms.items()}, sym_img
+
+
+def _sym_points(lay, syms, sym_img, gm, to_image):
+    """그림 좌표의 기호 가운데를 원본 이미지 좌표로."""
+    pts = []
+    for ch, c in lay:
+        if ch not in sym_img:
+            continue
+        a, top, cx_in = syms_frame = _SYM_FRAME[ch]
+        yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+        cy = float((yy * a).sum() / max(a.sum(), 1e-6))
+        fx, fy = gm["right"] + c, gm["top"] + top + cy
+        ix, iy = to_image(fx, fy)
+        pts.append((ch, ix, iy))
+    return pts
+
+
+_SYM_FRAME = {}
 
 
 def choose_rotated(scoring_bg, orig_gray, box, value, theta, ink_mask_fn, metrics_fn):
@@ -494,8 +649,11 @@ def write_matched_perspective(img, scoring_bg, orig_gray, orig_bgr, box, origina
     # 자간은 글자끼리 닿기 직전까지(최소 0.3px 틈)만 줄이고, 그래도 넓으면 글자 폭을 줄인다
     # (10/23: 처음엔 글자가 붙었고(auto00466 '000'), 높이의 8%로 막았더니 글자가 홀쭉해지고 자간이 넓어 보였음)
     sx = 1.0
+    lay, syms = _plan(og, bx, gm, original_value, new_value, ink_mask_fn, best)
+    _SYM_FRAME.clear(); _SYM_FRAME.update({k: v for k, v in (syms or {}).items() if v is not None})
+    syms_r, sym_img = _split_syms(orig_bgr, orig_gray, box, original_value, ink_mask_fn, lay, syms, best)
     lim = 0.3 - _min_gap(new_value, best["path"], best["index"], gm["height"])
-    if best["tracking"] < lim:
+    if lay is None and best["tracking"] < lim:
         sx = (tw - lim * n1) / max(w0, 1)
         best["tracking"] = lim / sx
         best["가로배율"] = round(sx, 3)
@@ -503,7 +661,8 @@ def write_matched_perspective(img, scoring_bg, orig_gray, orig_bgr, box, origina
     # 뿌옇게 되지 않게: 크게(SS배) 그린 글자를 크게 펼친 캔버스에 놓고, 원근 변형도 큰 상태에서 한 뒤 줄이고,
     # 흐림은 마지막에 한 번만 준다 (10/23: 작은 글자를 변형하면 다시 계산하면서 한 번 더 흐려졌음)
     big, br, bl_, bt = render_alpha(new_value, best["path"], best["index"], gm["height"],
-                                    best["tracking"], best["weight"], 0, big=True)
+                                    best["tracking"], best["weight"], 0, big=True, lay=lay, syms=syms_r,
+                                    sym_blur=best["blur"])
     if sx != 1.0:   # 오른쪽 끝을 기준으로 가로만 줄임
         big = cv2.resize(big, (max(int(round(big.shape[1] * sx)), 1), big.shape[0]), interpolation=cv2.INTER_AREA)
         br = int(round(br * sx))
@@ -536,5 +695,11 @@ def write_matched_perspective(img, scoring_bg, orig_gray, orig_bgr, box, origina
     # 원본이 다시 계산되며 흐려져 있어 흐림을 크게 골라 뿌옇게 됐음 (10/23 사용자 확인, auto00844·00160)
     Ab = cv2.GaussianBlur(Ab0, (0, 0), best["blur"]) if best["blur"] > 0 else Ab0
     img[Y0:Y1, X0:X1] = np.clip(sub * (1 - Ab[..., None] * (1 - k)), 0, 255).astype(np.uint8)
+    if sym_img:
+        import layout
+        def to_image(fx, fy):
+            p = cv2.perspectiveTransform(np.float32([[[fx, fy]]]), Hinv)[0, 0]
+            return float(p[0]) + X0, float(p[1]) + Y0
+        layout.paste_symbols(img, sym_img, _sym_points(lay, syms, sym_img, gm, to_image))
     best["원근"] = "사다리꼴"
     return (X0 + int(xs.min()), Y0 + int(ys.min()), int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1), best, top

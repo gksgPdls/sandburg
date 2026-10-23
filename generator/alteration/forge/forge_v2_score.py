@@ -34,7 +34,7 @@ def main():
             box = _mask_box(mp)
             res, ref = detect(im, mask=Image.open(mp)), detect(orig, mask=Image.open(mp))
             a, b = res["methods"]["noise"]["score"], ref["methods"]["noise"]["score"]
-            if b:
+            if b and b > 0.05:   # 원본 노이즈가 거의 0이면 비율이 터져서 뺌
                 ns.append(a / b)
             g0 = background_texture(np.asarray(orig.convert("L")), box)
             if g0:

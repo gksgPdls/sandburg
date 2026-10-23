@@ -52,6 +52,15 @@ def _mask_box(path):
     return int(xs.min()), int(ys.min()), int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)
 
 
+def _mask_boxes(path, gap=6):
+    """마스크의 떨어진 덩어리마다 상자 (가까운 것은 합침)."""
+    m = (np.asarray(Image.open(path).convert("L")) > 0).astype(np.uint8)
+    m = cv2.dilate(m, np.ones((gap, gap), np.uint8))
+    n, _, st, _ = cv2.connectedComponentsWithStats(m)
+    out = [(int(x + gap // 2), int(y + gap // 2), int(w - gap), int(h - gap)) for x, y, w, h, a in st[1:]]
+    return sorted(out, key=lambda b: (b[1], b[0])) or [_mask_box(path)]
+
+
 def background_texture(gray, box):
     x, y, w, h = box
     inside = gray[y:y + h, x:x + w]
@@ -122,7 +131,10 @@ def compare(out_root, rows, out, prev):
             im = Image.open(f).convert("RGB")
             box = _mask_box(mpath)
             short = ch.split(": ", 1)[-1][:60]
-            imgs.append(_pair(orig, im, box, f"{name}  ({short})   왼쪽 원본 | 오른쪽 결과"))
+            parts = _mask_boxes(mpath)
+            for k, pb in enumerate(parts):   # 한 이미지에서 여러 칸을 고친 경우(합계 맞추기 등) 칸마다 한 줄씩
+                tag = f" [{k + 1}/{len(parts)}칸]" if len(parts) > 1 else ""
+                imgs.append(_pair(orig, im, pb, f"{name}{tag}  ({short})   왼쪽 원본 | 오른쪽 결과"))
             gray = np.asarray(im.convert("L"))
             res = detect(im, mask=Image.open(mpath))
             ref = detect(orig, mask=Image.open(mpath))

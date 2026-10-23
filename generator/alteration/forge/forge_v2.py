@@ -128,7 +128,27 @@ def erase_reuse(img, box, seed=0):
     full_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     m, lines = stroke_mask(full_gray, box)
     m = cv2.dilate(m, np.ones((3, 3), np.uint8))
-    m[lines > 0] = 0
+    # 옅은 획 가장자리까지: 획 둘레 2px 안에서 종이보다 눈에 띄게 어두운 픽셀도 지운다
+    # (10/23: 획 마스크(종이보다 35 어두움)만 지우면 옅은 가장자리가 남아 원래 숫자 윤곽이 보였음, auto00107)
+    gb = full_gray[y:y + h, x:x + w].astype(np.float32)
+    paper_px = gb[m == 0]
+    if paper_px.size > 20:
+        paper = float(np.median(paper_px))
+        grain = paper_grain(full_gray, box)
+        near = cv2.dilate(m, np.ones((5, 5), np.uint8)) > 0
+        m[(near & (gb < paper - max(2.5 * grain, 6.0)))] = 255
+    # 표 선 보호는 실제로 길게 이어진 선 픽셀만 (선 마스크 폭 안에 걸친 숫자 윗부분까지 남기던 문제, 10/23 auto00107)
+    ink = (gb < float(np.median(gb)) - 35).astype(np.uint8)
+    lp = ink & (lines > 0).astype(np.uint8)
+    L = max(15, int(0.5 * h))
+    hor = cv2.morphologyEx(lp, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (L, 1)))
+    ver = cv2.morphologyEx(lp, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, L)))
+    keep = cv2.dilate(hor, np.ones((3, 1), np.uint8)) | cv2.dilate(ver, np.ones((1, 3), np.uint8))
+    # 기울어진 선(LSD)은 위 가로·세로 열기로 안 남을 수 있어, 선 마스크 중 숫자 덩어리에 안 닿은 부분은 그대로 보호
+    import geometry
+    digit_like = cv2.dilate(m, np.ones((3, 3), np.uint8)) & (1 - (lines > 0).astype(np.uint8)) * 255
+    touch = cv2.dilate(digit_like, np.ones((5, 5), np.uint8)) > 0
+    m[(keep > 0) | ((lines > 0) & ~touch)] = 0
     if not m.any():
         return None, m
     region = img[y:y + h, x:x + w]
@@ -265,7 +285,7 @@ def text_angle(geo):
     밑선 측정이 틀렸다고 보고 표 선 기울기를 쓴다. 둘 다 없으면 0."""
     b, d = geo.get("baseline_angle"), geo.get("doc_angle")
     if b is not None and geo.get("baseline_pts", 0) >= 3:
-        if d is not None and abs(b - d) > 2:
+        if d is not None and abs(b - d) > 0.8:   # 글자는 표 선과 나란한 게 보통 (10/23: 2도로는 1.4도 오측정이 통과, auto00094)
             return d
         return b
     return d if d is not None else 0.0
@@ -493,6 +513,87 @@ def cmd_run(args):
     out.mkdir(parents=True, exist_ok=True)
     log = []
     rows = load_list()
+    def ai_edit(img, orig, orig_gray, row, box, entry, i):
+        """내 방식 칸 하나 고치기 (지우기 → B4 → 4단계 쓰기 → B6 → C2 → B3). 쓴 영역."""
+        if args.no_sd:
+            erase_reuse(img, box, seed=i)   # SD 없이 빠르게 볼 때 (리눅스 시험용)
+        else:
+            erase_ai(img, box, seed=i)
+        if not args.no_b4:   # B4: 원래 획 그림자 없애고 주변 종이 결 입히기
+            import harmonize as HZ
+            entry["그림자px"] = HZ.clean_area(img, orig, box, edit_ops.ink_mask, stroke_mask, seed=i) or 0
+        before_write = img.copy()
+        if 4 in steps:
+            import font_match as FM
+            FM.USE_LAYOUT = not args.no_c1
+            if not any(k in n.lower() for _, _, n in FM.candidates() for k in ("gulim", "dotum", "batang", "malgun")):
+                raise SystemExit("윈도우 글꼴(굴림, 돋움, 바탕, 맑은 고딕)을 못 찾음. fonts/README.md 참고해서 fonts/ 에 넣은 뒤 다시 실행")
+            scoring_bg = orig.copy()
+            erase_reuse(scoring_bg, box, seed=i)  # 폰트 비교용 배경 (원래 글자를 지운 칸)
+            gm = glyph_metrics(orig_gray, box)
+            orig_val, new_val = row["original_value"], row["forged_value"]
+            # 원본이 천 단위에 쉼표 대신 점을 쓰면(예: 140.000) 새 값도 점으로 (라벨은 OCR이라 쉼표로 적힌 경우 있음)
+            import receipt
+            seen, gl = receipt.char_boxes(orig_gray, box, whitelist="0123456789,.-")
+            # 점 구분 판단은 사진 문서에서 작은 쉼표를 점으로 오판해서 끔(10/23, auto00304). 라벨의 쉼표를 따른다
+            if False and "," in orig_val and uses_period(orig_gray, box, seen, gl, gm):
+                orig_val, new_val = seen, new_val.replace(",", ".")
+                entry["구분기호"] = "점"
+                entry["변경"] = f"{orig_val} → {new_val}"
+            else:
+                seen = seen.replace(".", ",") if "," in orig_val else seen  # OCR이 쉼표를 점으로 읽은 경우
+                same_shape = len(seen) == len(orig_val) and all(a.isdigit() == b.isdigit() for a, b in zip(seen, orig_val))
+                n_diff = sum(a != b for a, b in zip(seen, orig_val)) if same_shape else 99
+                # OCR이 한두 글자만 다르게 읽은 경우만 OCR을 믿는다 (사진 문서에서 OCR이 깨지는 경우 auto00804)
+                if same_shape and 0 < n_diff <= 2:
+                    entry["원래값_OCR"] = seen   # 라벨의 원래 값이 OCR 오류인 경우 (예: 140,000을 440,000으로)
+                    orig_val = seen
+            import geometry
+            geo = geometry.measure(orig_gray, box)
+            theta = text_angle(geo)
+            entry["문서기울기"] = round(geo["doc_angle"], 2) if geo["doc_angle"] is not None else ""
+            entry["밑선기울기"] = round(geo["baseline_angle"], 2) if geo["baseline_angle"] is not None else ""
+            quad, how = (None, "끔") if args.no_persp else geometry.cell_quad(orig_gray, box)
+            persp = geometry.perspective_strength(quad) if quad is not None else 0.0
+            entry["원근"] = f"{how} {persp:.2f}도" if quad is not None else how
+            if quad is not None and persp >= MIN_PERSP and not args.no_tilt:
+                written, best, top = FM.write_matched_perspective(img, scoring_bg, orig_gray, orig, box, orig_val,
+                                                                  new_val, quad, stroke_only, glyph_metrics, theta=theta)
+            elif abs(theta) >= MIN_TILT and not args.no_tilt:
+                written, best, top = FM.write_matched_rotated(img, scoring_bg, orig_gray, orig, box, orig_val,
+                                                              new_val, theta, stroke_only, glyph_metrics)
+            else:
+                written, best, top = FM.write_matched(img, scoring_bg, orig_gray, box, orig_val,
+                                                      new_val, gm, stroke_only, orig_bgr=orig)
+            entry["적용기울기"] = best.get("기울기", 0)
+            entry["글꼴기준"] = best.get("글꼴기준", "")
+            entry["간격차이"] = best.get("간격", "")
+            entry["가로배율"] = best.get("가로배율", "")
+            entry["배치"] = best.get("배치", "")
+            entry.update({"폰트": best["name"], "굵기": best["weight"], "흐림": best["blur"],
+                          "글자색": best.get("글자색", ""),
+                          "자간": round(best["tracking"], 2), "차이": round(best["score"], 2),
+                          "후보2_3": " / ".join(f'{t["name"]}({t["score"]:.2f})' for t in top[1:3])})
+        else:
+            written, overflow = write_value(img, orig_gray, box, row["forged_value"])
+            entry["넘침"] = "Y" if overflow else ""
+        import harmonize as HZ
+        if not args.no_b6:   # B6: 휘어진 종이면 글자를 표 선 곡선에 맞춰 구부림
+            sag, bent = HZ.follow_curve(img, before_write, orig_gray, box)
+            entry["휘어짐px"] = sag
+            entry["구부림"] = "Y" if bent else ""
+        if not args.no_c5:   # C5: 원래 획이 남은 픽셀이 있으면 다시 메움 (새 글자는 건드리지 않음)
+            entry["남은획px"] = HZ.clean_leftover(img, before_write, orig_gray, box, stroke_mask, seed=i)
+        if not args.no_c2:   # C2: 칸 안 종이 잔결을 바로 바깥과 같게
+            t2 = HZ.match_noise(img, edit_ops.union(box, written), edit_ops.ink_mask, seed=i)
+            if t2:
+                entry["잔결_안"], entry["잔결_밖"], entry["잔결_조정후"] = t2
+        if not args.no_b3:   # B3: 새 글자 획에 원본 획만큼 얼룩·잔결
+            t = HZ.ink_texture(img, before_write, orig_gray, box, stroke_only, seed=i)
+            if t:
+                entry["획흔들림_원본"], entry["획흔들림_새"], entry["획잡음"] = t
+        return written
+
     for i, row in enumerate(rows):
         sid = row["id"]
         ext = ".png" if args.branch == "ai" else ".jpg"  # 5단계 전까지는 기존 갈래 형식 유지
@@ -505,75 +606,39 @@ def cmd_run(args):
         entry = {"id": sid, "steps": args.steps, "font": Path(edit_ops.FONT).name,
                  "변경": f'{row["original_value"]} → {row["forged_value"]}'}
         if args.branch == "ai":
-            if args.no_sd:
-                erase_reuse(img, box, seed=i)   # SD 없이 빠르게 볼 때 (리눅스 시험용)
-            else:
-                erase_ai(img, box, seed=i)
-            if not args.no_b4:   # B4: 원래 획 그림자 없애고 주변 종이 결 입히기
-                import harmonize as HZ
-                entry["그림자px"] = HZ.clean_area(img, orig, box, edit_ops.ink_mask, stroke_mask, seed=i) or 0
-            before_write = img.copy()
-            if 4 in steps:
-                import font_match as FM
-                if not any(k in n.lower() for _, _, n in FM.candidates() for k in ("gulim", "dotum", "batang", "malgun")):
-                    raise SystemExit("윈도우 글꼴(굴림, 돋움, 바탕, 맑은 고딕)을 못 찾음. fonts/README.md 참고해서 fonts/ 에 넣은 뒤 다시 실행")
-                scoring_bg = orig.copy()
-                erase_reuse(scoring_bg, box, seed=i)  # 폰트 비교용 배경 (원래 글자를 지운 칸)
-                gm = glyph_metrics(orig_gray, box)
-                orig_val, new_val = row["original_value"], row["forged_value"]
-                # 원본이 천 단위에 쉼표 대신 점을 쓰면(예: 140.000) 새 값도 점으로 (라벨은 OCR이라 쉼표로 적힌 경우 있음)
-                import receipt
-                seen, gl = receipt.char_boxes(orig_gray, box, whitelist="0123456789,.-")
-                # 점 구분 판단은 사진 문서에서 작은 쉼표를 점으로 오판해서 끔(10/23, auto00304). 라벨의 쉼표를 따른다
-                if False and "," in orig_val and uses_period(orig_gray, box, seen, gl, gm):
-                    orig_val, new_val = seen, new_val.replace(",", ".")
-                    entry["구분기호"] = "점"
-                    entry["변경"] = f"{orig_val} → {new_val}"
-                else:
-                    seen = seen.replace(".", ",") if "," in orig_val else seen  # OCR이 쉼표를 점으로 읽은 경우
-                    same_shape = len(seen) == len(orig_val) and all(a.isdigit() == b.isdigit() for a, b in zip(seen, orig_val))
-                    n_diff = sum(a != b for a, b in zip(seen, orig_val)) if same_shape else 99
-                    # OCR이 한두 글자만 다르게 읽은 경우만 OCR을 믿는다 (사진 문서에서 OCR이 깨지는 경우 auto00804)
-                    if same_shape and 0 < n_diff <= 2:
-                        entry["원래값_OCR"] = seen   # 라벨의 원래 값이 OCR 오류인 경우 (예: 140,000을 440,000으로)
-                        orig_val = seen
-                import geometry
-                geo = geometry.measure(orig_gray, box)
-                theta = text_angle(geo)
-                entry["문서기울기"] = round(geo["doc_angle"], 2) if geo["doc_angle"] is not None else ""
-                entry["밑선기울기"] = round(geo["baseline_angle"], 2) if geo["baseline_angle"] is not None else ""
-                quad, how = (None, "끔") if args.no_persp else geometry.cell_quad(orig_gray, box)
-                persp = geometry.perspective_strength(quad) if quad is not None else 0.0
-                entry["원근"] = f"{how} {persp:.2f}도" if quad is not None else how
-                if quad is not None and persp >= MIN_PERSP and not args.no_tilt:
-                    written, best, top = FM.write_matched_perspective(img, scoring_bg, orig_gray, orig, box, orig_val,
-                                                                      new_val, quad, stroke_only, glyph_metrics, theta=theta)
-                elif abs(theta) >= MIN_TILT and not args.no_tilt:
-                    written, best, top = FM.write_matched_rotated(img, scoring_bg, orig_gray, orig, box, orig_val,
-                                                                  new_val, theta, stroke_only, glyph_metrics)
-                else:
-                    written, best, top = FM.write_matched(img, scoring_bg, orig_gray, box, orig_val,
-                                                          new_val, gm, stroke_only, orig_bgr=orig)
-                entry["적용기울기"] = best.get("기울기", 0)
-                entry["글꼴기준"] = best.get("글꼴기준", "")
-                entry["간격차이"] = best.get("간격", "")
-                entry["가로배율"] = best.get("가로배율", "")
-                entry.update({"폰트": best["name"], "굵기": best["weight"], "흐림": best["blur"],
-                              "글자색": best.get("글자색", ""),
-                              "자간": round(best["tracking"], 2), "차이": round(best["score"], 2),
-                              "후보2_3": " / ".join(f'{t["name"]}({t["score"]:.2f})' for t in top[1:3])})
-            else:
-                written, overflow = write_value(img, orig_gray, box, row["forged_value"])
-                entry["넘침"] = "Y" if overflow else ""
-            import harmonize as HZ
-            if not args.no_b6:   # B6: 휘어진 종이면 글자를 표 선 곡선에 맞춰 구부림
-                sag, bent = HZ.follow_curve(img, before_write, orig_gray, box)
-                entry["휘어짐px"] = sag
-                entry["구부림"] = "Y" if bent else ""
-            if not args.no_b3:   # B3: 새 글자 획에 원본 획만큼 얼룩·잔결
-                t = HZ.ink_texture(img, before_write, orig_gray, box, stroke_only, seed=i)
-                if t:
-                    entry["획흔들림_원본"], entry["획흔들림_새"], entry["획잡음"] = t
+            import font_match as FM
+            FM.FONT_HINT = None
+            try:
+                written = ai_edit(img, orig, orig_gray, row, box, entry, i)
+            except Exception as e:   # 한 장이 실패해도 나머지는 계속
+                log.append({**entry, "변경": f"실패: {type(e).__name__} {e}"[:200]})
+                print(f"{i + 1}/{len(rows)} {sid} 실패: {e}", flush=True)
+                continue
+            boxes = [box, written]
+            # 합계 맞추기처럼 한 이미지에서 칸을 둘 이상 고치는 경우: 목록에 x2, y2, w2, h2, original_value2, forged_value2
+            k = 2
+            while row.get(f"x{k}"):
+                r2 = dict(row, x=row[f"x{k}"], y=row[f"y{k}"], w=row[f"w{k}"], h=row[f"h{k}"],
+                          original_value=row[f"original_value{k}"], forged_value=row[f"forged_value{k}"])
+                b2 = label_box(r2, img.shape)
+                FM.FONT_HINT = FM.LAST_CHOICE
+                e2 = {}
+                try:
+                    w2 = ai_edit(img, orig, orig_gray, r2, b2, e2, i * 10 + k)
+                except Exception as e:   # 둘째 칸을 못 고치면 합계가 안 맞으므로 이 샘플은 버림
+                    entry["변경"] = f"실패({k}번째 칸): {type(e).__name__} {e}"[:200]
+                    w2 = None
+                    break
+                if w2 is None:
+                    break
+                boxes += [b2, w2]
+                entry["변경"] += f' / {r2["original_value"]} → {r2["forged_value"]}'
+                entry.update({f"{key}{k}": v for key, v in e2.items() if key in ("폰트", "배치", "차이")})
+                k += 1
+            if entry["변경"].startswith("실패"):
+                log.append(entry)
+                print(f"{i + 1}/{len(rows)} {sid} {entry['변경']}", flush=True)
+                continue
         else:
             # 1단계 적용 팀원 방식: 동현님 코드를 그대로 돌리되 지우기만 1단계 방식으로 바꿔 끼움.
             # 난수가 같아서 기존 팀원 방식과 같은 칸, 같은 새 값이 나온다
@@ -602,7 +667,7 @@ def cmd_run(args):
             entry["저장"] = HZ.save_like(img, ROOT / row["original"], out / sid).suffix
         else:
             save_image(img, out / f"{sid}{ext}")
-        save_mask(img.shape, ([box] if args.branch == "ai" or args.mode == "write" else []) + [written] + extra,
+        save_mask(img.shape, boxes + extra,
                   out / f"{sid}_mask.png")
         log.append(entry)
         print(f"{i + 1}/{len(rows)} {sid}", flush=True)
@@ -709,6 +774,9 @@ def main():
                    help="재사용 갈래에서 새 값을 만드는 방식: write(폰트로 쓰기), copy(문서 안 글자 복사)")
     r.add_argument("--no-persp", action="store_true", help="4단계에서 원근 맞추기(B2-2)를 끔, 회전만 (비교용)")
     r.add_argument("--no-tilt", action="store_true", help="4단계에서 기울기 맞추기(B2)를 끔 (비교용)")
+    r.add_argument("--no-c5", action="store_true", help="C5 남은 원래 획 다시 메우기 끔 (비교용)")
+    r.add_argument("--no-c2", action="store_true", help="C2 마지막 잔결 맞추기 끔 (비교용)")
+    r.add_argument("--no-c1", action="store_true", help="C1 원본 글자 자리·원본 기호 쓰기 끔 (비교용)")
     r.add_argument("--no-b3", action="store_true", help="B3 글자 질감(획 얼룩·잔결) 끔 (비교용)")
     r.add_argument("--no-b4", action="store_true", help="B4 지운 자리 그림자 없애기·주변 결 입히기 끔 (비교용)")
     r.add_argument("--no-b6", action="store_true", help="B6 휘어진 종이 따라 구부리기 끔 (비교용)")
