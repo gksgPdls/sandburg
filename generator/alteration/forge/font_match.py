@@ -70,6 +70,9 @@ WEIGHTS = (-1, 0, 1, 2)      # 획 두께 조정 (크게 그린 그림에서 깎
 BLURS = (0.3, 0.6, 0.9)      # 가장자리 흐림 (원래 크기 기준 px)
 
 
+_HANDWRITING = ("brush", "pen", "script", "hand", "붓", "펜", "손글씨")
+
+
 def candidates():
     out = []
     for path, idxs in CANDIDATE_LIST:
@@ -81,6 +84,10 @@ def candidates():
             except OSError:
                 break
             name = " ".join(f.getname())
+            if "Gungsuh" in name:   # 궁서는 붓글씨체라 영수증 숫자와 다르고, 작은 크기에서 쉼표가 점처럼 보임 (10/23, auto00962)
+                continue
+            if any(k in name.lower() for k in _HANDWRITING):   # 손글씨체는 인쇄 문서에 안 맞음 (10/23, auto00466 나눔붓)
+                continue
             if f.getbbox("0")[3] - f.getbbox("0")[1] <= 0:
                 continue
             out.append((path, i, name))
@@ -101,13 +108,15 @@ def _font(path, index, digit_h):
     return _size_cache[key]
 
 
-def render_alpha(text, path, index, digit_h, tracking, weight, blur):
-    """글자 모양(0~1). (alpha, 오른쪽 끝 x, '0' 윗선 y) 원래 크기 기준."""
+def render_alpha(text, path, index, digit_h, tracking, weight, blur, rotate=0.0, big=False):
+    """글자 모양(0~1). (alpha, 오른쪽 끝 x, 왼쪽 끝 x, '0' 윗선 y) 원래 크기 기준.
+    rotate(도, getRotationMatrix2D 방향)를 주면 크게 그린 상태에서 '오른쪽 끝, 숫자 윗선' 점을 중심으로 돌린 뒤
+    줄인다(작은 그림을 돌릴 때 생기는 계단 현상 방지). 이때 오른쪽 끝·윗선 값은 회전 중심점 위치."""
     f = _font(path, index, digit_h)
     adv = [f.getlength(ch) for ch in text]
     track = tracking * SS
     total = sum(adv) + track * (len(text) - 1)
-    pad = 6 * SS
+    pad = 6 * SS + (int(abs(np.sin(np.radians(rotate))) * total) + SS if rotate else 0)
     _, t0, _, b0 = f.getbbox("0")
     H = int(b0 - t0 + digit_h * SS * 1.2) + 2 * pad
     canvas = Image.new("L", (int(total) + 2 * pad, H), 0)
@@ -121,6 +130,16 @@ def render_alpha(text, path, index, digit_h, tracking, weight, blur):
         arr = cv2.dilate(arr, np.ones((weight + 1, weight + 1), np.uint8))
     elif weight < 0:
         arr = cv2.erode(arr, np.ones((1 - weight, 1 - weight), np.uint8))
+    if rotate:
+        c = np.nonzero(arr.max(axis=0) > 64)[0]
+        ax = float(c.max()) if len(c) else float(arr.shape[1] - 1)
+        M = cv2.getRotationMatrix2D((ax, float(pad)), rotate, 1.0)
+        arr = cv2.warpAffine(arr, M, (arr.shape[1], arr.shape[0]), flags=cv2.INTER_CUBIC,
+                             borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    if big:   # 크게 그린 상태 그대로 (원근 변형을 크게 한 뒤 줄이려고). 오른쪽 끝, '0' 윗선도 큰 좌표
+        c = np.nonzero(arr.max(axis=0) > 25)[0]
+        return arr.astype(np.float32) / 255.0, (int(c.max()) if len(c) else arr.shape[1] - 1), \
+            (int(c.min()) if len(c) else 0), pad
     small = cv2.resize(arr, (arr.shape[1] // SS, arr.shape[0] // SS), interpolation=cv2.INTER_AREA)
     alpha = small.astype(np.float32) / 255.0
     if blur > 0:
@@ -128,6 +147,8 @@ def render_alpha(text, path, index, digit_h, tracking, weight, blur):
     cols = np.nonzero(alpha.max(axis=0) > 0.1)[0]
     right = int(cols.max()) if len(cols) else alpha.shape[1] - 1
     left = int(cols.min()) if len(cols) else 0
+    if rotate:
+        right = int(round(ax / SS))
     return alpha, right, left, pad // SS
 
 
@@ -238,7 +259,27 @@ def _glyph_score(targets, path, idx, height, wgt, ink_threshold=0.45):
     return float(np.mean(losses))
 
 
-def choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs=None):
+SPACING_W = 1.0   # 글자 간격 차이 가중치
+
+
+def _spacing_err(glyphs, value, path, idx, height, tracking):
+    """글자 사이 간격이 원본과 얼마나 다른지 (글자 중심 위치 차이 평균 / 숫자 높이).
+    글자 모양만 보면 고정폭(굴림체·돋움체)과 가변폭(굴림·돋움)을 못 가려서, 쉼표 자리나 자간이 원본과 달라짐 (10/23 auto00466)."""
+    if not glyphs or len(glyphs) != len(value) or len(value) < 3:
+        return 0.0
+    oc = np.array([gx + gw / 2 for gx, gy, gw, gh in glyphs], np.float64)
+    f = _font(path, idx, height)
+    x, rc = 0.0, []
+    for ch in value:
+        l, _, r, _ = f.getbbox(ch)
+        rc.append(x + (l + r) / 2)
+        x += f.getlength(ch) + tracking * SS
+    rc = np.array(rc) / SS
+    oc, rc = oc - oc.mean(), rc - rc.mean()
+    return float(np.abs(oc - rc).mean() / max(height, 1))
+
+
+def choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs=None, only=None):
     """원래 값을 후보마다 그려 원본 칸과 비교한다.
     1차: 폰트와 굵기를 글자 모양(획이 겹치는 정도)으로 고름
     2차: 고른 폰트에서 흐림을 밝기 차이로 고름"""
@@ -246,21 +287,31 @@ def choose(erased, orig_gray, box, value, gm, ink_mask_fn, glyphs=None):
     target = orig_gray[y:y + h, x:x + w].astype(np.float32)
     tmask = ink_mask_fn(orig_gray[y:y + h, x:x + w]) > 0
     target_w = gm["right"] - gm["left"] + 1
+    if glyphs is None:
+        try:
+            import receipt
+            _, glyphs = receipt.char_boxes(orig_gray, box, whitelist="0123456789,.-")
+        except Exception:
+            glyphs = []
     targets = _glyph_targets(orig_gray, box, value, ink_mask_fn, glyphs)
     paper = float(np.median(target[~tmask])) if (~tmask).any() else 255.0
     thr = float(np.clip(35.0 / max(paper - gm["ink"], 1.0), 0.05, 0.95))
     results = []
     for path, idx, name in candidates():
+        if only is not None and (path, idx) != only:
+            continue
         a0, r0, l0, _ = render_alpha(value, path, idx, gm["height"], 0, 0, 0.6)
         tracking = (target_w - (r0 - l0 + 1)) / max(len(value) - 1, 1)
-        if abs(tracking) > 0.35 * gm["height"]:   # 자간을 너무 바꿔야 하면 모양이 다른 폰트
+        if abs(tracking) > 0.35 * gm["height"] and only is None:   # 자간을 너무 바꿔야 하면 모양이 다른 폰트
             continue
         for wgt in WEIGHTS:
             g, ink = _try(erased, box, value, gm, (path, idx), tracking, wgt, 0.6, tmask, ink_mask_fn)
             # 글자별 모양 비교가 되면 그걸 쓰고(자간 영향 없음), 안 되면 값 전체 획 겹침
             score = (_glyph_score(targets, path, idx, gm["height"], wgt, thr) if targets
                      else _shape_score(g, tmask, ink_mask_fn))
-            results.append({"score": score, "path": path, "index": idx, "by": "글자별" if targets else "전체",
+            sp = _spacing_err(glyphs, value, path, idx, gm["height"], tracking)
+            score += SPACING_W * sp
+            results.append({"score": score, "간격": round(sp, 3), "path": path, "index": idx, "by": "글자별" if targets else "전체",
                             "name": name, "tracking": tracking, "weight": wgt, "blur": 0.6, "ink": ink})
     results.sort(key=lambda r: r["score"])
     best = dict(results[0])
@@ -322,3 +373,168 @@ def write_matched(img, erased_for_scoring, orig_gray, box, original_value, new_v
     y0 = gm["top"] - at
     tight = (x0 + int(xs.min()), y0 + int(ys.min()), int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1)
     return tight, best, top
+
+
+def write_matched_rotated(img, scoring_bg, orig_gray, orig_bgr, box, original_value, new_value, theta,
+                          ink_mask_fn, metrics_fn):
+    """B2: 기울어진 문서. 칸 주변을 theta도 만큼 반듯하게 돌려 놓고(측정과 글꼴 고르기는 반듯한 상태에서),
+    새 값을 그린 뒤 글자 모양(알파)만 다시 원래 기울기로 돌려 원본 위에 얹는다. 원본 이미지 자체는 돌리지 않는다.
+    theta: 글자 밑선 각도(도, 아래 방향이 양수). (쓴 영역, 고른 조합, 상위 5개)"""
+    x, y, w, h = box
+    H, W = orig_gray.shape
+    mx, my = max(w, 3 * h), 2 * h
+    X0, Y0, X1, Y1 = max(x - mx, 0), max(y - my, 0), min(x + w + mx, W), min(y + h + my, H)
+    cw, ch = X1 - X0, Y1 - Y0
+    bx = (x - X0, y - Y0, w, h)
+    R = cv2.getRotationMatrix2D((bx[0] + w / 2, bx[1] + h / 2), theta, 1.0)
+    Rinv = cv2.invertAffineTransform(R)
+    rot = lambda a, interp=cv2.INTER_CUBIC: cv2.warpAffine(a, R, (cw, ch), flags=interp, borderMode=cv2.BORDER_REPLICATE)
+    og = rot(orig_gray[Y0:Y1, X0:X1])
+    ob = rot(orig_bgr[Y0:Y1, X0:X1])
+    bg = rot(scoring_bg[Y0:Y1, X0:X1])
+    gm = metrics_fn(og, bx)
+    best, top = choose(bg, og, bx, original_value, gm, ink_mask_fn)
+    # 반듯한 상태에서 잰 '오른쪽 끝, 숫자 윗선'을 원래(기울어진) 위치로 옮기고, 글자는 크게 그린 상태에서 기울여 얹는다
+    anchor = Rinv @ np.array([gm["right"], gm["top"], 1.0])
+    alpha, ar, al, at = render_alpha(new_value, best["path"], best["index"], gm["height"],
+                                     best["tracking"], best["weight"], best["blur"], rotate=-theta)
+    ink = best["ink"]
+    col, col_gray = ink_color(ob, og, bx, ink_mask_fn)
+    if col is not None and col_gray > 0:
+        ink = np.clip(col * (best["ink"] / col_gray), 0, 255)
+        best["글자색"] = "#%02x%02x%02x" % tuple(int(v) for v in col[::-1])
+    sub = img[Y0:Y1, X0:X1]
+    composite(sub, alpha, int(round(anchor[0])), int(round(anchor[1])), ar, at, ink)
+    img[Y0:Y1, X0:X1] = sub
+    A = np.zeros((ch, cw), np.float32)
+    ax0, ay0 = int(round(anchor[0])) - ar, int(round(anchor[1])) - at
+    ah, aw = alpha.shape
+    sx0, sy0 = max(0, -ax0), max(0, -ay0)
+    dx0, dy0 = max(ax0, 0), max(ay0, 0)
+    dx1, dy1 = min(ax0 + aw, cw), min(ay0 + ah, ch)
+    A[dy0:dy1, dx0:dx1] = alpha[sy0:sy0 + dy1 - dy0, sx0:sx0 + dx1 - dx0]
+    ys, xs = np.nonzero(A > 0.1)
+    best["기울기"] = round(float(theta), 2)
+    return (X0 + int(xs.min()), Y0 + int(ys.min()), int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1), best, top
+
+
+def _ink_x(f, ch):
+    """글자 잉크의 왼쪽·오른쪽 끝 (글자 시작점 기준, SS배 px). getbbox는 잉크가 아닌 글자 칸을 줘서 직접 그려 잰다."""
+    w = int(f.getlength(ch)) + 4 * f.size
+    im = Image.new("L", (w, 3 * f.size), 0)
+    ImageDraw.Draw(im).text((f.size, f.size), ch, font=f, fill=255)
+    c = np.nonzero(np.asarray(im).max(axis=0) > 64)[0]
+    return (c.min() - f.size, c.max() + 1 - f.size) if len(c) else (0, 0)
+
+
+def _min_gap(text, path, index, height):
+    """자간 0일 때 이웃한 두 글자 잉크 사이 가장 좁은 틈 (원래 크기 px)."""
+    f = _font(path, index, height)
+    gaps = []
+    for a, b in zip(text, text[1:]):
+        _, ra = _ink_x(f, a)
+        lb, _ = _ink_x(f, b)
+        gaps.append(f.getlength(a) - ra + lb)
+    return min(gaps) / SS if gaps else 0.0
+
+
+def choose_rotated(scoring_bg, orig_gray, box, value, theta, ink_mask_fn, metrics_fn):
+    """기울기만 펴고(회전) 글꼴을 고른다. 원근 펴기는 사다리꼴이 조금만 어긋나도 글자 모양이 찌그러져
+    글꼴 고르기가 틀어지므로(10/23 auto00466 나눔붓, 00141), 글꼴은 회전으로 편 상태에서도 골라 비교한다."""
+    x, y, w, h = box
+    H, W = orig_gray.shape
+    mx, my = max(w, 3 * h), 2 * h
+    X0, Y0, X1, Y1 = max(x - mx, 0), max(y - my, 0), min(x + w + mx, W), min(y + h + my, H)
+    bx = (x - X0, y - Y0, w, h)
+    R = cv2.getRotationMatrix2D((bx[0] + w / 2, bx[1] + h / 2), theta, 1.0)
+    rot = lambda a: cv2.warpAffine(a, R, (X1 - X0, Y1 - Y0), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    og, bg = rot(orig_gray[Y0:Y1, X0:X1]), rot(scoring_bg[Y0:Y1, X0:X1])
+    return choose(bg, og, bx, value, metrics_fn(og, bx), ink_mask_fn)
+
+
+def write_matched_perspective(img, scoring_bg, orig_gray, orig_bgr, box, original_value, new_value, quad,
+                              ink_mask_fn, metrics_fn, margin=20, theta=0.0):
+    """B2-2: 비스듬히 찍은 문서(원근). 칸의 사다리꼴(quad: 좌상, 우상, 우하, 좌하)을 반듯한 직사각형으로 펴고
+    (warpPerspective) 펴진 상태에서 측정·글꼴 고르기·새 값 그리기를 한 뒤, 그린 글자 모양(알파)만 원래 사다리꼴로 되돌려
+    원본 위에 얹는다. 원본 이미지 자체는 변형하지 않는다. (쓴 영역, 고른 조합, 상위 5개)"""
+    H, W = orig_gray.shape
+    q = np.asarray(quad, np.float32)
+    Wr = int(round((np.linalg.norm(q[1] - q[0]) + np.linalg.norm(q[2] - q[3])) / 2))
+    Hr = int(round((np.linalg.norm(q[3] - q[0]) + np.linalg.norm(q[2] - q[1])) / 2))
+    X0, Y0 = max(int(q[:, 0].min()) - margin, 0), max(int(q[:, 1].min()) - margin, 0)
+    X1, Y1 = min(int(q[:, 0].max()) + margin, W), min(int(q[:, 1].max()) + margin, H)
+    qc = q - np.float32([X0, Y0])
+    cw, ch = X1 - X0, Y1 - Y0
+    dst = np.float32([[margin, margin], [margin + Wr, margin], [margin + Wr, margin + Hr], [margin, margin + Hr]])
+    Hm = cv2.getPerspectiveTransform(qc, dst)
+    Hinv = np.linalg.inv(Hm)
+    RW, RH = Wr + 2 * margin, Hr + 2 * margin
+    flat = lambda a: cv2.warpPerspective(a, Hm, (RW, RH), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    og = flat(orig_gray[Y0:Y1, X0:X1])
+    ob = flat(orig_bgr[Y0:Y1, X0:X1])
+    bg = flat(scoring_bg[Y0:Y1, X0:X1])
+    x, y, w, h = box
+    corners = np.float32([[x, y], [x + w, y], [x + w, y + h], [x, y + h]]) - np.float32([X0, Y0])
+    pc = cv2.perspectiveTransform(corners[None], Hm)[0]
+    bx0, by0 = max(int(np.floor(pc[:, 0].min())), 0), max(int(np.floor(pc[:, 1].min())), 0)
+    bx1, by1 = min(int(np.ceil(pc[:, 0].max())), RW), min(int(np.ceil(pc[:, 1].max())), RH)
+    bx = (bx0, by0, bx1 - bx0, by1 - by0)
+    gm = metrics_fn(og, bx)
+    # 글꼴·굵기·흐림은 기울기만 편 상태에서 고른다 (10/23 사용자 확인: 원근으로 편 원본은 다시 계산되며 흐려지고
+    # 모양도 찌그러져 글꼴이 틀어지고 흐림을 크게 고름). 원근은 글자를 그린 뒤 얹을 때만 쓴다.
+    rbest, top = choose_rotated(scoring_bg, orig_gray, box, original_value, theta, ink_mask_fn, metrics_fn)
+    best = dict(rbest)
+    # 자간만 펴진 상태의 칸 폭에 맞춘다 (펴진 칸은 가로세로 비율이 원본과 조금 달라서, 회전 쪽 자간을 쓰면
+    # 값 전체 폭이 원본보다 20% 정도 넓어짐. 10/23 시험: auto00466 예상 71px, 회전 자간 86px, 다시 맞춤 70px)
+    f0 = _font(best["path"], best["index"], gm["height"])
+    w0 = sum(f0.getlength(c) for c in original_value) / SS
+    tw = gm["right"] - gm["left"] + 1
+    n1 = max(len(original_value) - 1, 1)
+    best["tracking"] = (tw - w0) / n1
+    # 자간은 글자끼리 닿기 직전까지(최소 0.3px 틈)만 줄이고, 그래도 넓으면 글자 폭을 줄인다
+    # (10/23: 처음엔 글자가 붙었고(auto00466 '000'), 높이의 8%로 막았더니 글자가 홀쭉해지고 자간이 넓어 보였음)
+    sx = 1.0
+    lim = 0.3 - _min_gap(new_value, best["path"], best["index"], gm["height"])
+    if best["tracking"] < lim:
+        sx = (tw - lim * n1) / max(w0, 1)
+        best["tracking"] = lim / sx
+        best["가로배율"] = round(sx, 3)
+    best["글꼴기준"] = "회전"
+    # 뿌옇게 되지 않게: 크게(SS배) 그린 글자를 크게 펼친 캔버스에 놓고, 원근 변형도 큰 상태에서 한 뒤 줄이고,
+    # 흐림은 마지막에 한 번만 준다 (10/23: 작은 글자를 변형하면 다시 계산하면서 한 번 더 흐려졌음)
+    big, br, bl_, bt = render_alpha(new_value, best["path"], best["index"], gm["height"],
+                                    best["tracking"], best["weight"], 0, big=True)
+    if sx != 1.0:   # 오른쪽 끝을 기준으로 가로만 줄임
+        big = cv2.resize(big, (max(int(round(big.shape[1] * sx)), 1), big.shape[0]), interpolation=cv2.INTER_AREA)
+        br = int(round(br * sx))
+    A = np.zeros((RH * SS, RW * SS), np.float32)
+    ax0, ay0 = gm["right"] * SS + SS // 2 - br, gm["top"] * SS - bt
+    ah, aw = big.shape
+    sx0, sy0 = max(0, -ax0), max(0, -ay0)
+    dx0, dy0 = max(ax0, 0), max(ay0, 0)
+    dx1, dy1 = min(ax0 + aw, RW * SS), min(ay0 + ah, RH * SS)
+    A[dy0:dy1, dx0:dx1] = big[sy0:sy0 + dy1 - dy0, sx0:sx0 + dx1 - dx0]
+    S = np.diag([SS, SS, 1.0])
+    Hbig = S @ Hinv @ np.linalg.inv(S)
+    Abig = cv2.warpPerspective(A, Hbig, (cw * SS, ch * SS), flags=cv2.INTER_LINEAR,
+                               borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    Ab0 = cv2.resize(Abig, (cw, ch), interpolation=cv2.INTER_AREA)
+    ink = best["ink"]
+    col, col_gray = ink_color(ob, og, bx, ink_mask_fn)
+    if col is not None and col_gray > 0:
+        ink = np.clip(col * (best["ink"] / col_gray), 0, 255)
+        best["글자색"] = "#%02x%02x%02x" % tuple(int(v) for v in col[::-1])
+    ys, xs = np.nonzero(Ab0 > 0.1)
+    if len(xs) == 0:
+        raise ValueError("원근 변환 후 글자가 비었음")
+    sub = img[Y0:Y1, X0:X1].astype(np.float32)
+    ring = sub[max(ys.min() - 3, 0):ys.max() + 4, max(xs.min() - 3, 0):xs.max() + 4].reshape(-1, 3)
+    paper = np.median(ring, axis=0)
+    k = np.clip(np.asarray(ink, np.float32) / np.maximum(paper, 1), 0, 1) if np.ndim(ink) else \
+        np.full(3, min(1.0, float(ink) / max(float(np.median(ring)), 1)), np.float32)
+    # 흐림은 기울기만 편 상태에서 고른 값을 그대로, 마지막에 한 번만 준다. 원근으로 편 원본에서 고르면
+    # 원본이 다시 계산되며 흐려져 있어 흐림을 크게 골라 뿌옇게 됐음 (10/23 사용자 확인, auto00844·00160)
+    Ab = cv2.GaussianBlur(Ab0, (0, 0), best["blur"]) if best["blur"] > 0 else Ab0
+    img[Y0:Y1, X0:X1] = np.clip(sub * (1 - Ab[..., None] * (1 - k)), 0, 255).astype(np.uint8)
+    best["원근"] = "사다리꼴"
+    return (X0 + int(xs.min()), Y0 + int(ys.min()), int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1), best, top
