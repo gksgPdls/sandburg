@@ -23,6 +23,7 @@ _CANDIDATES = [
     (f"{_MAC}/Helvetica.ttc", [0, 1]), (f"{_SUP}/DIN Alternate Bold.ttf", [0]),
     (f"{_SUP}/Times New Roman.ttf", [0]), (f"{_SUP}/Times New Roman Bold.ttf", [0]),
     (f"{_SUP}/Courier New.ttf", [0]), (f"{_SUP}/Courier New Bold.ttf", [0]),
+    (f"{_SUP}/Tahoma.ttf", [0]), (f"{_SUP}/Verdana.ttf", [0]),
     (f"{_MAC}/Menlo.ttc", [0]), (f"{_MAC}/Monaco.ttf", [0]),
     # 리눅스에서 시험할 때 (맥 폰트와 숫자 모양이 비슷한 대체 폰트)
     ("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf", [0]),
@@ -34,7 +35,37 @@ _CANDIDATES = [
     ("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", [0]),
     ("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", [0]),
 ]
-CANDIDATE_LIST = _CANDIDATES   # 윈도우 스크립트에서 바꿔 끼운다
+# 맥에서 따로 설치한 한글 글꼴 찾기 (서체 관리자에서 내려받은 글꼴, 사용자 설치 글꼴, 정식 MS Office에 들어 있는 글꼴)
+_EXTRA_DIRS = [Path(__file__).resolve().parents[2] / "fonts",            # 저장소 fonts/ (git 제외)
+               Path.home() / "Library" / "Fonts", Path("/Library/Fonts"),
+               Path("/System/Library/AssetsV2"),                      # 서체 관리자에서 받은 글꼴
+               Path("/Applications/Microsoft Word.app/Contents/Resources/DFonts"),
+               Path("/Applications/Microsoft PowerPoint.app/Contents/Resources/DFonts"),
+               Path("/Applications/Microsoft Excel.app/Contents/Resources/DFonts")]
+_EXTRA_NAMES = ("gulim", "dotum", "batang", "malgun", "nanum", "notosanskr", "notoserifkr", "d2coding")
+
+
+def _extra_fonts():
+    found, seen = [], set()
+    for d in _EXTRA_DIRS:
+        if not d.exists():
+            continue
+        for f in d.rglob("*"):
+            n = f.name.lower().replace(" ", "").replace("-", "")
+            if f.suffix.lower() in (".ttf", ".ttc", ".otf") and any(k in n for k in _EXTRA_NAMES) and f.name not in seen:
+                seen.add(f.name)
+                found.append((str(f), range(0, 4) if f.suffix.lower() == ".ttc" else [0]))
+    return found
+
+
+# 글꼴 범위: 기본은 윈도우 글꼴만 (10/23 결정). FORGE_FONTS=all 이면 맥 글꼴도 후보에 넣음
+_WIN_LIKE = [(p, i) for p, i in _CANDIDATES
+             if Path(p).name.startswith(("Arial", "Times New Roman", "Courier New", "Tahoma", "Verdana"))]
+import os as _os
+if _os.environ.get("FORGE_FONTS", "windows") == "all":
+    CANDIDATE_LIST = _CANDIDATES + _extra_fonts()
+else:
+    CANDIDATE_LIST = _extra_fonts() + _WIN_LIKE   # 윈도우 스크립트에서 바꿔 끼운다
 WEIGHTS = (-1, 0, 1, 2)      # 획 두께 조정 (크게 그린 그림에서 깎거나 늘리는 픽셀 수, SS배 기준)
 BLURS = (0.3, 0.6, 0.9)      # 가장자리 흐림 (원래 크기 기준 px)
 

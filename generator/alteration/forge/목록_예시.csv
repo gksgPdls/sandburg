@@ -1,0 +1,3 @@
+id,original,original_value,forged_value,x,y,w,h,kind
+sample001,dataset/original/bankbook/auto00276.jpg,"72,900","364,500",1485,829,57,18,금액
+sample002,/Users/이름/data/영수증_02.jpg,2025-03-27,2025-01-26,142,441,80,26,날짜

@@ -24,12 +24,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 NICE = {"내방식": "내 방식", "동현님_write": "팀원 방식(폰트로 쓰기)", "동현님_copy": "팀원 방식(글자 복사)",
         "AI": "내 방식(AI)", "재사용_write": "팀원 방식(폰트로 쓰기)", "재사용_copy": "팀원 방식(글자 복사)",
-        "AI_블렌딩있음": "내 방식(AI) + SD 블렌딩", "AI_윈도우폰트": "내 방식(AI, 윈도우 글꼴)"}
+        "AI_블렌딩있음": "내 방식(AI) + SD 블렌딩", "AI_윈도우폰트": "내 방식(AI, 윈도우 글꼴)",
+        "AI_최종": "내 방식 최종(1+4단계)"}
 
 
 def _folders(root, name):
     d = root / name
-    stage = "기존" if name.startswith("00") else name.split("_", 1)[0].lstrip("0") + "단계 적용"
+    if not d.exists():
+        return []
+    stage = "기존" if name.startswith("00") else ("최종" if name.startswith("최종") else name.split("_", 1)[0].lstrip("0") + "단계 적용")
     return [(f"{stage} {NICE.get(p.name, p.name)}", p) for p in sorted(d.iterdir()) if p.is_dir() and not p.name.startswith(("비교", "_"))]
 
 

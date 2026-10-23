@@ -48,7 +48,8 @@ ORIG_DIR = ROOT / "dataset" / "original" / "bankbook"
 META_DIR = ROOT / "dataset" / "labels" / "meta"
 OLD_TAMPERED = ROOT / "dataset" / "tampered" / "ai_inpainting"
 OUT_ROOT = ROOT / "outputs" / "고도화"
-LIST_CSV = OUT_ROOT / "원본목록.csv"
+# 바꿀 목록. 환경변수 FORGE_LIST 로 다른 파일을 지정할 수 있다 (팀원이 자기 데이터로 쓸 때)
+LIST_CSV = Path(os.environ["FORGE_LIST"]).expanduser().resolve() if os.environ.get("FORGE_LIST") else OUT_ROOT / "원본목록.csv"
 PAD = 2  # 지울 범위: 라벨 bbox에서 이만큼 넓힘 (흐린 획 가장자리 포함)
 
 
@@ -503,6 +504,8 @@ def cmd_run(args):
                 erase_ai(img, box, seed=i)
             if 4 in steps:
                 import font_match as FM
+                if not any(k in n.lower() for _, _, n in FM.candidates() for k in ("gulim", "dotum", "batang", "malgun")):
+                    raise SystemExit("윈도우 글꼴(굴림, 돋움, 바탕, 맑은 고딕)을 못 찾음. fonts/README.md 참고해서 fonts/ 에 넣은 뒤 다시 실행")
                 scoring_bg = orig.copy()
                 erase_reuse(scoring_bg, box, seed=i)  # 폰트 비교용 배경 (원래 글자를 지운 칸)
                 gm = glyph_metrics(orig_gray, box)
