@@ -30,7 +30,7 @@ NICE = {"내방식": "내 방식", "동현님_write": "팀원 방식(폰트로 �
 def _folders(root, name):
     d = root / name
     stage = "기존" if name.startswith("00") else name.split("_", 1)[0].lstrip("0") + "단계 적용"
-    return [(f"{stage} {NICE.get(p.name, p.name)}", p) for p in sorted(d.iterdir()) if p.is_dir() and p.name != "비교이미지"]
+    return [(f"{stage} {NICE.get(p.name, p.name)}", p) for p in sorted(d.iterdir()) if p.is_dir() and not p.name.startswith(("비교", "_"))]
 
 
 def _file(folder, sid):

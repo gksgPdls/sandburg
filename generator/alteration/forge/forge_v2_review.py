@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import forge_v2 as F  # noqa: E402
 import forge_v2_compare as C  # noqa: E402
 
-STAGES = ["00_기존", "01_배경", "04_폰트맞추기", "06_AI블렌딩"]
+STAGES = ["00_기존", "01_배경", "04_폰트맞추기", "04_폰트맞추기_윈도우", "06_AI블렌딩"]
 
 
 def tile(im, crop, scale):

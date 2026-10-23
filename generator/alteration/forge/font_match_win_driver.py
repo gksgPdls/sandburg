@@ -17,7 +17,8 @@ CANDIDATE_LIST = [
     (str(_WIN / "arial.ttf"), [0]), (str(_WIN / "arialbd.ttf"), [0]), (str(_WIN / "ARIALN.TTF"), [0]),
     (str(_WIN / "times.ttf"), [0]), (str(_WIN / "timesbd.ttf"), [0]),
     (str(_WIN / "cour.ttf"), [0]), (str(_WIN / "courbd.ttf"), [0]),
-    (str(_WIN / "tahoma.ttf"), [0]), (str(_WIN / "verdana.ttf"), [0]), (str(_WIN / "consola.ttf"), [0]),
+    (str(_WIN / "tahoma.ttf"), [0]), (str(_WIN / "verdana.ttf"), [0]),
+    # Consolas 제외 (10/23): 숫자 0 안에 사선이 있어 영수증 숫자와 달라 보임 (auto00067)
     # 따로 설치해야 하는 무료 글꼴 (설치돼 있으면 후보에 들어감)
     (str(_WIN / "NanumGothic.ttf"), [0]), (str(_LOCAL / "NanumGothic.ttf"), [0]),
     (str(_WIN / "NanumGothicBold.ttf"), [0]), (str(_LOCAL / "NanumGothicBold.ttf"), [0]),

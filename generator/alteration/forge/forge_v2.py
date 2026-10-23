@@ -610,11 +610,39 @@ def cmd_export_win(args):
     print(f"완료: {out}")
 
 
+def cmd_blend(args):
+    """6단계: 이미 만든 결과(--src 폴더)에 SD 경계 블렌딩만 더한다. 결과는 --out/AI_블렌딩있음.
+    블렌딩 없는 쪽은 --src 그대로라 비교는 compare --out <out> --prev <src의 단계 폴더>."""
+    src = OUT_ROOT / args.src
+    out = OUT_ROOT / args.out / "AI_블렌딩있음"
+    out.mkdir(parents=True, exist_ok=True)
+    log = []
+    rows = load_list()
+    for i, row in enumerate(rows):
+        sid = row["id"]
+        f = next((src / f"{sid}{e}" for e in (".png", ".jpg") if (src / f"{sid}{e}").exists()), None)
+        if f is None:
+            continue
+        img = read_bgr(f)
+        m = np.asarray(Image.open(src / f"{sid}_mask.png").convert("L")) > 0
+        ys, xs = np.nonzero(m)
+        box = (int(xs.min()), int(ys.min()), int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1)
+        ring = ring_blend(img, box, seed=i)
+        save_image(img, out / f"{sid}.png")
+        save_mask(img.shape, [box, ring], out / f"{sid}_mask.png")
+        log.append({"id": sid, "변경": f'{row["original_value"]} → {row["forged_value"]}', "블렌딩": "SD 테두리 14px, strength 0.35"})
+        print(f"{i + 1}/{len(rows)} {sid}", flush=True)
+    _write_log(out / "생성기록.csv", log)
+
+
 def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     sp.add_parser("select")
     sp.add_parser("baseline")
+    bl = sp.add_parser("blend")
+    bl.add_argument("--src", required=True)
+    bl.add_argument("--out", required=True)
     e = sp.add_parser("export-win")
     e.add_argument("--no-sd", action="store_true")
     r = sp.add_parser("run")
@@ -635,7 +663,7 @@ def main():
         compare(OUT_ROOT, load_list(), args.out, args.prev)
     else:
         {"select": cmd_select, "baseline": cmd_baseline, "run": cmd_run,
-         "export-win": cmd_export_win}[args.cmd](args)
+         "export-win": cmd_export_win, "blend": cmd_blend}[args.cmd](args)
 
 
 if __name__ == "__main__":
