@@ -1,9 +1,9 @@
 """위조 이미지 만들기 한 번에 (슈퍼 스크립트). 단계별 스크립트를 순서대로 부른다.
 
-  1. 목록   --src 가 폴더면: 사진마다 바꿀 칸을 자동으로 고름 (logic_list.py, 논리 맞추기 규칙)
+  1. 목록   --src 가 폴더면: 사진마다 바꿀 칸을 자동으로 고름 (3_logic/logic_list.py, 논리 맞추기 규칙)
             --src 가 CSV면: 그 목록 그대로 (칸 좌표와 새 값을 사람이 적은 목록)
-  2. 생성   forge_v2.py run (1단계 지우기, 4단계 글꼴, 5단계 저장 + B1~B6, C1~C2)
-  3. 비교   forge_v2.py compare (원본 | 결과 비교 이미지, 점수)
+  2. 생성   2_render/forge_v2.py run (1단계 지우기, 4단계 글꼴, 5단계 저장 + B1~B6, C1~C2)
+  3. 비교   2_render/forge_v2.py compare (원본 | 결과 비교 이미지, 점수)
 
 예)
   python scripts/generate/forge.py --src ~/Desktop/새사진 --out 새사진
@@ -20,7 +20,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OFF_FLAGS = {"sd": "--no-sd", "tilt": "--no-tilt", "persp": "--no-persp", "b3": "--no-b3", "b4": "--no-b4",
+OFF_FLAGS = {"sd": "--no-sd", "c6": "--no-c6", "tilt": "--no-tilt", "persp": "--no-persp", "b3": "--no-b3", "b4": "--no-b4",
              "b6": "--no-b6", "c1": "--no-c1", "c2": "--no-c2", "c5": "--no-c5"}
 
 
@@ -51,7 +51,7 @@ def main():
     # 1. 목록
     if src.is_dir():
         name = f"{a.out}"
-        cmd = [py, HERE / "logic_list.py", "--src", src, "--name", name, "--ocr", a.ocr, "--want", a.limit]
+        cmd = [py, HERE / "3_logic" / "logic_list.py", "--src", src, "--name", name, "--ocr", a.ocr, "--want", a.limit]
         if a.logic == "엄격":
             cmd.append("--strict")
         elif a.logic == "끔":
@@ -68,11 +68,11 @@ def main():
     bad = [o for o in offs if o not in OFF_FLAGS]
     if bad:
         sys.exit(f"모르는 끄기 항목: {bad}. 가능: {list(OFF_FLAGS)}")
-    run([py, HERE / "forge_v2.py", "run", "--branch", "ai", "--steps", a.steps, "--out", a.out, "--name", "AI",
+    run([py, HERE / "2_render" / "forge_v2.py", "run", "--branch", "ai", "--steps", a.steps, "--out", a.out, "--name", "AI",
          *[OFF_FLAGS[o] for o in offs]], env=env)
     # 3. 비교
     if not a.no_compare:
-        run([py, HERE / "forge_v2.py", "compare", "--out", a.out, "--prev", "_없음"], env=env)
+        run([py, HERE / "2_render" / "forge_v2.py", "compare", "--out", a.out, "--prev", "_없음"], env=env)
     print(f"완료: outputs/고도화/{a.out}/")
 
 

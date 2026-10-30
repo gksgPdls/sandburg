@@ -28,7 +28,7 @@ cd ~/dev/repo
 .venv/bin/python -m detector.web        # http://localhost:8765 가 자동으로 열림
 ```
 
-또는 Finder에서 `탐지기_웹화면.command`를 더블클릭. 추가 설치 없음 (자동 칸 찾기만 tesseract 필요).
+또는 Finder에서 `run/6_탐지기_웹화면.command`를 더블클릭. 추가 설치 없음 (자동 칸 찾기만 tesseract 필요).
 
 ## 구조
 

@@ -40,6 +40,19 @@ def _segments(gray, box, ink_mask_fn):
         return out
     hs = np.array([g["y1"] - g["y0"] for g in out])
     H = float(np.median(hs[hs >= np.percentile(hs, 50)]))
+    # 획이 끊겨 숫자 하나가 두 덩어리로 나뉜 것 합치기 ('0', '3'의 가는 부분이 끊김, 10/30 auto00017 '13,100')
+    merged = [out[0]]
+    for g in out[1:]:
+        p = merged[-1]
+        tall = (p["y1"] - p["y0"]) >= 0.6 * H and (g["y1"] - g["y0"]) >= 0.6 * H
+        if tall and g["x0"] - p["x1"] <= 1 and (g["x1"] - p["x0"]) <= 0.9 * H:
+            sel = p["sel"] | g["sel"]
+            ys, xs = np.nonzero(sel)
+            merged[-1] = {"cx": x + xs.mean(), "x0": x + xs.min(), "x1": x + xs.max() + 1,
+                          "y0": y + ys.min(), "y1": y + ys.max() + 1, "sel": sel, "all": p["all"], "box": box}
+        else:
+            merged.append(g)
+    out = merged
     tops = [g["y0"] for g in out if g["y1"] - g["y0"] >= 0.75 * H]
     top = float(np.median(tops)) if tops else float(min(g["y0"] for g in out))
     for g in out:
@@ -56,7 +69,7 @@ def _segments(gray, box, ink_mask_fn):
     return out
 
 
-def _fit_value(segs, value):
+def _fit_value(segs, value, strict=False):
     """획 덩어리를 원래 값 글자에 맞춘다. 기호 덩어리 수·순서가 값과 같아야 하고,
     기호 사이 숫자 덩어리 수가 숫자 개수와 다르면(붙은 숫자, 끊긴 숫자) 그 구간을 숫자 개수로 고르게 나눈다."""
     if not segs:
@@ -79,6 +92,8 @@ def _fit_value(segs, value):
             return None
         if len(run) == nd:
             out += [dict(g, ch="0") for g in run]
+        elif nd > 0 and (strict or len(run) > nd):   # 덩어리가 더 많으면 옆 글자·번호가 섞인 것 (10/30)
+            return None
         elif nd > 0:
             x0, x1 = min(g["x0"] for g in run), max(g["x1"] for g in run)
             y0, y1 = min(g["y0"] for g in run), max(g["y1"] for g in run)

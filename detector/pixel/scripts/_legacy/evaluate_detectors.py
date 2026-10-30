@@ -22,6 +22,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generate"))
+import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 from config import INPUT_DIR, MASK_DIR, META_DIR, REPORT_DIR, TAMPERED_DIR, ensure_dirs
 import detectors as det
 

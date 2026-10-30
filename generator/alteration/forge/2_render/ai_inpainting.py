@@ -91,7 +91,7 @@ def load_hf_token():
     from dotenv import load_dotenv
     import os
 
-    load_dotenv(__import__("pathlib").Path(__file__).resolve().parents[2] / ".env")
+    load_dotenv(__import__("pathlib").Path(__file__).resolve().parents[3] / ".env")
     return os.environ.get("HF_API_TOKEN") or None
 
 

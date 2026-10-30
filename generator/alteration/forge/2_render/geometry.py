@@ -71,12 +71,28 @@ def stroke_mask(gray, box):
     lines = find_lines(gray, box)
     lm = line_mask(gray.shape, lines, thickness=3)[y:y + h, x:x + w]
     # 예전 방식(칸 폭 대부분을 가로지르는 수평·수직 획)도 함께 뺀다
+    hl = np.zeros_like(m)
     if w >= 8:
         k = cv2.getStructuringElement(cv2.MORPH_RECT, (max(int(w * 0.7), 8), 1))
-        lm |= cv2.morphologyEx(m, cv2.MORPH_OPEN, k)
+        hl = cv2.morphologyEx(m, cv2.MORPH_OPEN, k)
+        lm |= hl
     if h >= 8:
         k = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(int(h * 0.9), 8)))
-        lm |= cv2.morphologyEx(m, cv2.MORPH_OPEN, k)
+        vl = cv2.morphologyEx(m, cv2.MORPH_OPEN, k)
+        # 숫자 사이에 낀 '1'은 선이 아님: 작은 글씨에서 '1'이 위 가로 선에 닿으면 세로 선으로 잘못 보고 지우지 않았음
+        # (10/30 auto00063 '110,000' → '1ᵌ0,000'). 실제 높이가 칸보다 짧고 양옆 가까이에 다른 획이 있으면 글자로 둔다.
+        n, lab, st, _ = cv2.connectedComponentsWithStats((vl > 0).astype(np.uint8), 8)
+        rest = (m > 0) & (vl == 0)
+        for i in range(1, n):
+            cx, cy, cw, ch_ = st[i, 0], st[i, 1], st[i, 2], st[i, 3]
+            col = ((m & ~hl)[:, cx:cx + cw] > 0).any(1)   # 위아래 가로 선은 빼고 잼
+            ink_h = int(col.sum())
+            reach = max(int(1.2 * ink_h), 6)
+            left = rest[:, max(cx - reach, 0):cx].any()
+            right = rest[:, cx + cw:cx + cw + reach].any()
+            if ink_h < 0.85 * h and left and right:
+                vl[lab == i] = 0
+        lm |= vl
     lm = cv2.dilate(lm, np.ones((3, 3), np.uint8))
     m[lm > 0] = 0
     # 선을 빼고 남은 칸 가장자리 부스러기(아주 작은 덩어리) 제거

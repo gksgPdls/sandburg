@@ -27,8 +27,11 @@ from detector.core import load_config  # noqa: E402
 from detector.locate import locate  # noqa: E402
 
 DATA = ROOT / "dataset"
-CACHE = ROOT / "outputs/reports/locate_cache.jsonl"
-REPORT = ROOT / "outputs/reports/locate_evaluation.json"
+OCR = os.environ.get("LOCATE_OCR", "tesseract")   # rapid: RapidOCR 모든 글자 칸 (2026-10-30)
+_SUF = "" if OCR == "tesseract" else f"_{OCR}"
+CACHE = ROOT / f"outputs/reports/locate_cache{_SUF}.jsonl"
+REPORT = ROOT / f"outputs/reports/locate_evaluation{_SUF}.json"
+ONLY = "all"   # 보고할 후보 범위 (rapid): all / digits / money
 N_TUNE_DOCS = 200
 
 
@@ -56,10 +59,10 @@ def work(job):
     path = (DATA / f"tampered/ai_inpainting/{base}_ai_inpaint.png" if kind == "tamp" else
             next(p for p in (DATA / "original/bankbook").glob(base + ".*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")))
     try:
-        r = locate(path)
+        r = locate(path, ocr=OCR)
         lb = label_box(base)
-        cands = [{"text": c["text"], "bbox": list(c["bbox"]), "rarity": c["rarity"], "votes": c["votes"],
-                  "is_target": hits(c["bbox"], lb)} for c in r["candidates"]]
+        cands = [{"text": c["text"], "kind": c.get("kind"), "bbox": list(c["bbox"]), "rarity": c["rarity"],
+                  "votes": c["votes"], "is_target": hits(c["bbox"], lb)} for c in r["candidates"]]
         return {"base": base, "kind": kind, "cands": cands}
     except Exception as e:  # noqa: BLE001
         return {"base": base, "kind": kind, "skip": str(e)}
@@ -83,6 +86,19 @@ def collect(max_seconds):
     return True
 
 
+def _keep(c):
+    if ONLY == "digits":
+        return c.get("kind") != "text"
+    if ONLY == "money":
+        return c.get("kind") in ("money", "date")
+    return True
+
+
+def _filter(r):
+    cs = sorted([c for c in r["cands"] if _keep(c)], key=lambda c: c["rarity"] if c["rarity"] is not None else 1.0)
+    return {**r, "cands": cs}
+
+
 def doc_rarity(r):
     rs = [c["rarity"] for c in r["cands"] if c["rarity"] is not None]
     return min(rs) if rs else 1.0
@@ -90,7 +106,7 @@ def doc_rarity(r):
 
 def report(max_fp):
     tune, test = split()
-    recs = {(r["base"], r["kind"]): r for r in map(json.loads, open(CACHE, encoding="utf-8")) if "skip" not in r}
+    recs = {(r["base"], r["kind"]): _filter(r) for r in map(json.loads, open(CACHE, encoding="utf-8")) if "skip" not in r}
     tune_o = [doc_rarity(recs[(b, "orig")]) for b in tune[:N_TUNE_DOCS] if (b, "orig") in recs]
     thr = float(np.percentile(tune_o, max_fp * 100))   # 정상 문서 오탐 max_fp 지점
     T = [recs[(b, "tamp")] for b in test if (b, "tamp") in recs]
@@ -116,7 +132,7 @@ def report(max_fp):
     print(f"문서 정탐률                         {tp*100:.1f}%   (위치까지 맞힌 것 {tp_loc*100:.1f}%)")
     print(f"문서 오탐률                         {fp*100:.1f}%")
     print(f"OCR이 위조 칸을 찾은 문서 중 위치까지 정탐  {tp_found*100:.1f}%")
-    json.dump(rep, open(REPORT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    json.dump(rep, open(REPORT if ONLY == "all" else REPORT.with_name(REPORT.stem + f"_{ONLY}.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     return thr
 
 
@@ -126,8 +142,10 @@ if __name__ == "__main__":
     ap.add_argument("--fresh", action="store_true", help="저장된 결과 비우고 처음부터 (후보 규칙·탐지기를 바꿨을 때)")
     ap.add_argument("--max-seconds", type=float, default=150)
     ap.add_argument("--max-fp", type=float, default=0.10)
+    ap.add_argument("--only", default="all", choices=["all", "digits", "money"], help="rapid 후보 범위")
     ap.add_argument("--write", action="store_true", help="문서 기준값을 detector/config.json locate에 반영")
     a = ap.parse_args()
+    ONLY = a.only
     if a.fresh and CACHE.exists():
         import shutil
         shutil.copy(CACHE, CACHE.with_name("locate_cache_strict_rule.jsonl"))  # 이전 규칙 결과 보관
