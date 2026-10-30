@@ -19,7 +19,10 @@ from detector import detect
 
 LABEL_FONT = next((p for p in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
                                "/System/Library/Fonts/AppleSDGothicNeo.ttc") if Path(p).exists()), None)
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
+import sys  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 
 
 NICE = {"내방식": "내 방식", "동현님_write": "팀원 방식(폰트로 쓰기)", "동현님_copy": "팀원 방식(글자 복사)",
@@ -136,15 +139,26 @@ def compare(out_root, rows, out, prev):
                 tag = f" [{k + 1}/{len(parts)}칸]" if len(parts) > 1 else ""
                 imgs.append(_pair(orig, im, pb, f"{name}{tag}  ({short})   왼쪽 원본 | 오른쪽 결과"))
             gray = np.asarray(im.convert("L"))
-            res = detect(im, mask=Image.open(mpath))
-            ref = detect(orig, mask=Image.open(mpath))
-            noise, noise0 = res["methods"]["noise"]["score"], ref["methods"]["noise"]["score"]
+            # 탐지기는 고친 칸마다 따로 (10/30: 여러 칸을 상자 하나로 묶으면 문서 전체가 한 상자가 되어
+            #  고치지 않은 원본도 '의심'이 나오고, 칸 하나가 이상해도 안 보임)
+            ratios, votes, bad = [], 0, []
+            for k, pb in enumerate(parts):
+                res = detect(im, bbox=pb, padding=0)
+                ref = detect(orig, bbox=pb, padding=0)
+                n1, n0 = res["methods"]["noise"]["score"], ref["methods"]["noise"]["score"]
+                if n1 is not None and n0:
+                    ratios.append(n1 / n0)
+                votes = max(votes, res["verdict"]["votes"])
+                if res["verdict"]["suspicious"]:
+                    why = [m["name"].split("_")[-1] for m in res["methods"].values() if m.get("flagged")]
+                    bad.append(f"{k + 1}칸({','.join(why)})")
             bg, bg0 = background_texture(gray, box), background_texture(np.asarray(orig.convert("L")), box)
             scores.append({"id": sid, "kind": row["kind"], "방식": name, "변경": ch,
                            "배경결_원본대비": round(bg / bg0, 3) if bg0 else "",
-                           "노이즈_원본대비": round(noise / noise0, 3) if noise0 else "",
-                           "탐지기_투표": res["verdict"]["votes"],
-                           "탐지기_의심": "Y" if res["verdict"]["suspicious"] else ""})
+                           "노이즈_원본대비": round(float(min(ratios)), 3) if ratios else "",
+                           "탐지기_투표": votes,
+                           "탐지기_의심": "Y" if bad else "",
+                           "의심칸": " ".join(bad)})
         W = max(i.width for i in imgs)
         sheet = Image.new("RGB", (W, sum(i.height + 10 for i in imgs)), (230, 230, 230))
         yy = 0

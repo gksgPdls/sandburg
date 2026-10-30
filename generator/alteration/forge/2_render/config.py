@@ -1,7 +1,7 @@
 """Shared paths and constants for the ai_inpainting pipeline."""
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 INPUT_DIR = ROOT / "dataset" / "original" / "bankbook"
 TAMPERED_DIR = ROOT / "dataset" / "tampered" / "ai_inpainting"

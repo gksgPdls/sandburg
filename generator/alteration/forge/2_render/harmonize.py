@@ -7,6 +7,8 @@
 
 모두 원본 이미지에서 잰 값으로 세기를 정한다 (고정 숫자를 최소화).
 """
+from pathlib import Path
+
 import cv2
 import numpy as np
 from PIL import Image
@@ -294,3 +296,71 @@ def clean_leftover(img, before_write, orig_gray, box, stroke_fn, seed=0, rounds=
         out = np.where(bad[..., None] > 0, np.clip(filled + noise[..., None], 0, 255), sub.astype(np.float32))
         img[y:y + h, x:x + w] = out.astype(np.uint8)
     return total
+
+
+# ---------- C6 ----------
+
+def cell_boxes(mask, gap=6):
+    """마스크의 떨어진 덩어리(고친 칸)마다 상자. 비교 단계(forge_v2_compare._mask_boxes)와 같은 방식."""
+    m = cv2.dilate((mask > 0).astype(np.uint8), np.ones((gap, gap), np.uint8))
+    n, _, st, _ = cv2.connectedComponentsWithStats(m)
+    return [(int(x + gap // 2), int(y + gap // 2), int(w - gap), int(h - gap)) for x, y, w, h, a in st[1:]]
+
+
+def _det_noise(bgr, box):
+    """탐지기 노이즈분석 값 (칸 안 ÷ 비슷한 주변), 칸 하나만 따로."""
+    import sys
+    root = str(Path(__file__).resolve().parents[3])
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from detector import measure
+    rgb = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
+    m = measure(rgb, bbox=box, padding=0, methods=["noise"])["noise"]
+    return m["score"] if m else None
+
+
+def match_cell_noise(img, orig, mask, ink_fn, save_fn, seed=0, floor=0.76, rounds=6):
+    """C6: 고친 칸마다 따로, 저장된 파일 기준으로 종이 잔결 세기를 원본 같은 자리만큼 맞춘다.
+    (10/30 auto00017: 여러 칸을 상자 하나로 재면 칸 하나가 매끈해도 안 보이고, jpg 저장에서 잔결이 깎임
+     → 현금 칸 노이즈 0.56, 탐지 기준 0.66 아래)
+    목표 = max(min(원본 같은 자리 값 × 0.9, 1), floor). 모자라면 칸 안 종이(글자 획 둘레 제외)에 잡음을 더하고 다시 저장해서 잰다.
+    save_fn(img) -> 저장된 파일 경로. [(칸, 원본값, 처음값, 마지막값)]"""
+    boxes = cell_boxes(mask)
+    path = save_fn(img)
+    targets = {}
+    for b in boxes:
+        t0 = _det_noise(orig, b)
+        if t0 is not None:
+            targets[b] = (t0, max(min(0.9 * t0, 1.0), floor))   # 원본이 주변보다 거친 칸도 1배까지만 (그 이상은 눈에 띄는 얼룩, 10/30)
+    first, last = {}, {}
+    rng = np.random.default_rng(seed + 61)
+    for r in range(rounds + 1):
+        cur = cv2.imread(str(path))
+        low = []
+        for b, (t0, tgt) in targets.items():
+            v = _det_noise(cur, b)
+            if v is None:
+                continue
+            first.setdefault(b, v)
+            last[b] = v
+            if v < tgt:
+                low.append((b, v, tgt))
+        if not low or r == rounds:
+            break
+        for b, v, tgt in low:
+            x, y, w, h = b
+            reg = img[y:y + h, x:x + w].astype(np.float32)
+            g = cv2.cvtColor(img[y:y + h, x:x + w], cv2.COLOR_BGR2GRAY).astype(np.float32)
+            ink = cv2.dilate((ink_fn(g.astype(np.uint8)) > 0).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+            if (~ink).sum() < 20:
+                continue
+            wgt = cv2.GaussianBlur((~ink).astype(np.float32), (0, 0), 0.8)[..., None]
+            # 모자란 만큼 더함: 잔결 세기 grain을 (목표/지금)배로 키우는 데 필요한 양 (jpg가 깎는 몫은 다음 바퀴에서 다시 잼)
+            grain = float((g - cv2.GaussianBlur(g, (0, 0), 1.0))[~ink].std()) + 0.5
+            # 한 번에 조금씩 (10/30 auto00053: 1.1배로 한 번에 넣어 목표 1.0을 1.5로 넘기고 점 얼룩이 보였음)
+            a = grain * min(np.sqrt(max((tgt / max(v, 0.05)) ** 2 - 1, 0.05)), 1.0) * 0.6
+            n = cv2.GaussianBlur(rng.normal(0, 1, g.shape).astype(np.float32), (0, 0), 0.7)
+            n *= a / (n.std() + 1e-6)
+            img[y:y + h, x:x + w] = np.clip(reg + n[..., None] * wgt, 0, 255).astype(np.uint8)
+        path = save_fn(img)
+    return [(b, round(targets[b][0], 3), round(first[b], 3), round(last[b], 3)) for b in targets if b in first]

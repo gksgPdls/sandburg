@@ -61,11 +61,51 @@ def ocr_candidates(image, relaxed=False):
     return out
 
 
-def locate(image, config=None, candidates=None, relaxed=False):
+_RAPID = None
+
+
+def rapid_candidates(image, only="all"):
+    """RapidOCR로 문서의 글자 줄을 전부 찾는다 (2026-10-30). 글자를 잘못 읽어도 위치는 잡히므로
+    tesseract 금액·날짜 패턴 방식보다 위조 칸을 덜 놓친다.
+    only: "all"(모든 글자 칸), "digits"(숫자가 들어 있는 칸), "money"(금액·날짜 모양)"""
+    global _RAPID
+    import numpy as np
+    if _RAPID is None:
+        from rapidocr_onnxruntime import RapidOCR
+        _RAPID = RapidOCR()
+    img = image if isinstance(image, Image.Image) else Image.open(image)
+    arr = np.asarray(img.convert("RGB"))[:, :, ::-1].copy()
+    res, _ = _RAPID(arr)
+    out = []
+    for quad, text, conf in res or []:
+        t = text.strip().replace(" ", "")
+        xs = [p[0] for p in quad]; ys = [p[1] for p in quad]
+        x, y = int(min(xs)), int(min(ys))
+        w, h = int(max(xs)) - x, int(max(ys)) - y
+        if w < 6 or h < 6:
+            continue
+        nd = sum(ch.isdigit() for ch in t)
+        tt = t.strip("원")
+        kind = ("money" if MONEY_RE.match(tt) else "date" if DATE_RE.match(tt) else
+                "number" if nd >= 1 else "text")
+        if only == "digits" and nd == 0:
+            continue
+        if only == "money" and kind not in ("money", "date"):
+            continue
+        out.append({"text": t, "kind": kind, "conf": float(conf) * 100, "bbox": (x, y, w, h)})
+    return out
+
+
+def locate(image, config=None, candidates=None, relaxed=False, ocr="tesseract", only="all"):
     config = config or load_config()
     img = image if isinstance(image, Image.Image) else Image.open(image)
     img = img.convert("RGB")
-    cands = candidates if candidates is not None else ocr_candidates(img, relaxed=relaxed)
+    if candidates is not None:
+        cands = candidates
+    elif ocr == "rapid":
+        cands = rapid_candidates(img, only=only)
+    else:
+        cands = ocr_candidates(img, relaxed=relaxed)
     results = []
     for c in cands:
         try:

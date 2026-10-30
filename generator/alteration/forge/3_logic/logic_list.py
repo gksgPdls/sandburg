@@ -9,7 +9,7 @@
   날짜순서 : 날짜 하나를 바꾸되 문서 안 다른 날짜들과의 앞뒤(이전·같음·이후)가 그대로이고, 오늘보다 뒤가 아니게 (±14일)
 그리고 어느 규칙이든, 바꾼 값과 똑같은 값이 문서 다른 칸에 또 있으면 그 칸도 같은 새 값으로 (총액이 두 번 적힌 경우 등)
 
-python scripts/generate/logic_list.py --limit 160   # 여러 번 실행하면 이어서 함
+python scripts/generate/3_logic/logic_list.py --limit 160   # 여러 번 실행하면 이어서 함
 결과: outputs/고도화/원본목록_논리맞춤.csv (forge_v2 run 에 FORGE_LIST 로), 검사 기록 outputs/고도화/_논리스캔.csv"""
 import argparse
 import csv
@@ -22,9 +22,10 @@ from pathlib import Path
 
 import cv2
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "dataset" / "scripts"))
-sys.path.insert(0, str(ROOT / "scripts" / "generate"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 OUT = ROOT / "outputs" / "고도화"
 SCAN = OUT / "_논리스캔.csv"
 LIST = OUT / "원본목록_논리맞춤.csv"
@@ -412,8 +413,9 @@ def scan_one(path, ink_fn):
         # 진료비 영수증 서식이면 서식 규칙으로. 숫자만 보는 관계 찾기는 급여 합을 비급여 칸으로 오인해서 쓰지 않음 (10/23)
         import auto_receipt as AR
         import receipt_form as RF
-        gen = RF.plans_struct if form["type"] == "진료비" else RF.plans_pharmacy
-        rules = [("진료비서식", lambda t, r: gen(form, r, AR._new_amount, AR.fmt)), ("날짜순서", rule_date_order)]
+        plan = RF.plans_struct if form["type"] == "진료비" else RF.plans_pharmacy
+        # (아래 for 문이 gen 이름을 다시 쓰므로 다른 이름으로 묶음. 10/30: 같은 이름이라 자기 자신을 불러 서식 규칙이 매번 실패했음)
+        rules = [("진료비서식", lambda t, r, plan=plan: plan(form, r, AR._new_amount, AR.fmt)), ("날짜순서", rule_date_order)]
     if FALLBACK:
         rules.append(("단일(논리깨짐)", rule_single))
     if not LOGIC:   # 논리 맞추기 끔: 칸 하나만 바꿈
