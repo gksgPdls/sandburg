@@ -3,12 +3,14 @@
 
     python -m logic_detector.web            # http://localhost:8766 이 열림
     python -m logic_detector.web --port 9000 --no-open
+    python -m logic_detector.web --demo demo_real --port 8767   # 다른 샘플 폴더 (samples/ originals/ 정답.csv info.json)
 
   GET  /                  화면 (index.html)
   GET  /api/samples       demo/samples 의 사진 목록
   GET  /samples/<파일>     샘플 사진 (변조본)
   GET  /originals/<파일>   샘플의 원본 사진 (demo/originals, 나란히 비교용)
   GET  /api/answers       demo/정답.csv (조작 방식·바뀐 곳 좌표·현재 탐지기 결과)
+  GET  /api/info          demo/info.json (화면 제목·목록 이름, 없으면 기본값)
   POST /api/inspect       본문 = 이미지 바이트 → logic_detector.logic.inspect 결과 JSON
 """
 import argparse
@@ -30,10 +32,14 @@ sys.path.insert(0, str(ROOT))
 from logic_detector.logic import inspect  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-DEMO = HERE.parent / "demo"                      # logic_detector/demo (11-06 폴더 정리 때 맨 위 demo/ 에서 옮김)
-SAMPLES = DEMO / "samples"
-ORIGINALS = DEMO / "originals"
-ANSWERS = DEMO / "정답.csv"
+DEMO = HERE.parent / "demo"                      # 기본 샘플: logic_detector/demo (11-06 폴더 정리 때 맨 위 demo/ 에서 옮김)
+SAMPLES, ORIGINALS, ANSWERS, INFO = DEMO / "samples", DEMO / "originals", DEMO / "정답.csv", DEMO / "info.json"
+
+
+def use_demo(folder):
+    global DEMO, SAMPLES, ORIGINALS, ANSWERS, INFO
+    DEMO = (ROOT / folder).resolve()
+    SAMPLES, ORIGINALS, ANSWERS, INFO = DEMO / "samples", DEMO / "originals", DEMO / "정답.csv", DEMO / "info.json"
 IMAGE_EXT = {".jpg", ".jpeg", ".png"}
 
 
@@ -64,6 +70,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/samples":
             files = sorted(p.name for p in SAMPLES.glob("*") if p.suffix.lower() in IMAGE_EXT) if SAMPLES.exists() else []
             return self._send(200, files)
+        if path == "/api/info":
+            return self._send(200, json.loads(INFO.read_text(encoding="utf-8")) if INFO.exists() else {})
         if path == "/api/answers":
             if not ANSWERS.exists():
                 return self._send(200, {})
@@ -98,7 +106,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8766)
     ap.add_argument("--no-open", action="store_true")
+    ap.add_argument("--demo", default="logic_detector/demo", help="샘플 폴더 (레포 기준 상대 경로, 실제 문서는 demo_real)")
     a = ap.parse_args()
+    use_demo(a.demo)
     url = f"http://localhost:{a.port}"
     srv = HTTPServer(("127.0.0.1", a.port), Handler)   # OCR(Vision)이 스레드에 안전한지 몰라 한 번에 한 장씩
     print(f"로직 탐지기 실험 화면: {url}  (끝내려면 Ctrl+C)", flush=True)

@@ -26,8 +26,8 @@ Image.MAX_IMAGE_PIXELS = None
 # 같은 모델이라도 업체에 따라 결과가 달라지므로 업체는 결과마다 기록한다.
 PROVIDER_ONLY = {"deepseek/deepseek-v4.1-flash-1017": ["Cohere", "ModelRun", "Wafer"]}
 # 실서류(와 실서류로 만든 1차 과제 데이터)를 알아보는 표시. 폴더 위치가 사람마다 달라도 막히게 이름으로 본다
-# (이 맥 repo/real_docs · dataset/, 소영 님 저장소 dataset/original/real_docs, 'real_docs').
-REAL_PARTS = {"real_docs", "dataset"}
+# (이 맥 repo/real_docs · dataset/, 소영 님 저장소 dataset/original/real_docs, 혜인 님 실제 문서 실험 demo_real/, 'real_docs').
+REAL_PARTS = {"real_docs", "dataset", "demo_real"}
 REAL_NAME = re.compile(r"(\d{6,})_\d{3}_(?:med|surg|dig)_\d{8}_DTB\d{3}_F\d+", re.I)   # 사고번호_순번_med_날짜_DTB코드_F번호
 
 

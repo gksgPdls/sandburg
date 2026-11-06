@@ -104,14 +104,14 @@ td:first-child { color: var(--muted); width: 45%; }
 </head>
 <body>
 <header>
-  <h1>로직 탐지기 실험</h1>
+  <h1 id="pageTitle">로직 탐지기 실험</h1>
   <p>진료비 계산서·영수증 / 진단서 사진을 공식 근거 규칙(심평원 단가·부담률·상병마스터·서식 산식)으로 검사합니다. 사진은 이 맥 밖으로 나가지 않습니다.</p>
 </header>
 <main>
   <aside class="left">
-    <h2>변조 샘플 (내용을 조작한 휴대폰 사진)</h2>
+    <h2 id="hTampered">변조 샘플 (내용을 조작한 휴대폰 사진)</h2>
     <div id="samples"></div>
-    <h2>정상 원본 (오탐 사례)</h2>
+    <h2 id="hNormal">정상 원본 (오탐 사례)</h2>
     <div id="normals"></div>
     <label class="drop" id="drop">
       <input type="file" id="file" accept="image/*" hidden>
@@ -170,11 +170,15 @@ function overlaps(b, c) {
 function imgLoaded(img) { return img.complete && img.naturalWidth ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; }); }
 
 async function loadSamples() {
-  const [files, ans] = await Promise.all([fetch("/api/samples").then(r => r.json()), fetch("/api/answers").then(r => r.json())]);
+  const [files, ans, info] = await Promise.all([fetch("/api/samples").then(r => r.json()), fetch("/api/answers").then(r => r.json()),
+    fetch("/api/info").then(r => r.json()).catch(() => ({}))]);
   answers = ans;
+  if (info.title) { $("pageTitle").textContent = info.title; document.title = info.title; }
+  if (info.tampered) $("hTampered").textContent = info.tampered;
+  if (info.normal) $("hNormal").textContent = info.normal;
   const item = f => {
     const a = ans[f];
-    const sub = !a ? "" : isNormal(a) ? "조작 없음" : a["조작 방식"].split("(")[0];
+    const sub = !a ? "" : a["케이스"] ? a["케이스"] : isNormal(a) ? "조작 없음" : a["조작 방식"].split("(")[0];
     return `<button class="sample" data-f="${esc(f)}"><img src="/samples/${encodeURIComponent(f)}" alt="">
       <span>${esc(f.replace(/\.[^.]+$/, ""))}<br><span class="note">${esc(sub)}</span></span>
       <span class="tag" id="tag-${esc(f)}"></span></button>`;
@@ -228,13 +232,13 @@ async function run(blob, name) {
 function changeCard() {
   if (!answer) return "";
   if (isNormal(answer)) return `<div class="change normal">
-    <div class="head">정상 원본 — 조작 없음 <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
+    <div class="head">${answer["케이스"] ? esc(answer["케이스"]) + " · " : ""}정상 원본 — 조작 없음 <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
     <div class="desc">${esc(answer["바뀐 내용"])}</div>
     <div class="expect">데이터셋 평가 때 이 사진의 결과: <b>${esc(answer["현재 탐지기 결과"])}</b></div>
   </div>`;
   const edms = answer["조작 방식"].includes("EDMS");
   return `<div class="change">
-    <div class="head">바뀐 곳 — ${esc(answer["조작 방식"])} <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
+    <div class="head">${answer["케이스"] ? esc(answer["케이스"]) + " · " : ""}바뀐 곳 — ${esc(answer["조작 방식"])} <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
     <div class="desc">${esc(answer["바뀐 내용"])}</div>
     <div class="zoom"><figure><canvas id="zOrig"></canvas><figcaption>원본</figcaption></figure><span class="arrow">→</span>
       <figure><canvas id="zImg"></canvas><figcaption>변조본</figcaption></figure></div>

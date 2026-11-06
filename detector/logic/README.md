@@ -24,6 +24,7 @@ logic_detector/logic/        탐지기 본체
 logic_detector/web/          실험 화면 (이 맥 안에서만 도는 서버, http://localhost:8766)
 logic_detector/demo/         실험 화면 샘플 사진·원본·정답.csv (사진은 git에 안 올라감)
 logic_detector/실험화면.command   더블클릭하면 실험 화면이 열림
+logic_detector/실제문서_실험화면.command   실제 문서 실험 화면 (샘플은 저장소 맨 위 demo_real/, 민감정보라 git 제외 · 로컬 전용)
 ```
 
 > 11-06 폴더 정리: `detector_v2/` → `logic_detector/` (소영 님 `detector/v2` 와 이름이 헷갈려서), 맨 위 `demo/` · `탐지기_실험화면.command` 를 이 폴더 안으로. 코드는 이름만 바뀜
