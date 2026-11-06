@@ -11,9 +11,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.ensemble import HistGradientBoostingClassifier
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "lr"
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-from detector.core import load_config, judge  # noqa: E402
+from detector.v1.core import load_config, judge  # noqa: E402
 
 recs = [r for r in map(json.loads, open(ROOT / "outputs/reports/detector_measurements.jsonl")) if "skip" not in r]
 cfg = load_config()

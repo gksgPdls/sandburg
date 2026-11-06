@@ -24,10 +24,10 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.restoration import denoise_wavelet
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from detector.core import judge, load_config, mask_to_bbox, measure  # noqa: E402
-from detector.methods import Context  # noqa: E402
+from detector.v1.core import judge, load_config, mask_to_bbox, measure  # noqa: E402
+from detector.v1.methods import Context  # noqa: E402
 
 CAT = ROOT / "outputs/reports/catalog_v1"
 OUT = ROOT / "outputs/reports/evidence"
@@ -131,7 +131,7 @@ def make(row):
             for t_i, (nm, p) in enumerate(tiles):
                 x = pad + 120 + t_i * (tw + 10)
                 cv.paste(to_img(noise_map(p), tscale, vmax) if use_map else to_img(p, tscale), (x, y))
-                from detector.features import wavelet_noise_std
+                from detector.v1.features import wavelet_noise_std
                 cap = f"{nm} {wavelet_noise_std(p):.2f}" if use_map else nm
                 d.text((x, y + th + 3), cap, fill=(90, 90, 90), font=f_s)
     for d in ("정탐", "미탐", "오탐"):
