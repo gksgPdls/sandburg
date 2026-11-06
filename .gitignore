@@ -35,3 +35,7 @@ outputs/reports/*_cache*.jsonl
 outputs/reports/detector_raw_scores.jsonl
 *.zip
 *.tar
+
+# 평가셋 · 개발지 (사진 · 정답, 공유). 안내 README 만 올림
+testsets/*
+!testsets/README.md

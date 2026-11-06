@@ -1,15 +1,15 @@
 """
 로직 탐지기 실험 화면 (이 맥에서만 도는 작은 서버). 사진은 밖으로 나가지 않는다.
 
-    python -m detector_v2.web            # http://localhost:8766 이 열림
-    python -m detector_v2.web --port 9000 --no-open
+    python -m logic_detector.web            # http://localhost:8766 이 열림
+    python -m logic_detector.web --port 9000 --no-open
 
   GET  /                  화면 (index.html)
   GET  /api/samples       demo/samples 의 사진 목록
   GET  /samples/<파일>     샘플 사진 (변조본)
   GET  /originals/<파일>   샘플의 원본 사진 (demo/originals, 나란히 비교용)
   GET  /api/answers       demo/정답.csv (조작 방식·바뀐 곳 좌표·현재 탐지기 결과)
-  POST /api/inspect       본문 = 이미지 바이트 → detector_v2.logic.inspect 결과 JSON
+  POST /api/inspect       본문 = 이미지 바이트 → logic_detector.logic.inspect 결과 JSON
 """
 import argparse
 import csv
@@ -27,12 +27,13 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from detector_v2.logic import inspect  # noqa: E402
+from logic_detector.logic import inspect  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-SAMPLES = ROOT / "demo" / "samples"
-ORIGINALS = ROOT / "demo" / "originals"
-ANSWERS = ROOT / "demo" / "정답.csv"
+DEMO = HERE.parent / "demo"                      # logic_detector/demo (11-06 폴더 정리 때 맨 위 demo/ 에서 옮김)
+SAMPLES = DEMO / "samples"
+ORIGINALS = DEMO / "originals"
+ANSWERS = DEMO / "정답.csv"
 IMAGE_EXT = {".jpg", ".jpeg", ".png"}
 
 
