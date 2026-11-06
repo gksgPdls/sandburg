@@ -1,4 +1,9 @@
-"""소영 님 이미지 탐지기(detector v1) 연결: 사진에서 금액 · 날짜 칸을 스스로 찾아(로컬 OCR) 칸마다 흔적 검사.
+"""소영 님 이미지 탐지기 연결: 사진에서 금액 · 날짜 칸을 스스로 찾아(로컬 OCR) 칸마다 흔적 검사.
+
+11-06 (소영): 기본을 detector.v2.locate() 로 바꿈 — 칸마다 같은 문서의 비슷한 칸과 비교한 점수라 칸이 많아도 오탐이 늘지 않음
+  (시험용: 정상 오탐 10.5% · 고도화 변조 28.7% · 티나는 변조 39.2% · 복사-붙여넣기 90.0%). 판정 3단계 의심 / 확인필요 / 정상.
+  예전 v1 을 쓰려면 환경변수 IMAGE_ENGINE=v1. 칸 찾기 OCR 은 v2 에서 rapid 권장.
+아래는 v1 설명:
 
 detector.v1.locate() 그대로 씀: 가장 이상한 칸의 희귀도가 기준(config 의 doc_max_rarity)보다 낮으면 '의심'.
 칸 찾기 OCR 은 소영 님 기본값 tesseract (rapid 는 칸을 훨씬 많이 찾지만, 11-06 6장 시험에서 정상 4장을 모두 의심 — 칸이 많으면
@@ -13,16 +18,30 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 SAVE = REPO / "outputs" / "combine" / "이미지_저장"
 TOP = 3                                                       # 근거 상자로 쓰는 칸 수 (상자가 많으면 위치 적중이 부풀어서)
+import os  # noqa: E402
+ENGINE = os.environ.get("IMAGE_ENGINE", "v2")                # v2 (기본) | v1
+
+
+def _judge_v2(img, ocr):
+    from detector.v2.locate import locate
+    r = locate(str(img), ocr=ocr)
+    odd = [c for c in r["candidates"] if c["level"] != "정상"][:TOP]
+    return {"판정": r["verdict"], "상자": [list(c["bbox"]) for c in odd], "이유": r["summary"], "후보_칸": r["n_candidates"]}
 
 
 def judge(job):
     """(평가셋 이름, 문제_id, 사진 경로, OCR) → {판정(의심/정상/판정못함), 상자, 이유, 후보_칸}. 저장해 둔 결과가 있으면 그것을 씀."""
     name, qid, img, ocr = job
-    path = SAVE / ocr / name / f"{qid}.json"
+    path = SAVE / (ocr if ENGINE == "v1" else f"v2_{ocr}") / name / f"{qid}.json"   # v1·v2 저장 결과를 섞지 않음
     if path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
     from detector.v1.locate import locate
     try:
+        if ENGINE != "v1":
+            out = _judge_v2(img, ocr)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+            return out
         r = locate(str(img), ocr=ocr)
         thr = r["doc_max_rarity"]
         odd = [c for c in r["candidates"] if c["rarity"] is not None and c["rarity"] < thr][:TOP]
