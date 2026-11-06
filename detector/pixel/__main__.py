@@ -8,7 +8,7 @@ CLI: 이미지 1장 + 의심영역 → 탐지 결과
 import argparse
 import json
 
-from .core import detect
+from .v1.core import detect
 
 
 def main():
@@ -16,12 +16,12 @@ def main():
     ap.add_argument("--image", required=True)
     ap.add_argument("--bbox", nargs=4, type=int, metavar=("X", "Y", "W", "H"))
     ap.add_argument("--mask", help="의심영역 마스크 png (bbox 대신)")
-    ap.add_argument("--config", help="기준값 파일 (기본: detector/config.json)")
+    ap.add_argument("--config", help="기준값 파일 (기본: detector/v1/config.json)")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     ap.add_argument("--auto", action="store_true", help="좌표 없이 OCR로 금액·날짜 칸을 찾아 전부 검사")
     a = ap.parse_args()
     if a.auto:
-        from .locate import locate
+        from .v1.locate import locate
         r = locate(a.image)
         if a.json:
             for c in r["candidates"]:
@@ -34,7 +34,7 @@ def main():
     if not a.bbox and not a.mask:
         ap.error("--bbox 또는 --mask 중 하나는 필요 (좌표가 없으면 --auto)")
     from PIL import Image
-    from .core import load_config
+    from .v1.core import load_config
     res = detect(a.image, bbox=a.bbox, mask=Image.open(a.mask) if a.mask else None,
                  config=load_config(a.config) if a.config else None)
     if a.json:

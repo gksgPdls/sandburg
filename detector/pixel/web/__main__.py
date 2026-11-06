@@ -20,7 +20,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from ..core import load_config
+from ..v1.core import load_config
 from .analysis import analyze
 
 HERE = Path(__file__).resolve().parent
@@ -69,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "영역이 너무 작아요. 숫자 칸을 넉넉히 감싸서 다시 그려주세요."})
                 return self._send(200, analyze(img, (x, y, w, h)))
             if self.path == "/api/locate":
-                from ..locate import locate
+                from ..v1.locate import locate
                 try:
                     r = locate(img)
                 except Exception as e:  # noqa: BLE001

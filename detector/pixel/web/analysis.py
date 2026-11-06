@@ -6,8 +6,8 @@ import numpy as np
 from PIL import Image, ImageDraw
 from skimage.restoration import denoise_wavelet
 
-from .. import features as F
-from ..core import bbox_to_mask, judge, load_config, measure
+from ..v1 import features as F
+from ..v1.core import bbox_to_mask, judge, load_config, measure
 from ..methods import Context
 
 
