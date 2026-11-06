@@ -1,7 +1,7 @@
 """
-⚠️ 구버전 — 새 코드는 프로젝트 루트의 `detector` 패키지를 쓸 것 (기준값: detector/config.json).
+⚠️ 구버전 — 새 코드는 프로젝트 루트의 `detector` 패키지를 쓸 것 (기준값: detector/v1/config.json).
 이 파일은 scripts/export/export_catalog.py(카탈로그 생성)가 아직 쓰고 있어서 남겨둠.
-여기 THRESHOLDS는 예전 기준이라 detector/config.json과 다름 → 카탈로그 갱신 때 함께 교체 예정.
+여기 THRESHOLDS는 예전 기준이라 detector/v1/config.json과 다름 → 카탈로그 갱신 때 함께 교체 예정.
 """
 """
 탐지기 핵심 모듈 — 위조 "생성" 방식과 무관하게, 이미지 한 장 + 의심 영역 좌표만

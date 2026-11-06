@@ -12,10 +12,10 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.restoration import denoise_wavelet
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from detector import features as F  # noqa: E402
-from detector.core import mask_to_bbox  # noqa: E402
+from detector.v1 import features as F  # noqa: E402
+from detector.v1.core import mask_to_bbox  # noqa: E402
 
 CAT = ROOT / "outputs/reports/catalog_v1"
 OUT = ROOT / "outputs/reports/evidence"

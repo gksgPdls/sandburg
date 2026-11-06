@@ -27,8 +27,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts/generate"))
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 from detector import detect  # noqa: E402
-from detector.core import load_config  # noqa: E402
-from detector.locate import locate  # noqa: E402
+from detector.v1.core import load_config  # noqa: E402
+from detector.v1.locate import locate  # noqa: E402
 import harmonize as HZ  # noqa: E402
 
 OUT = ROOT / "outputs/고도화"

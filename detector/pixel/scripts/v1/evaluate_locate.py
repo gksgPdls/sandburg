@@ -21,10 +21,10 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from detector.core import load_config  # noqa: E402
-from detector.locate import locate  # noqa: E402
+from detector.v1.core import load_config  # noqa: E402
+from detector.v1.locate import locate  # noqa: E402
 
 DATA = ROOT / "dataset"
 OCR = os.environ.get("LOCATE_OCR", "tesseract")   # rapid: RapidOCR 모든 글자 칸 (2026-10-30)
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     ap.add_argument("--max-seconds", type=float, default=150)
     ap.add_argument("--max-fp", type=float, default=0.10)
     ap.add_argument("--only", default="all", choices=["all", "digits", "money"], help="rapid 후보 범위")
-    ap.add_argument("--write", action="store_true", help="문서 기준값을 detector/config.json locate에 반영")
+    ap.add_argument("--write", action="store_true", help="문서 기준값을 detector/v1/config.json locate에 반영")
     a = ap.parse_args()
     ONLY = a.only
     if a.fresh and CACHE.exists():
@@ -157,5 +157,5 @@ if __name__ == "__main__":
     if a.write:
         cfg = load_config()
         cfg["locate"] = {"doc_max_rarity": round(thr, 5), "근거": f"튜닝용 정상 문서 {N_TUNE_DOCS}장 중 오탐 {a.max_fp*100:.0f}% 지점, outputs/reports/locate_evaluation.json"}
-        json.dump(cfg, open(ROOT / "detector/config.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-        print("반영: detector/config.json")
+        json.dump(cfg, open(ROOT / "detector/v1/config.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        print("반영: detector/v1/config.json")

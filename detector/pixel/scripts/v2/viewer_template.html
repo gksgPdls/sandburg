@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>탐지기 v2 결과 뷰어</title>
+<style>
+:root{--bg:#f6f6f4;--card:#fff;--ink:#1d1d1b;--mute:#6b6b66;--line:#e2e2dc;--red:#d23c2e;--org:#d9822b;--green:#1f8a4c;--blue:#2b6cb0;--grey:#9a9a94}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+header{padding:18px 24px 8px}h1{font-size:20px;margin:0 0 4px}.sub{color:var(--mute);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 24px;position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:5}
+.bar label{font-size:13px;color:var(--mute)}select,button{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+main{padding:12px 24px 40px}
+table{border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px;margin-bottom:8px}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{background:#fafaf7;color:var(--mute);font-weight:600}
+tr.click{cursor:pointer}tr.click:hover td{background:#f3f3ee}
+.note{color:var(--mute);font-size:12px;margin:4px 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer}.card:hover{border-color:#bbb}
+.top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
+.FH{background:#e7f6ec;color:var(--green)}.FM{background:#fff4e0;color:var(--org)}.FL{background:#fdecea;color:var(--red)}
+.NH{background:#fdecea;color:var(--red)}.NM{background:#fff4e0;color:var(--org)}.NL{background:#eef2f7;color:var(--blue)}
+.lv{font-size:12px;padding:2px 7px;border-radius:4px;font-weight:700;color:#fff}.lvH{background:var(--red)}.lvM{background:var(--org)}.lvL{background:var(--grey)}
+.crops{display:flex;gap:6px;padding:0 10px}.crop{flex:1;min-width:0}
+.crop .c{position:relative;width:100%;height:84px;background-repeat:no-repeat;border-radius:6px;background-color:#eee;border:1px solid var(--line)}
+.crop .cap{font-size:11px;color:var(--mute);margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.box{position:absolute;pointer-events:none}.bH{border:2px solid var(--red)}.bM{border:2px solid var(--org)}.bL{border:2px solid var(--grey)}.bG{border:2px dashed var(--green)}
+.meta{padding:6px 10px 10px;font-size:12px;color:var(--mute)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px;align-items:center}.tab{padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:13px}.tab.on{outline:2px solid var(--ink)}
+.dgrp{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:12px}.dgrp h3{margin:0 0 8px;font-size:14px}.dgrp .grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.pager{display:flex;gap:6px;align-items:center;margin:14px 0}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;z-index:20;overflow:auto}
+#modal .in{background:#fff;margin:24px auto;max-width:1200px;border-radius:10px;padding:14px}
+#modal .imgw{position:relative;width:100%}#modal img{width:100%;display:block}
+#modal .lbl{position:absolute;font-size:11px;font-weight:700;color:#fff;padding:0 4px;border-radius:3px;transform:translateY(-100%)}
+.legend span{margin-right:12px;white-space:nowrap}.sw{display:inline-block;width:14px;height:10px;margin-right:4px;vertical-align:middle}
+@media (max-width:600px){header,main,.bar{padding-left:16px;padding-right:16px}}
+</style></head><body>
+<header><h1>탐지기 v2 결과 뷰어</h1>
+<div class="sub" id="sub"></div>
+<div class="sub legend" style="margin-top:4px"><span><i class="sw" style="border:2px solid var(--red)"></i>위조 의심 칸</span><span><i class="sw" style="border:2px solid var(--org)"></i>확인 필요 칸</span><span><i class="sw" style="border:2px solid var(--grey)"></i>정상 범위 (순위만)</span><span><i class="sw" style="border:2px dashed var(--green)"></i>실제로 고친 칸 (정답)</span></div></header>
+<div class="bar">
+ <label>데이터</label><select id="split"><option value="test">시험용 (튜닝에 안 쓴 것)</option><option value="tune">튜닝용</option><option value="all">전체</option></select>
+ <label>묶음</label><select id="grp"></select>
+ <label>보기</label><button data-view="card" class="on">카드</button><button data-view="doc">원본 문서별</button>
+ <label>정렬</label><select id="sort"><option value="sd">점수 높은 순</option><option value="sa">점수 낮은 순</option><option value="id">이름 순</option></select>
+ <span class="sub" id="cnt"></span>
+</div>
+<main>
+ <table id="tbl"></table>
+ <div class="note">판정은 3단계: 문서 점수(가장 높은 금액 칸 점수)가 <b id="thH"></b> 넘으면 <span class="lv lvH">위조 의심</span>, <b id="thL"></b> 넘으면 <span class="lv lvM">확인 필요</span>, 아니면 <span class="lv lvL">정상</span>. 기준값은 튜닝용 정상 문서에서 2% / 10%만 넘는 점수.
+ · '잡음' = 위조 의심 + 확인 필요 · 위치 적중 = 잡은 것 중 가장 높은 칸이 실제 고친 칸 · AUC = 위조 문서 점수가 정상 문서보다 높을 확률 (0.5 = 못 가름) · 괄호 = 95% 신뢰구간 · 표의 행을 누르면 그 묶음만 봄
+ · A11은 금액 모양 칸만 봄 (날짜·전화번호·①② 번호·글자 섞인 칸 제외), 같은 문서에서 크기·굵기 비슷한 금액 칸끼리 비교.</div>
+ <div class="tabs" id="tabs"></div>
+ <div class="pager" id="pg1"></div><div id="grid"></div><div class="pager" id="pg2"></div>
+</main>
+<div id="modal"><div class="in"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="mt"></b><button id="mx">닫기 (Esc)</button></div><div id="mi" class="sub" style="margin-bottom:8px"></div><div class="imgw" id="mw"></div><div id="ml" style="margin-top:10px"></div></div></div>
+<script>
+const D=__DATA__;let PAGE=0,OUT="",VIEW="card";const PER=48,GPER=15;
+const $=s=>document.querySelector(s);
+const kind=d=>d.label==="normal"?"정상":(d.group+" / "+d.method);
+const level=s=>s>D.thr.hi?"H":s>D.thr.lo?"M":"L";
+const LV={H:"위조 의심",M:"확인 필요",L:"정상"};
+function outcome(d){return (d.label==="forged"?"F":"N")+level(d.score)}
+const NAME={FH:"위조 → 위조 의심 (정탐)",FM:"위조 → 확인 필요",FL:"위조 → 정상 (미탐)",NH:"정상 → 위조 의심 (오탐)",NM:"정상 → 확인 필요",NL:"정상 → 정상 (통과)"};
+const SHORT={FH:"정탐(의심)",FM:"확인필요(위조)",FL:"미탐",NH:"오탐(의심)",NM:"확인필요(정상)",NL:"정상통과"};
+const PN={lapvar:"경계 선명도",inknoise:"글자 속 노이즈",inkchroma:"글자 색 흔들림",digit_lap:"같은 숫자 선명도"};
+const PW={lapvar:"테두리가 주변 칸보다 매끈",inknoise:"획 속이 주변 칸보다 깨끗",inkchroma:"글자 색이 주변 칸보다 균일",digit_lap:"같은 숫자보다 테두리가 매끈"};
+function reason(c){if(!c||!c.p)return "";const e=Object.entries(c.p).sort((a,b)=>b[1]-a[1]);if(!e.length)return "";const[k,v]=e[0];return `${PW[k]||k} (${v.toFixed(1)})`}
+function wilson(k,n){if(!n)return[0,0];const z=1.96,p=k/n,d=1+z*z/n,c=p+z*z/(2*n),h=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));return[Math.max(0,(c-h)/d),(c+h)/d]}
+function auc(a,b){if(!a.length||!b.length)return NaN;b=[...b].sort((x,y)=>x-y);let s=0;for(const v of a){let lo=0,hi=b.length;while(lo<hi){const m=(lo+hi)>>1;b[m]<v?lo=m+1:hi=m}let eq=0,j=lo;while(j<b.length&&b[j]===v){eq++;j++}s+=lo+eq/2}return s/(a.length*b.length)}
+const pct=x=>(100*x).toFixed(1)+"%";
+const np=(k,n)=>`${k} <span class="sub">(${pct(k/Math.max(n,1))})</span>`;
+function inSplit(d){const s=$("#split").value;return s==="all"||d.split===s}
+function groups(){const g=[...new Set(D.docs.map(kind))];g.sort((a,b)=>(a==="정상"?-1:b==="정상"?1:a.localeCompare(b)));return g}
+function table(){
+ const ds=D.docs.filter(inSplit),nn=ds.filter(d=>d.label==="normal"),ns=nn.map(d=>d.score);
+ const cnt=fs=>{const c={H:0,M:0,L:0};fs.forEach(d=>c[level(d.score)]++);return c};
+ let t=`<tr><th>묶음</th><th>장수</th><th>위조 의심</th><th>확인 필요</th><th>정상</th><th>잡음 (의심+확인)</th><th>AUC</th><th>위치 적중</th></tr>`;
+ const c=cnt(nn),[l1,h1]=wilson(c.H,nn.length),[l2,h2]=wilson(c.H+c.M,nn.length);
+ t+=`<tr class="click" data-g="정상"><td><b>정상 문서</b> <span class="sub">(의심·확인 = 오탐)</span></td><td>${nn.length}</td><td>${np(c.H,nn.length)}</td><td>${np(c.M,nn.length)}</td><td>${np(c.L,nn.length)}</td><td>오탐 <b>${pct((c.H+c.M)/Math.max(nn.length,1))}</b> (${pct(l2)}~${pct(h2)})</td><td></td><td></td></tr>`;
+ const S={n:0,H:0,M:0,L:0,loc:0};
+ for(const g of groups().filter(g=>g!=="정상")){
+  const fs=ds.filter(d=>kind(d)===g);if(!fs.length)continue;const c=cnt(fs),got=c.H+c.M,[a,b]=wilson(got,fs.length);
+  const loc=fs.filter(d=>level(d.score)!=="L"&&d.cells.length&&d.cells[0].hit).length;
+  if(g.startsWith("고도화")){S.n+=fs.length;S.H+=c.H;S.M+=c.M;S.L+=c.L;S.loc+=loc}
+  t+=`<tr class="click" data-g="${g}"><td>${g}</td><td>${fs.length}</td><td>${np(c.H,fs.length)}</td><td>${np(c.M,fs.length)}</td><td>${np(c.L,fs.length)} <span class="sub">미탐</span></td><td><b>${pct(got/fs.length)}</b> (${pct(a)}~${pct(b)})</td><td>${auc(fs.map(d=>d.score),ns).toFixed(3)}</td><td>${loc}/${got}</td></tr>`}
+ if(S.n){const[a,b]=wilson(S.H+S.M,S.n);t+=`<tr><td><b>고도화 변조 합계</b></td><td>${S.n}</td><td>${np(S.H,S.n)}</td><td>${np(S.M,S.n)}</td><td>${np(S.L,S.n)} <span class="sub">미탐</span></td><td><b>${pct((S.H+S.M)/S.n)}</b> (${pct(a)}~${pct(b)})</td><td></td><td>${S.loc}/${S.H+S.M}</td></tr>`}
+ $("#tbl").innerHTML=t;
+ document.querySelectorAll("tr.click").forEach(r=>r.onclick=()=>{$("#grp").value=r.dataset.g;PAGE=0;grid()});
+}
+function crop(d,b,cap,lv){
+ if(!b)return `<div class="crop"><div class="c"></div><div class="cap">${cap}</div></div>`;
+ const [x,y,w,h]=b,cw=Math.max(w*1.8,h*5),ch=cw*84/135,cx=x+w/2-cw/2,cy=y+h/2-ch/2,S=135/cw;
+ const st=`background-image:url('${d.img}');background-size:${d.W*S}px ${d.H*S}px;background-position:${-cx*S}px ${-cy*S}px`;
+ let boxes="";const add=(bb,c)=>{boxes+=`<div class="box ${c}" style="left:${(bb[0]-cx)*S-2}px;top:${(bb[1]-cy)*S-2}px;width:${bb[2]*S+4}px;height:${bb[3]*S+4}px"></div>`};
+ d.gt.forEach(g=>add(g,"bG"));if(d.cells[0])add(d.cells[0].b,"b"+level(d.cells[0].s));
+ return `<div class="crop"><div class="c" style="${st}">${boxes}</div><div class="cap">${cap}</div></div>`}
+function list(){
+ let ds=D.docs.filter(inSplit);const g=$("#grp").value;
+ if(g)ds=ds.filter(d=>kind(d)===g);if(OUT)ds=ds.filter(d=>outcome(d)===OUT);
+ const s=$("#sort").value;ds.sort(s==="sd"?(a,b)=>b.score-a.score:s==="sa"?(a,b)=>a.score-b.score:(a,b)=>a.id.localeCompare(b.id));return ds}
+function tabs(){
+ let ds=D.docs.filter(inSplit);const g=$("#grp").value;if(g)ds=ds.filter(d=>kind(d)===g);
+ const n={};for(const d of ds){const o=outcome(d);n[o]=(n[o]||0)+1}
+ const nf=(n.FH||0)+(n.FM||0)+(n.FL||0),nn=(n.NH||0)+(n.NM||0)+(n.NL||0);
+ const tab=(k,t,den)=>`<span class="tab ${k} ${OUT===k?"on":""}" data-o="${k}">${t} ${n[k]||0}${den?` (${pct((n[k]||0)/den)})`:""}</span>`;
+ $("#tabs").innerHTML=`<span class="tab ${OUT===""?"on":""}" data-o="">전체 ${ds.length}</span>`+
+  (nf?`<span class="sub" style="margin-left:8px">위조 ${nf}장:</span>`+tab("FH","위조 의심",nf)+tab("FM","확인 필요",nf)+tab("FL","미탐",nf):"")+
+  (nn?`<span class="sub" style="margin-left:8px">정상 ${nn}장:</span>`+tab("NH","위조 의심(오탐)",nn)+tab("NM","확인 필요(오탐)",nn)+tab("NL","통과",nn):"");
+ document.querySelectorAll(".tab").forEach(e=>e.onclick=()=>{OUT=e.dataset.o;PAGE=0;grid()})}
+function card(d,idx){const oc=outcome(d),c=d.cells[0],lv=level(d.score);
+ const top=c?`점수 1등 칸 “${c.t}” ${c.s.toFixed(2)} → ${LV[level(c.s)]}`:"점수 없음 (비교할 금액 칸 부족)";
+ const real=d.label==="forged"?(d.gt.length?crop(d,d.gt[0],"실제 고친 칸"):`<div class="crop"><div class="c"></div><div class="cap">고친 칸 정보 없음</div></div>`):"";
+ const hitTxt=d.label==="forged"&&c?(c.hit?"· 위치 맞음 ✅":"· 위치 다름 ❌"):"";
+ const why=c&&c.p?`<div class="meta" style="padding-top:0;color:var(--ink)">주된 이유: ${reason(c)}</div>`:"";
+ return `<div class="card" data-i="${idx}"><div class="top"><b style="font-size:13px">${d.id}</b><span><span class="lv lv${lv}">${LV[lv]}</span> <span class="tag ${oc}">${SHORT[oc]}</span></span></div>
+  <div class="crops">${crop(d,c&&c.b,top)}${real}</div>
+  ${why}<div class="meta">실제: <b>${d.label==="forged"?"위변조":"정상"}</b> · ${kind(d)} · 문서점수 ${d.score>-90?d.score.toFixed(2):"없음"} ${hitTxt}</div></div>`}
+function grid(){
+ table();tabs();const ds=list();let pages,html;
+ if(VIEW==="card"){pages=Math.ceil(ds.length/PER);PAGE=Math.min(PAGE,Math.max(pages-1,0));
+  html=`<div class="grid">`+ds.slice(PAGE*PER,PAGE*PER+PER).map((d,k)=>card(d,PAGE*PER+k)).join("")+`</div>`;$("#cnt").textContent=`${ds.length}장`}
+ else{const G=new Map();ds.forEach((d,k)=>{if(!G.has(d.src))G.set(d.src,[]);G.get(d.src).push(k)});
+  const keys=[...G.keys()];pages=Math.ceil(keys.length/GPER);PAGE=Math.min(PAGE,Math.max(pages-1,0));const all=D.docs.filter(inSplit);
+  html=keys.slice(PAGE*GPER,PAGE*GPER+GPER).map(src=>{const fam=all.filter(d=>d.src===src),cnt={};fam.forEach(d=>{const o=outcome(d);cnt[o]=(cnt[o]||0)+1});
+   const sum=Object.keys(SHORT).filter(o=>cnt[o]).map(o=>`<span class="tag ${o}">${SHORT[o]} ${cnt[o]}</span>`).join(" ");
+   return `<div class="dgrp"><h3>원본 ${src} <span class="sub">— 이 원본에서 나온 문서 ${fam.length}장</span> ${sum}</h3><div class="grid">${G.get(src).map(k=>card(ds[k],k)).join("")}</div></div>`}).join("");
+  $("#cnt").textContent=`원본 ${keys.length}개 · 문서 ${ds.length}장`}
+ $("#grid").innerHTML=html;document.querySelectorAll(".card").forEach(el=>el.onclick=()=>show(ds[+el.dataset.i]));
+ const pg=pages>1?`<button ${PAGE?"":"disabled"} data-p="${PAGE-1}">이전</button><span class="sub">${PAGE+1} / ${pages}</span><button ${PAGE<pages-1?"":"disabled"} data-p="${PAGE+1}">다음</button>`:"";
+ $("#pg1").innerHTML=$("#pg2").innerHTML=pg;document.querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{PAGE=+b.dataset.p;grid();scrollTo(0,$("#tabs").offsetTop-80)})}
+function show(d){
+ const oc=outcome(d),lv=level(d.score);$("#mt").innerHTML=`${d.id} <span class="lv lv${lv}">${LV[lv]}</span> <span class="tag ${oc}">${NAME[oc]}</span>`;
+ $("#mi").textContent=`실제: ${d.label==="forged"?"위변조":"정상"} · ${kind(d)} · 원본 ${d.src} · ${d.split==="test"?"시험용":"튜닝용"} · 문서점수 ${d.score>-90?d.score.toFixed(2):"없음 (비교할 금액 칸 부족)"} (위조 의심 > ${D.thr.hi.toFixed(2)}, 확인 필요 > ${D.thr.lo.toFixed(2)})`;
+ const P=v=>100*v,COL={H:"var(--red)",M:"var(--org)",L:"var(--grey)"};let h=`<img src="${d.img}">`;
+ d.gt.forEach(g=>h+=`<div class="box bG" style="left:${P(g[0]/d.W)}%;top:${P(g[1]/d.H)}%;width:${P(g[2]/d.W)}%;height:${P(g[3]/d.H)}%"></div><div class="lbl" style="background:var(--green);left:${P(g[0]/d.W)}%;top:${P((g[1]+g[3])/d.H)}%;transform:none">실제 고친 칸</div>`);
+ d.cells.forEach((c,k)=>{const l=level(c.s);h+=`<div class="box b${l}" style="left:${P(c.b[0]/d.W)}%;top:${P(c.b[1]/d.H)}%;width:${P(c.b[2]/d.W)}%;height:${P(c.b[3]/d.H)}%"></div><div class="lbl" style="background:${COL[l]};left:${P(c.b[0]/d.W)}%;top:${P(c.b[1]/d.H)}%">${k+1}</div>`});
+ $("#mw").innerHTML=h;const KS=["lapvar","inknoise","inkchroma","digit_lap"];
+ const cv=(c,k)=>{const v=c.p?c.p[k]:undefined;if(v===undefined)return `<td style="color:#aaa">–</td>`;const hi=D.pq&&D.pq[k]!==undefined&&v>D.pq[k];return `<td style="${hi?"color:var(--red);font-weight:700":""}">${v.toFixed(2)}</td>`};
+ $("#ml").innerHTML=`<table><tr><th>#</th><th>칸 글자</th><th>점수 (평균)</th><th>판정</th><th>실제 고친 칸?</th>${KS.map(k=>`<th>${PN[k]}</th>`).join("")}<th>비교한 칸 수</th></tr>
+ <tr><td></td><td style="color:var(--mute)">기준 / 참고선</td><td style="color:var(--mute)">${D.thr.hi.toFixed(2)} / ${D.thr.lo.toFixed(2)}</td><td></td><td></td>${KS.map(k=>`<td style="color:var(--mute)">${D.pq&&D.pq[k]!==undefined?D.pq[k].toFixed(2):"–"}</td>`).join("")}<td></td></tr>`+
+ d.cells.map((c,k)=>`<tr><td>${k+1}</td><td>${c.t}</td><td><b>${c.s.toFixed(2)}</b></td><td><span class="lv lv${level(c.s)}">${LV[level(c.s)]}</span></td><td>${c.hit?"✅":""}</td>${KS.map(kk=>cv(c,kk)).join("")}<td>${c.n??""}</td></tr>`).join("")+`</table>
+ <div class="note">점수 = 잴 수 있었던 값들의 평균 (–는 못 잰 값: 글자가 새까만 칸은 노이즈, 숫자를 못 자른 칸은 같은 숫자 선명도). 각 값 = 같은 문서에서 크기·굵기가 비슷한 금액 칸보다 얼마나 더 매끈한지 (0 = 보통, 클수록 이 칸만 매끈, -3~8로 자름). 빨간 숫자 = 정상 칸 95%보다 큰 값 (참고선). 상자 번호 = 점수 순위.</div>`;
+ $("#modal").style.display="block"}
+$("#mx").onclick=()=>$("#modal").style.display="none";$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").style.display="none"};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#modal").style.display="none"});
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{VIEW=b.dataset.view;PAGE=0;document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("on",x===b));grid()});
+$("#grp").innerHTML=`<option value="">전체</option>`+groups().map(g=>`<option>${g}</option>`).join("");
+["#split","#grp","#sort"].forEach(s=>$(s).onchange=()=>{PAGE=0;grid()});
+$("#thH").textContent=D.thr.hi.toFixed(2);$("#thL").textContent=D.thr.lo.toFixed(2);
+$("#sub").textContent=`검사 ${D.check} · 원본 없이, 고친 위치를 모르는 상태로 문서 전체를 검사 · 3단계 판정 (위조 의심 > ${D.thr.hi.toFixed(2)} / 확인 필요 > ${D.thr.lo.toFixed(2)}) · 이미지는 이 컴퓨터 안 파일만 사용`;
+grid();
+</script></body></html>
