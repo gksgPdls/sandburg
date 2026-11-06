@@ -1,0 +1,9 @@
+{
+ "hi": 3.8927,
+ "lo": 3.0062,
+ "hi_fpr": 0.02,
+ "lo_fpr": 0.1,
+ "n": 76,
+ "from": "calib_normals.json",
+ "check": "A11_다시그린칸"
+}
