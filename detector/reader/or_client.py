@@ -28,6 +28,7 @@ PROVIDER_ONLY = {"deepseek/deepseek-v4.1-flash-1017": ["Cohere", "ModelRun", "Wa
 # 실서류(와 실서류로 만든 1차 과제 데이터)를 알아보는 표시. 폴더 위치가 사람마다 달라도 막히게 이름으로 본다
 # (이 맥 repo/real_docs · dataset/, 소영 님 저장소 dataset/original/real_docs, 혜인 님 실제 문서 실험 demo_real/, 'real_docs').
 REAL_PARTS = {"real_docs", "dataset", "demo_real"}
+REAL_PATHS = ("logic_detector/demo/",)          # 혜인 님 실험 화면 샘플: 1차 과제(실서류로 만든) 변조가 섞여 있음
 REAL_NAME = re.compile(r"(\d{6,})_\d{3}_(?:med|surg|dig)_\d{8}_DTB\d{3}_F\d+", re.I)   # 사고번호_순번_med_날짜_DTB코드_F번호
 
 
@@ -37,7 +38,8 @@ def refuse_real(path):
     p = Path(path).resolve()
     parts = [s.lower() for s in p.parts]
     m = REAL_NAME.search(p.name)
-    if REAL_PARTS & set(parts) or any("real_docs" in s for s in parts) or (m and not m.group(1).startswith("999")):
+    if (REAL_PARTS & set(parts) or any("real_docs" in s for s in parts) or any(x in p.as_posix() + "/" for x in REAL_PATHS)
+            or (m and not m.group(1).startswith("999"))):
         raise SystemExit(f"실서류로 보여 멈춥니다: {p.name} — 외부 AI 에는 합성 서류만 보냅니다 "
                          "(합성 서류인데 막혔다면 dataset · real_docs 밖 폴더로 옮기고 이름을 바꾸세요)")
 
