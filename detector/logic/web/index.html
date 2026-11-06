@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로직 탐지기 실험</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #e3e2dd;
+  --accent: #2f5bd3; --sus: #c62f2f; --sus-bg: #fbeaea; --chk: #b86e00; --chk-bg: #fdf3e2;
+  --ok: #23804a; --ok-bg: #e7f4ec; --g1: #c62f2f; --g2: #d9731b; --g3: #8a8a84; --focus: #7a45c9;
+  --hl: #2f5bd3; --chg: #12a150; --chg-bg: #e6f6ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a09f99; --line: #34332f;
+    --accent: #7d9cff; --sus: #ff7a7a; --sus-bg: #3a1f1f; --chk: #f0a94a; --chk-bg: #3a2c16;
+    --ok: #63c68d; --ok-bg: #1b3326; --g1: #ff7a7a; --g2: #f0a94a; --g3: #8f8e88; --focus: #b48bff; --hl: #7d9cff;
+    --chg: #3ddc84; --chg-bg: #15301f;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 17px; margin: 0; }
+header p { margin: 0; color: var(--muted); font-size: 13px; }
+main { display: grid; grid-template-columns: 170px minmax(0, 1fr) 400px; height: calc(100vh - 50px); }
+aside, section { overflow: auto; }
+.left { border-right: 1px solid var(--line); padding: 12px; }
+.right { border-left: 1px solid var(--line); padding: 14px; background: var(--panel); }
+.left h2, .right h2 { font-size: 12px; color: var(--muted); font-weight: 600; margin: 14px 0 6px; letter-spacing: .02em; }
+.left h2:first-child, .right h2:first-child { margin-top: 0; }
+.sample { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px; border: 1px solid transparent; border-radius: 8px;
+  background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.sample:hover { background: var(--panel); border-color: var(--line); }
+.sample.on { background: var(--panel); border-color: var(--accent); }
+.sample img { width: 34px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: #fff; }
+.sample .tag { margin-left: auto; font-size: 11px; padding: 1px 6px; border-radius: 10px; white-space: nowrap; }
+.drop { display: block; margin-top: 12px; border: 1.5px dashed var(--line); border-radius: 8px; padding: 12px 8px; text-align: center; color: var(--muted);
+  font-size: 12px; cursor: pointer; }
+.drop.over { border-color: var(--accent); color: var(--accent); }
+.center { position: relative; padding: 16px; }
+.pair { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; align-items: start; }
+.pair.single { grid-template-columns: minmax(0, 760px); justify-content: center; }
+.pane h3 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.stage { position: relative; }
+.stage img { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.stage rect { fill: none; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.stage rect.fill { stroke-width: 0; opacity: .14; }
+.stage rect.chg { stroke: var(--chg); stroke-width: 3; stroke-dasharray: 7 4; }
+.stage text { font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 4px; vector-effect: non-scaling-stroke; }
+.empty { color: var(--muted); text-align: center; margin-top: 30vh; }
+.busy { position: absolute; inset: 0; display: none; align-items: flex-start; justify-content: center; padding-top: 30vh;
+  background: color-mix(in srgb, var(--bg) 70%, transparent); font-weight: 600; }
+.busy.on { display: flex; }
+.change { border: 1px solid var(--chg); background: var(--chg-bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.change .head { font-weight: 700; color: var(--chg); }
+.change.normal { border-color: var(--chk); background: var(--chk-bg); }
+.change.normal .head { color: var(--chk); }
+.change .desc { font-size: 13px; margin-top: 2px; }
+.zoom { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; margin-top: 8px; }
+.zoom figure { margin: 0; }
+.zoom canvas { width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--line); background: #fff; display: block; }
+.zoom figcaption { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; }
+.zoom .arrow { color: var(--chg); font-weight: 700; }
+.expect { font-size: 12px; margin-top: 6px; }
+.verdict { border-radius: 10px; padding: 12px 14px; font-size: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; }
+.verdict small { font-size: 12px; font-weight: 500; color: var(--muted); }
+.v-sus { background: var(--sus-bg); color: var(--sus); }
+.v-chk { background: var(--chk-bg); color: var(--chk); }
+.v-ok { background: var(--ok-bg); color: var(--ok); }
+.hitline { font-size: 13px; font-weight: 600; margin-top: 8px; }
+.legend { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.finding { border: 1px solid var(--line); border-left: 4px solid var(--g3); border-radius: 8px; padding: 8px 10px; margin: 6px 0; cursor: pointer; }
+.finding:hover, .finding.on { border-color: var(--hl); }
+.finding.g1 { border-left-color: var(--g1); } .finding.g2 { border-left-color: var(--g2); } .finding.g3 { border-left-color: var(--g3); }
+.finding .top { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.num { display: inline-grid; place-items: center; min-width: 20px; height: 20px; border-radius: 10px; background: var(--ink); color: var(--panel); font-size: 11px; font-weight: 700; }
+.grade { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; border: 1px solid currentColor; }
+.grade.g1 { color: var(--g1); } .grade.g2 { color: var(--g2); } .grade.g3 { color: var(--g3); }
+.rule { font-size: 11px; color: var(--muted); }
+.onchg { font-size: 11px; font-weight: 700; color: var(--chg); }
+.finding .title { font-weight: 600; margin-top: 3px; }
+.kv { font-size: 12px; color: var(--muted); margin-top: 3px; word-break: break-all; }
+.kv b { color: var(--ink); font-weight: 600; }
+.focus { border: 1px solid var(--line); border-left: 4px solid var(--focus); border-radius: 8px; padding: 8px 10px; margin: 6px 0; font-size: 13px; }
+details { margin-top: 10px; }
+summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+td { border-bottom: 1px solid var(--line); padding: 3px 4px; vertical-align: top; word-break: break-all; }
+td:first-child { color: var(--muted); width: 45%; }
+.unsure { color: var(--chk); font-weight: 600; }
+.note { font-size: 12px; color: var(--muted); }
+.err { color: var(--sus); font-weight: 600; }
+@media (max-width: 1100px) {
+  main { grid-template-columns: 1fr; height: auto; }
+  .left, .right { border: none; border-bottom: 1px solid var(--line); }
+  .left { display: flex; flex-wrap: wrap; gap: 4px; }
+  .left h2 { width: 100%; }
+  .sample { width: auto; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>로직 탐지기 실험</h1>
+  <p>진료비 계산서·영수증 / 진단서 사진을 공식 근거 규칙(심평원 단가·부담률·상병마스터·서식 산식)으로 검사합니다. 사진은 이 맥 밖으로 나가지 않습니다.</p>
+</header>
+<main>
+  <aside class="left">
+    <h2>변조 샘플 (내용을 조작한 휴대폰 사진)</h2>
+    <div id="samples"></div>
+    <h2>정상 원본 (오탐 사례)</h2>
+    <div id="normals"></div>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="image/*" hidden>
+      내 사진 올리기<br>(클릭 또는 끌어 놓기)
+    </label>
+  </aside>
+  <section class="center" id="center">
+    <div class="empty" id="empty">왼쪽에서 샘플을 고르거나 사진을 올리세요.<br>처음 검사하는 사진은 글자 읽기(OCR)에 10초쯤 걸립니다.</div>
+    <div class="pair" id="pair" hidden>
+      <div class="pane" id="origPane">
+        <h3>원본 (조작 전) — <span style="color:var(--chg)">초록 점선 = 바뀐 곳</span></h3>
+        <div class="stage"><img id="orig" alt="원본 사진"><svg id="origOverlay" preserveAspectRatio="none"></svg></div>
+      </div>
+      <div class="pane">
+        <h3 id="imgTitle">검사한 사진</h3>
+        <div class="stage"><img id="img" alt="검사한 서류 사진"><svg id="overlay" preserveAspectRatio="none"></svg></div>
+      </div>
+    </div>
+    <div class="busy" id="busy">검사 중… (OCR 10초 안팎)</div>
+  </section>
+  <aside class="right" id="result">
+    <p class="note">결과가 여기 나옵니다.</p>
+  </aside>
+</main>
+
+<script>
+const RULES = {
+  A1: "서식 산식", A2: "열 합계·100원 절사", A3: "납부 금액",
+  B1: "행별 본인부담률", B2: "진찰료 공식 단가", B4: "입원료", B6: "야간·공휴·토요 가산",
+  C1: "상병코드 실존", C2: "코드-병명 일치", C3: "성별·나이 제한", C4: "주상병 사용",
+  D1: "날짜 순서", D2: "영수증번호 날짜", D3: "사업자등록번호", D4: "주민등록번호",
+};
+const GRADE = { "확정": "g1", "강함": "g2", "참고": "g3" };
+const GRADE_COLOR = { g1: "var(--g1)", g2: "var(--g2)", g3: "var(--g3)" };
+const PAD = 10;   // 바뀐 곳과 근거 상자가 이만큼(px) 안에서 겹치면 '바뀐 곳을 짚음'
+const $ = (id) => document.getElementById(id);
+let answers = {}, lastResult = null, answer = null;
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function fmt(v) {
+  if (v === null || v === undefined || v === "") return "";
+  if (Array.isArray(v)) {
+    const xs = v.map(fmt);
+    return xs.length > 6 ? xs.slice(0, 6).join(", ") + ` … (${xs.length}개)` : xs.join(", ");
+  }
+  if (typeof v === "number") return v.toLocaleString("ko-KR");
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+function ruleName(r) { return r.startsWith("F:") ? "주목 규칙 " + r.slice(2) : (RULES[r] || r) + " " + r; }
+function isNormal(a) { return a && a["조작 방식"].startsWith("없음"); }
+function changeBox(a) { return a && a["바뀐 곳"] ? a["바뀐 곳"].split(",").map(Number) : null; }
+function overlaps(b, c) {
+  return c && b[0] - PAD < c[0] + c[2] && b[0] + b[2] + PAD > c[0] && b[1] - PAD < c[1] + c[3] && b[1] + b[3] + PAD > c[1];
+}
+function imgLoaded(img) { return img.complete && img.naturalWidth ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; }); }
+
+async function loadSamples() {
+  const [files, ans] = await Promise.all([fetch("/api/samples").then(r => r.json()), fetch("/api/answers").then(r => r.json())]);
+  answers = ans;
+  const item = f => {
+    const a = ans[f];
+    const sub = !a ? "" : isNormal(a) ? "조작 없음" : a["조작 방식"].split("(")[0];
+    return `<button class="sample" data-f="${esc(f)}"><img src="/samples/${encodeURIComponent(f)}" alt="">
+      <span>${esc(f.replace(/\.[^.]+$/, ""))}<br><span class="note">${esc(sub)}</span></span>
+      <span class="tag" id="tag-${esc(f)}"></span></button>`;
+  };
+  const normals = files.filter(f => ans[f] && isNormal(ans[f]));
+  $("samples").innerHTML = files.filter(f => !normals.includes(f)).map(item).join("") || `<p class="note">demo/samples 폴더에 사진이 없습니다.</p>`;
+  $("normals").innerHTML = normals.map(item).join("") || `<p class="note">없음</p>`;
+  document.querySelectorAll(".sample").forEach(b => b.onclick = () => runSample(b.dataset.f));
+}
+
+async function runSample(name) {
+  document.querySelectorAll(".sample").forEach(b => b.classList.toggle("on", b.dataset.f === name));
+  const blob = await fetch("/samples/" + encodeURIComponent(name)).then(r => r.blob());
+  run(blob, name);
+}
+
+async function run(blob, name) {
+  answer = name ? answers[name] || null : null;
+  $("empty").hidden = true;
+  $("pair").hidden = false;
+  const hasOrig = !!(answer && answer["원본 파일"]);
+  $("pair").classList.toggle("single", !hasOrig);
+  $("origPane").hidden = !hasOrig;
+  $("imgTitle").textContent = hasOrig ? "변조본 = 검사한 사진 — 번호 상자 = 탐지기가 든 근거"
+    : isNormal(answer) ? "조작 없는 정상 원본 — 번호 상자 = 탐지기가 든 근거" : "검사한 사진 — 번호 상자 = 탐지기가 든 근거";
+  $("img").src = URL.createObjectURL(blob);
+  if (hasOrig) $("orig").src = "/originals/" + encodeURIComponent(answer["원본 파일"]);
+  $("overlay").innerHTML = $("origOverlay").innerHTML = "";
+  lastResult = null;
+  await imgLoaded($("img"));
+  drawChange();
+  $("busy").classList.add("on");
+  $("result").innerHTML = changeCard() + `<p class="note">검사 중…</p>`;
+  if (hasOrig) { await imgLoaded($("orig")); drawZoom(); }
+  const t0 = performance.now();
+  try {
+    const res = await fetch("/api/inspect", { method: "POST", body: blob });
+    const r = await res.json();
+    if (!res.ok) throw new Error(r.error || res.status);
+    r.seconds = (performance.now() - t0) / 1000;
+    lastResult = r;
+    render(r, name);
+  } catch (e) {
+    $("result").innerHTML = changeCard() + `<p class="err">검사 실패: ${esc(e.message)}</p>`;
+    if (answer) drawZoom();
+  } finally {
+    $("busy").classList.remove("on");
+  }
+}
+
+function changeCard() {
+  if (!answer) return "";
+  if (isNormal(answer)) return `<div class="change normal">
+    <div class="head">정상 원본 — 조작 없음 <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
+    <div class="desc">${esc(answer["바뀐 내용"])}</div>
+    <div class="expect">데이터셋 평가 때 이 사진의 결과: <b>${esc(answer["현재 탐지기 결과"])}</b></div>
+  </div>`;
+  const edms = answer["조작 방식"].includes("EDMS");
+  return `<div class="change">
+    <div class="head">바뀐 곳 — ${esc(answer["조작 방식"])} <span class="note">(${esc(answer["원래 번호"])}, ${esc(answer["서류"])})</span></div>
+    <div class="desc">${esc(answer["바뀐 내용"])}</div>
+    <div class="zoom"><figure><canvas id="zOrig"></canvas><figcaption>원본</figcaption></figure><span class="arrow">→</span>
+      <figure><canvas id="zImg"></canvas><figcaption>변조본</figcaption></figure></div>
+    ${edms ? `<div class="note">EDMS는 조작 뒤 사진을 돌리고 다시 압축해서, 원본 쪽 확대 위치가 약간 어긋날 수 있습니다.</div>` : ""}
+    <div class="expect">데이터셋 평가 때 이 사진의 결과: <b>${esc(answer["현재 탐지기 결과"])}</b></div>
+  </div>`;
+}
+
+function drawZoom() {
+  const c = changeBox(answer);
+  if (!c) return;
+  const [x, y, w, h] = c;
+  const mx = Math.max(60, w * 1.2), my = Math.max(30, h * 1.5);
+  [["zOrig", $("orig")], ["zImg", $("img")]].forEach(([id, img]) => {
+    const cv = document.getElementById(id);
+    if (!cv || !img.naturalWidth) return;
+    const sx = Math.max(0, x - mx), sy = Math.max(0, y - my);
+    const sw = Math.min(img.naturalWidth - sx, w + 2 * mx), sh = Math.min(img.naturalHeight - sy, h + 2 * my);
+    const scale = 3;
+    cv.width = sw * scale; cv.height = sh * scale;
+    const ctx = cv.getContext("2d");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--chg").trim() || "#12a150";
+    ctx.lineWidth = 4; ctx.setLineDash([12, 6]);
+    ctx.strokeRect((x - sx - 4) * scale, (y - sy - 4) * scale, (w + 8) * scale, (h + 8) * scale);
+  });
+}
+
+function verdictClass(v) { return v === "위변조 의심" ? "v-sus" : v === "확인 필요" ? "v-chk" : "v-ok"; }
+
+function render(r, name) {
+  const kind = { receipt: "진료비 계산서·영수증", diagnosis: "진단서" }[r.kind] || "알 수 없는 서류";
+  const fs = r.findings || [];
+  const focus = r.focus || [];
+  const reading = r.reading || {};
+  const chg = changeBox(answer);
+  const tag = name && document.getElementById("tag-" + name);
+  if (tag) { tag.textContent = r.verdict; tag.className = "tag " + verdictClass(r.verdict); }
+
+  let html = changeCard();
+  html += `<div class="verdict ${verdictClass(r.verdict)}">${esc(r.verdict)}<small>${esc(kind)} · ${r.seconds.toFixed(1)}초</small></div>`;
+  if (isNormal(answer)) {
+    const line = r.verdict === "위변조 의심" ? "❌ 오탐: 조작 없는 정상 사진을 위변조 의심으로 판정"
+      : r.verdict === "확인 필요" ? "⚠️ 정상 사진인데 확인 필요로 판정" : "✅ 정상 사진을 정상으로 판정";
+    html += `<div class="hitline">${line}</div>`;
+  } else if (chg) {
+    const strong = fs.filter(f => f.grade !== "참고");
+    const hit = strong.some(f => (f.boxes || []).some(b => overlaps(b, chg)));
+    const line = r.verdict !== "위변조 의심" ? "❌ 위변조 의심까지 가지 못함 (놓침)"
+      : hit ? "✅ 바뀐 곳을 근거로 짚어서 잡음" : "⚠️ 위변조 의심이지만 근거 상자가 바뀐 곳과 겹치지 않음 (합계 칸만 가리키거나, 다른 칸을 잘못 읽어 걸린 경우)";
+    html += `<div class="hitline">${line}</div>`;
+  }
+  html += `<p class="legend">등급: <b style="color:var(--g1)">확정</b> 서식 산식·코드 체계가 깨짐 · <b style="color:var(--g2)">강함</b> 정상 서류에선 나올 수 없는 모순 · <b style="color:var(--g3)">참고</b> 정상 서류도 어긋날 수 있거나 판독이 불확실 (이유 표시) (확정·강함이 하나라도 있으면 위변조 의심)</p>`;
+  if ((r.notes || []).length) html += `<p class="note">판독 메모: ${esc(r.notes.join(" / "))}</p>`;
+
+  html += `<h2>걸린 규칙 ${fs.length}개 (누르면 사진의 그 칸으로 이동)</h2>`;
+  html += fs.length ? fs.map((f, i) => {
+    const g = GRADE[f.grade] || "g3";
+    const exp = fmt(f.expected), act = fmt(f.actual);
+    const on = chg && (f.boxes || []).some(b => overlaps(b, chg));
+    return `<div class="finding ${g}" data-i="${i}">
+      <div class="top"><span class="num">${i + 1}</span><span class="grade ${g}">${esc(f.grade)}</span><span class="rule">${esc(ruleName(f.rule))}</span>${on ? `<span class="onchg">● 바뀐 곳</span>` : ""}</div>
+      <div class="title">${esc(f.title)}</div>
+      ${f.detail ? `<div class="kv">${esc(f.detail)}</div>` : ""}
+      ${exp || act ? `<div class="kv">${exp ? `기대 <b>${esc(exp)}</b>` : ""}${exp && act ? " · " : ""}${act ? `읽은 값 <b>${esc(act)}</b>` : ""}</div>` : ""}
+      ${f.source ? `<div class="kv">근거: ${esc(f.source)}</div>` : ""}
+      ${f.caveat ? `<div class="kv unsure">확인 필요인 이유: ${esc(f.caveat)}</div>` : ""}
+      ${f.uncertain_fields ? `<div class="kv unsure">판독 불확실 칸: ${esc(f.uncertain_fields.join(", "))} → ${esc(f.original_grade)}에서 참고로 낮춤</div>` : ""}
+      ${(f.boxes || []).length ? "" : `<div class="kv">(사진 위 위치 없음)</div>`}
+    </div>`;
+  }).join("") : `<p class="note">걸린 규칙이 없습니다.</p>`;
+
+  if (focus.length) {
+    html += `<h2>보험금이 걸린 칸 (판정 아님, 여기를 보라)</h2>` + focus.map(x => `
+      <div class="focus"><b>${esc(x.name)}</b> — ${esc(x.what || "")}<div class="kv">${esc(x.why || "")}</div></div>`).join("");
+  }
+
+  const keys = Object.keys(reading).sort();
+  html += `<details><summary>판독한 칸 ${keys.length}개 보기</summary><table>${keys.map(k => {
+    const c = reading[k];
+    return `<tr><td>${esc(k)}</td><td>${esc(fmt(c.value))}${c.uncertain ? ` <span class="unsure">불확실</span>` : ""}</td></tr>`;
+  }).join("")}</table></details>`;
+
+  $("result").innerHTML = html;
+  if (answer) drawZoom();
+  document.querySelectorAll(".finding").forEach(el => {
+    el.onmouseenter = () => draw(+el.dataset.i);
+    el.onmouseleave = () => draw(null);
+    el.onclick = () => { document.querySelectorAll(".finding").forEach(x => x.classList.toggle("on", x === el)); draw(+el.dataset.i, true); };
+  });
+  draw(null);
+}
+
+function chgRect(c, W) {
+  if (!c) return "";
+  const [x, y, w, h] = c, fsz = Math.max(18, W / 60);
+  return `<rect class="chg" x="${x - 10}" y="${y - 10}" width="${w + 20}" height="${h + 20}"/>
+    <text x="${x + w + 14}" y="${y + h / 2 + fsz / 3}" font-size="${fsz}" style="fill:var(--chg)">바뀐 곳</text>`;
+}
+
+function drawChange() {
+  const c = changeBox(answer);
+  [["origOverlay", $("orig")], ["overlay", $("img")]].forEach(([id, img]) => {
+    const W = img.naturalWidth || 1500, H = img.naturalHeight || 2000;
+    const svg = $(id);
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.innerHTML = chgRect(c, W);
+  });
+}
+
+function draw(active, scroll) {
+  const r = lastResult;
+  if (!r || !r.size) return;
+  const [W, H] = r.size;
+  const svg = $("overlay");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const fsz = Math.max(18, W / 60);
+  let out = chgRect(changeBox(answer), W);
+  (r.focus || []).forEach(x => (x.boxes || []).forEach(([bx, by, bw, bh]) => {
+    out += `<rect x="${bx - 6}" y="${by - 6}" width="${bw + 12}" height="${bh + 12}" style="stroke:var(--focus);stroke-dasharray:6 4"/>`;
+  }));
+  (r.findings || []).forEach((f, i) => {
+    const g = GRADE[f.grade] || "g3";
+    const on = active === i;
+    (f.boxes || []).forEach(([bx, by, bw, bh], j) => {
+      const color = on ? "var(--hl)" : GRADE_COLOR[g];
+      if (on) out += `<rect class="fill" x="${bx - 6}" y="${by - 6}" width="${bw + 12}" height="${bh + 12}" style="fill:var(--hl)"/>`;
+      out += `<rect x="${bx - 6}" y="${by - 6}" width="${bw + 12}" height="${bh + 12}" style="stroke:${color};opacity:${active === null || on ? 1 : .35}"/>`;
+      if (j === 0) out += `<text x="${bx - 6}" y="${by - 10}" font-size="${fsz}" style="fill:${color}">${i + 1}</text>`;
+    });
+  });
+  svg.innerHTML = out;
+  if (scroll && active !== null) {
+    const b = (r.findings[active].boxes || [])[0];
+    if (b) {
+      const img = $("img"), center = $("center");
+      const y = (b[1] / H) * img.clientHeight;
+      if (center.scrollHeight > center.clientHeight + 4) {          // 넓은 화면: 가운데 칸이 스크롤됨
+        const top = img.getBoundingClientRect().top - center.getBoundingClientRect().top + center.scrollTop + y;
+        center.scrollTo({ top: Math.max(0, top - center.clientHeight / 2), behavior: "smooth" });
+      } else {                                                       // 좁은 화면: 페이지 전체가 스크롤됨
+        const top = img.getBoundingClientRect().top + window.scrollY + y;
+        window.scrollTo({ top: Math.max(0, top - window.innerHeight / 2), behavior: "smooth" });
+      }
+    }
+  }
+}
+
+$("file").onchange = e => { const f = e.target.files[0]; if (f) { document.querySelectorAll(".sample").forEach(b => b.classList.remove("on")); run(f, null); } };
+const drop = $("drop");
+["dragover", "dragenter"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) run(f, null); });
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) run(f, null); });
+loadSamples();
+</script>
+</body>
+</html>

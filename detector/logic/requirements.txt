@@ -1,0 +1,6 @@
+pillow==11.3.0
+numpy==2.0.2
+opencv-python==4.10.0.84
+rapidocr-onnxruntime==1.4.4  # 판독기 숫자 OCR
+PyYAML==6.0.3                # 근거 데이터(단가표·규칙 데이터)
+ocrmac==1.0.1                # 판독기 한글 OCR (맥 내장 Apple Vision, 맥에서만)
