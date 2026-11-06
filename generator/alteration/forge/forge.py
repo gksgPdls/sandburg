@@ -43,6 +43,7 @@ def main():
     ap.add_argument("--off", default=",".join(cfg["끄기"]), help="끌 기능 (쉼표로): " + ", ".join(OFF_FLAGS))
     ap.add_argument("--limit", type=int, default=cfg["limit"], help="앞에서 몇 장만 (0이면 전부)")
     ap.add_argument("--no-compare", action="store_true")
+    ap.add_argument("--resume", action="store_true", help="이미 만든 이미지는 건너뜀 (끊긴 뒤 이어서)")
     a = ap.parse_args()
     py = sys.executable
     src = Path(a.src).expanduser()
@@ -69,7 +70,7 @@ def main():
     if bad:
         sys.exit(f"모르는 끄기 항목: {bad}. 가능: {list(OFF_FLAGS)}")
     run([py, HERE / "2_render" / "forge_v2.py", "run", "--branch", "ai", "--steps", a.steps, "--out", a.out, "--name", "AI",
-         *[OFF_FLAGS[o] for o in offs]], env=env)
+         *[OFF_FLAGS[o] for o in offs], *(["--resume"] if a.resume else [])], env=env)
     # 3. 비교
     if not a.no_compare:
         run([py, HERE / "2_render" / "forge_v2.py", "compare", "--out", a.out, "--prev", "_없음"], env=env)
