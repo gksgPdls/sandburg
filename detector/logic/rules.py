@@ -23,6 +23,9 @@ from functools import lru_cache
 from . import refdata as R
 
 GRADES = ("확정", "강함", "참고")
+# 끝수처리: 실제 영수증은 합계 칸을 10원 단위로 끊고 차액을 '끝수처리 조정금액' 줄에 적는다 (판독기는 이 줄을 행으로 안 읽음).
+# 합계 1칸당 10원 미만 차이는 허용 (실제 서류 200장 평가, 2026-11-06)
+ROUND_TOL = 10
 RATE_TOL = 10      # 행 본인부담금 반올림 오차 허용 (원). 생성기는 행·부담률별 원 단위 반올림, 실제 EMR은 줄마다 반올림해 몇 원 차이 남
 
 # 외래 본인부담률 — 국민건강보험법 시행령 [별표 2] 제1호. 의원·병원·종합병원 동 지역 값은 rules_data.yaml,
@@ -98,7 +101,7 @@ def a1_formulas(c):
         if not r.has(*fields):
             continue
         want = sum(s * r.get(f) for s, f in terms)
-        if r.get(out) != want:
+        if abs(r.get(out) - want) >= ROUND_TOL * len(terms):
             pay_line = out == "to_pay"
             c.add("A1", "참고" if pay_line else "확정", fields, f"산식 불일치: {title}", expected=want, actual=r.get(out),
                   source="요양급여규칙 별지 제6호서식 금액산정내용", caveat=CAVEAT["A1_to_pay"] if pay_line else "")
@@ -121,14 +124,14 @@ def a2_column_sums(c):
     row_fields = lambda col: [f"rows.{k}.{col}" for k, v in rows.items() if col in v]   # noqa: E731
     for i, col in enumerate(cols[2:], start=3):
         tf = f"totals.t{i}"
-        if r.has(tf) and r.get(tf) != col_sum[col]:
+        if r.has(tf) and abs(r.get(tf) - col_sum[col]) >= ROUND_TOL:
             c.add("A2", "확정", row_fields(col) + [tf], f"열 합계 {i}번이 행 합과 다름 ({col})", expected=col_sum[col], actual=r.get(tf),
                   source="요양급여규칙 별지 제6호서식")
     if not r.has("totals.t1", "totals.t2"):
         return
     t1, t2, raw1, raw2 = r.get("totals.t1"), r.get("totals.t2"), col_sum["self"], col_sum["nhis"]
     fields = row_fields("self") + row_fields("nhis") + ["totals.t1", "totals.t2"]
-    if t1 + t2 != raw1 + raw2:
+    if abs((t1 + t2) - (raw1 + raw2)) >= 2 * ROUND_TOL:
         c.add("A2", "확정", fields, "급여 합계(①+②) ≠ 행별 본인부담금+공단부담금 합", expected=raw1 + raw2, actual=t1 + t2,
               source="요양급여규칙 별지 제6호서식")
     allowed = {raw1, raw1 // 10 * 10, round(raw1, -1)}
@@ -517,7 +520,7 @@ def d1_diagnosis_dates(c):
     pairs = [("dates.onset", "dates.diagnosis", "발병일이 진단일보다 늦음"),
              ("dates.diagnosis", "dates.issue", "진단일이 발급일보다 늦음"),
              ("dates.admit", "dates.discharge", "입원일이 퇴원일보다 늦음"),
-             ("dates.discharge", "dates.issue", "퇴원일이 발급일보다 늦음"),
+             # 퇴원일 > 발급일은 검사하지 않음: 퇴원 예정일을 적고 퇴원 전에 발급하는 정상 진단서가 있음 (실제 서류에서 확인)
              ("dates.onset", "dates.issue", "발병일이 발급일보다 늦음")]
     for a, b, title in pairs:
         da, db = r.date(a), r.date(b)
@@ -529,8 +532,13 @@ def d1_diagnosis_dates(c):
         c.add("D1", "확정", ["dates.onset", "patient.rrn"], "발병일이 생년월일보다 이름", actual=f"{on} < {birth}")
 
 
-RECEIPT_RULES = [a1_formulas, a2_column_sums, a3_paid, b1_row_rates, b2_b6_consult, b6_flags, b4_inpatient,
-                 d1_receipt_dates, d2_receipt_no, d3_bizno, d4_rrn]
+# 공식 데이터가 다 갖춰지지 않은 규칙은 판정에서 뺀다 (2026-11-06 사용자 결정: 데이터가 모자라면 위변조라도 미탐으로 둔다).
+#   b1_row_rates  : 선별급여(50·80·90%), 6세 미만 경감, 0% 특례, 장기입원 25·30% 부담률이 없음
+#   b2_b6_consult : 치과·한방·상급종합 진찰료, 소아 가산, 단가표에 없는 진찰료 유형이 없음
+#   b4_inpatient  : 간호등급·기관별 입원료, 장기입원 체감이 없음
+# 데이터를 채우고 실제 문서로 오탐 0을 확인하면 아래 목록에 다시 넣는다.
+DATA_PENDING_RULES = [b1_row_rates, b2_b6_consult, b4_inpatient]
+RECEIPT_RULES = [a1_formulas, a2_column_sums, a3_paid, b6_flags, d1_receipt_dates, d2_receipt_no, d3_bizno, d4_rrn]
 DIAGNOSIS_RULES = [c_diagnoses, d1_diagnosis_dates, d4_rrn, d3_bizno]
 
 
