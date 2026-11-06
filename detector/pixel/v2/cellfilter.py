@@ -13,9 +13,16 @@ PHONE = re.compile(r"\d{2,4}-\d{3,4}-\d{4}")
 JUNK = re.compile(r"[\u2460-\u24FF\u3251-\u325F\u32B1-\u32BF()\[\]（）]")   # ①~⑳·㉑~ 같은 동그라미 번호, 괄호
 
 
+LOOKALIKE = str.maketrans({"S": "5", "s": "5", "O": "0", "o": "0", "I": "1", "l": "1", "B": "8", "$": "5"})
+LOOK_RE = re.compile(r"[SsOoIlB$]")
+
+
 def clean_text(t):
-    """OCR이 금액 옆 번호·괄호를 붙여 읽은 것 떼기: '493.100②' -> '493.100', '(12,000)' -> '12,000' (11-06 추가)"""
+    """OCR이 금액 옆 번호·괄호를 붙여 읽은 것 떼기: '493.100②' -> '493.100', '(12,000)' -> '12,000' (11-06 추가)
+    숫자와 닮은 글자를 숫자로: 'S6,000' -> '56,000', '1S1200' -> '151200' (숫자가 3개 이상 섞인 칸만, 11-06 추가)"""
     t = JUNK.sub("", (t or "").strip()).strip().rstrip("원").strip()
+    if LOOK_RE.search(t) and sum(ch.isdigit() for ch in t) >= 3:
+        t = t.translate(LOOKALIKE)
     return t
 
 

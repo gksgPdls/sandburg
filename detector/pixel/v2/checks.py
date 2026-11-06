@@ -12,6 +12,7 @@ import numpy as np
 
 from ..v1.core import detect
 from .digit_shape import digit_scores
+from .copymove import copymove_scores
 from .smooth import smooth_scores
 from .texture import texture_scores
 from .whitebox import whitebox_scores
@@ -71,10 +72,19 @@ def a5_whitebox(image, cells, groups):
             for cid, d in whitebox_scores(_gray(image), cells).items()]
 
 
+def a7_copymove(image, cells, groups):
+    """복사-붙여넣기: 같은 문서 안 다른 칸과 노이즈까지 똑같은 칸 (디지털 문서는 제외)"""
+    by = {c["id"]: c for c in cells}
+    return [{"bbox": by[cid]["bbox"], "score": d["score"],
+             "why": f"'{by[d['with']]['text']}' 칸과 노이즈까지 같음 (차이 {1 - d['score']:.2f}, 문서 안 거의 같은 쌍 {d['pairs']}개)"}
+            for cid, d in copymove_scores(_gray(image), cells).items()]
+
+
 CHECKS = {
     "A0_기존탐지기": a0_existing,
     "A9_질감": a9_texture,
     "A10_같은숫자": a10_same_digit,
     "A11_다시그린칸": a11_redrawn,
     "A5_흰박스": a5_whitebox,
+    "A7_복사붙여넣기": a7_copymove,
 }

@@ -92,6 +92,7 @@ TIERS = ((HTOL, SWTOL), (0.3, None), (10.0, None))   # 비교 칸이 모자라�
 COLNUM = os.environ.get("A11_COLNUM", "1") == "1"   # 금액 열의 형식 깨진 칸도 검사 (11-06)
 SQUISH_W = float(os.environ.get("A11_SQUISH", "0"))  # 찌그러짐(글자당 폭·잉크 높이) 가중. 11-06 시험: 넣으면 정상 칸도 튀어서(OCR 글자 수 오류) 고도화 정탐이 줄어 기본은 끔
 SQUISH_G = float(os.environ.get("A11_SQG", "2.0"))
+DATE_DIGITS = os.environ.get("A11_DATE_DIGITS", "0") == "1"   # 날짜 칸은 숫자 단위로 같은 높이의 같은 숫자와 비교. 11-06 시험: 날짜 위조 0건, 정상 오탐 10.3->11.7% 라 기본은 끔
 DATES = os.environ.get("A11_DATES", "0") == "1"   # 날짜 칸도 검사: 11-06 시험에서 정상 오탐만 늘고(10.5->11.4%) 날짜 위조는 못 잡아 기본은 끔
 
 
@@ -131,6 +132,13 @@ def smooth_scores(bgr, cells, min_peers=3):
                           "_sw": t["sw"], "_inkmed": t["inkmed"], **_geom(gray, c)}
     C = [c for c in C if c["id"] in F]
     dig = digit_scores(gray, C)
+    if DATE_DIGITS:
+        D = [c for c in cells if date_like(c) and c["id"] not in F]
+        if D:
+            dd = digit_scores(gray, C + D, accept=lambda c: money_like(c) or date_like(c) or c["id"] in F, htol=0.25)
+            date_out = {c["id"]: dd[c["id"]] for c in D if c["id"] in dd}
+        else:
+            date_out = {}
     out = {}
     for c in C:
         P = _peers(C, F, c, min_peers)
@@ -150,4 +158,7 @@ def smooth_scores(bgr, cells, min_peers=3):
                 d["score"] += SQUISH_W * d["squish"]
         d["n"] = len(P)
         out[c["id"]] = d
+    if DATE_DIGITS:
+        for cid, v in date_out.items():   # 날짜 칸: 칸 질감은 안 보고 숫자 단위 선명도만
+            out[cid] = {"date_digit_lap": float(np.clip(v["lap"], -3, 8)), "score": float(np.clip(v["lap"], -3, 8)), "n": 0}
     return out

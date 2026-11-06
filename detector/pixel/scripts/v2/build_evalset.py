@@ -5,7 +5,7 @@ A 검사(픽셀·글자 쪽 새 탐지) 평가셋 만들기 (2026-10-30).
 
 결과: outputs/평가셋/manifest.csv  (+ outputs/평가셋/jpg/ 다시 저장한 위조본)
   id, path, label(normal/forged), group, method, mask, split(tune/test), source_id
-  group: 정상 / 티나는변조(v1 흰 박스, 동현님 샘플) / 고도화변조(v2_한칸_평가용 300장 + VLM_8·이전논리_8·한칸_8)
+  group: 정상 / 티나는변조(v1 흰 박스, 동현님 샘플) / 고도화변조(v2_한칸_평가용 300장 + VLM_8·이전논리_8·한칸_8) / 복사붙여넣기(칸_복사 400장)
   split: v1 원본·위조는 기존 탐지기 튜닝과 같은 나눔(seed 0), 나머지는 id로 고정 나눔
 
 주의: v1 위조본은 PNG, 원본은 JPEG라 그대로 비교하면 '파일 형식'을 잡는다.
@@ -123,6 +123,15 @@ def main():
                 sp = ("tune" if base in tune else "test") if folder == "v2_한칸_평가용" else "test"
                 rows.append({"id": f"{folder}_{sid}", "path": rel(p), "label": "forged", "group": "고도화변조",
                              "method": method, "mask": rel(f), "split": sp, "source_id": base})
+    # 복사-붙여넣기 평가용 (scripts/generate/make_copymove.py, 11-06): 원본의 튜닝/시험 나눔을 그대로
+    cm = ROOT / "outputs/고도화/copymove_평가용/AI"
+    if (cm / "목록.csv").exists():
+        for r in csv.DictReader(open(cm / "목록.csv", encoding="utf-8-sig")):
+            p = next((q for q in (cm / f"{r['id']}.jpg", cm / f"{r['id']}.png") if q.exists()), None)
+            if p:
+                rows.append({"id": r["id"], "path": rel(p), "label": "forged", "group": "복사붙여넣기",
+                             "method": "칸_복사", "mask": rel(cm / f"{r['id']}_mask.png"), "split": r["split"],
+                             "source_id": r["source_id"]})
     with open(OUT / "manifest.csv", "w", encoding="utf-8-sig", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=FIELDS)
         w.writeheader(); w.writerows(rows)

@@ -71,10 +71,12 @@ def _rz(vals, floor=0.03):
     return np.abs(v - med) / mad
 
 
-def digit_scores(gray, cells, kinds=None, min_class=5):
-    inst = []                      # (cell_id, ch, patch, aspect, hrel, dark)
+def digit_scores(gray, cells, kinds=None, min_class=5, accept=None, htol=None):
+    """accept: 숫자를 모을 칸 고르기 (기본 금액 칸). htol: 경계 선명도를 비교할 때 글자 높이가 ±htol인 같은 숫자끼리만 (11-06, 날짜용)"""
+    accept = accept or money_like
+    inst = []                      # (cell_id, ch, patch, aspect, hrel, dark, sharp, h)
     for c in cells:
-        if not money_like(c):
+        if not accept(c):
             continue
         segs = segment_digits(gray, c["bbox"], c.get("text", ""))
         if not segs:
@@ -87,7 +89,7 @@ def digit_scores(gray, cells, kinds=None, min_class=5):
             x, y, w, h = s["box"]
             g = gray[y:y + h, x:x + w]
             dark = float(np.median(g[s["mask"]])) if s["mask"].any() else np.nan
-            inst.append((c["id"], s["ch"], p, w / max(h, 1), h / max(hmed, 1), dark, _sharp(gray, s["box"], s["mask"])))
+            inst.append((c["id"], s["ch"], p, w / max(h, 1), h / max(hmed, 1), dark, _sharp(gray, s["box"], s["mask"]), h))
     out = {}
     for ch in "0123456789":
         I = [i for i in inst if i[1] == ch]
@@ -107,6 +109,16 @@ def digit_scores(gray, cells, kinds=None, min_class=5):
             if np.isnan(v).all():
                 continue
             v = np.nan_to_num(v, nan=np.nanmedian(v))
+            if htol:
+                zz = []
+                for n, i in enumerate(I):     # 같은 숫자 중 글자 높이가 비슷하고 다른 칸에 있는 것끼리
+                    o = [m for m, j in enumerate(I) if j[0] != i[0] and abs(j[7] - i[7]) <= htol * i[7]]
+                    if len(o) < 3:
+                        o = [m for m, j in enumerate(I) if j[0] != i[0]]
+                    vv = v[o]; med = np.median(vv); mad = max(np.median(np.abs(vv - med)) * 1.4826, 1e-6, 0.02 * abs(med))
+                    zz.append((med - v[n]) / mad)
+                sz[k] = np.array(zz)
+                continue
             med = np.median(v); mad = max(np.median(np.abs(v - med)) * 1.4826, 1e-6, 0.02 * abs(med))
             sz[k] = (med - v) / mad
         for n, i in enumerate(I):
