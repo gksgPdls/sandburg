@@ -23,6 +23,7 @@ OUT = ROOT / "outputs" / "평가셋"
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", default="A11_다시그린칸")
+    ap.add_argument("--boost", default="A7_복사붙여넣기", help="이 검사가 아주 확실하면(튜닝용 정상 상위 0.5%) 위조 의심으로 올림. 빈 값이면 끔")
     ap.add_argument("--max-seconds", type=float, default=1e9, help="작은 사본 만들기 시간 제한 (끊기면 다시 실행하면 이어서)")
     a = ap.parse_args()
     rows = list(csv.DictReader(open(OUT / "manifest.csv", encoding="utf-8-sig")))
@@ -46,6 +47,16 @@ def main():
                 for k, v in (c.get("parts") or {}).items():
                     pv.setdefault(k, []).append(v)
     pq = {k: round(float(np.quantile(v, 0.95)), 2) for k, v in pv.items()}
+    # 올리기 검사 (11-06): A7 복사-붙여넣기가 튜닝용 정상 문서 99.5% 지점을 넘으면 위조 의심
+    boost, bth = {}, None
+    bp = OUT / f"scores_{a.boost}.jsonl" if a.boost else None
+    if bp and bp.exists():
+        for l in open(bp, encoding="utf-8"):
+            d = json.loads(l)
+            if d["cells"]:
+                boost[d["id"]] = max(d["cells"], key=lambda c: c["score"])
+        bt = [boost[r["id"]]["score"] if r["id"] in boost else -99 for r in rows if r["split"] == "tune" and r["label"] == "normal"]
+        bth = float(np.quantile(bt, 0.995))
     import time
     t0 = time.time()
     IMG = OUT / "뷰어" / "img"
@@ -73,12 +84,15 @@ def main():
             cells.append({"b": list(b), "s": round(c["score"], 4), "t": text[r["id"]].get(b, ""),
                           "why": c.get("why", ""), "hit": bool(gts) and hit(b, gts),
                           "p": c.get("parts", {}), "n": c.get("n")})   # 위치 적중: 70% 이상 겹침 (evaluate와 같음)
-        docs.append({"id": r["id"], "img": "img/" + quote(r["id"]) + ".jpg", "W": W, "H": H, "label": r["label"],
+        bc = boost.get(r["id"])
+        bst = ({"check": a.boost, "s": round(bc["score"], 3), "b": list(bc["bbox"]), "why": bc.get("why", ""),
+                "hit": bool(gts) and hit(tuple(bc["bbox"]), gts)} if bc and bth is not None and bc["score"] > bth else None)
+        docs.append({"boost": bst, "id": r["id"], "img": "img/" + quote(r["id"]) + ".jpg", "W": W, "H": H, "label": r["label"],
                      "group": r["group"], "method": r["method"], "split": r["split"], "src": r["source_id"],
                      "gt": [list(g) for g in gts], "cells": cells,
                      "score": cells[0]["s"] if cells else -99})
     html = (Path(__file__).parent / "viewer_template.html").read_text(encoding="utf-8")
-    html = html.replace("__DATA__", json.dumps({"check": a.check, "thr": thr, "pq": pq, "docs": docs}, ensure_ascii=False))
+    html = html.replace("__DATA__", json.dumps({"check": a.check, "thr": thr, "pq": pq, "boost": a.boost, "bth": bth, "docs": docs}, ensure_ascii=False))
     (OUT / "뷰어").mkdir(exist_ok=True)
     (OUT / "뷰어" / "index.html").write_text(html, encoding="utf-8")
     print(f"문서 {len(docs)}장, 위조 의심 > {thr['hi']:.3f} (정상 오탐 2%), 확인 필요 > {thr['lo']:.3f} (10%) -> {OUT / '뷰어' / 'index.html'}")

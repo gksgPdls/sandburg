@@ -47,7 +47,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:#f3f3ee}
 </div>
 <main>
  <table id="tbl"></table>
- <div class="note">판정은 3단계: 문서 점수(가장 높은 금액 칸 점수)가 <b id="thH"></b> 넘으면 <span class="lv lvH">위조 의심</span>, <b id="thL"></b> 넘으면 <span class="lv lvM">확인 필요</span>, 아니면 <span class="lv lvL">정상</span>. 기준값은 튜닝용 정상 문서에서 2% / 10%만 넘는 점수.
+ <div class="note">판정은 3단계: 문서 점수(가장 높은 금액 칸 점수)가 <b id="thH"></b> 넘으면 <span class="lv lvH">위조 의심</span>, <b id="thL"></b> 넘으면 <span class="lv lvM">확인 필요</span>, 아니면 <span class="lv lvL">정상</span>. 기준값은 튜닝용 정상 문서에서 2% / 10%만 넘는 점수. 복사-붙여넣기 검사(A7)가 아주 확실하면(정상 상위 0.5%) 점수와 상관없이 위조 의심.
  · '잡음' = 위조 의심 + 확인 필요 · 위치 적중 = 잡은 것 중 가장 높은 칸이 실제 고친 칸 · AUC = 위조 문서 점수가 정상 문서보다 높을 확률 (0.5 = 못 가름) · 괄호 = 95% 신뢰구간 · 표의 행을 누르면 그 묶음만 봄
  · A11은 금액 모양 칸만 봄 (날짜·전화번호·①② 번호·글자 섞인 칸 제외), 같은 문서에서 크기·굵기 비슷한 금액 칸끼리 비교.</div>
  <div class="tabs" id="tabs"></div>
@@ -59,8 +59,9 @@ const D=__DATA__;let PAGE=0,OUT="",VIEW="card";const PER=48,GPER=15;
 const $=s=>document.querySelector(s);
 const kind=d=>d.label==="normal"?"정상":(d.group+" / "+d.method);
 const level=s=>s>D.thr.hi?"H":s>D.thr.lo?"M":"L";
+const levelDoc=d=>d.boost?"H":level(d.score);
 const LV={H:"위조 의심",M:"확인 필요",L:"정상"};
-function outcome(d){return (d.label==="forged"?"F":"N")+level(d.score)}
+function outcome(d){return (d.label==="forged"?"F":"N")+levelDoc(d)}
 const NAME={FH:"위조 → 위조 의심 (정탐)",FM:"위조 → 확인 필요",FL:"위조 → 정상 (미탐)",NH:"정상 → 위조 의심 (오탐)",NM:"정상 → 확인 필요",NL:"정상 → 정상 (통과)"};
 const SHORT={FH:"정탐(의심)",FM:"확인필요(위조)",FL:"미탐",NH:"오탐(의심)",NM:"확인필요(정상)",NL:"정상통과"};
 const PN={lapvar:"경계 선명도",inknoise:"글자 속 노이즈",inkchroma:"글자 색 흔들림",digit_lap:"같은 숫자 선명도"};
@@ -74,14 +75,14 @@ function inSplit(d){const s=$("#split").value;return s==="all"||d.split===s}
 function groups(){const g=[...new Set(D.docs.map(kind))];g.sort((a,b)=>(a==="정상"?-1:b==="정상"?1:a.localeCompare(b)));return g}
 function table(){
  const ds=D.docs.filter(inSplit),nn=ds.filter(d=>d.label==="normal"),ns=nn.map(d=>d.score);
- const cnt=fs=>{const c={H:0,M:0,L:0};fs.forEach(d=>c[level(d.score)]++);return c};
+ const cnt=fs=>{const c={H:0,M:0,L:0};fs.forEach(d=>c[levelDoc(d)]++);return c};
  let t=`<tr><th>묶음</th><th>장수</th><th>위조 의심</th><th>확인 필요</th><th>정상</th><th>잡음 (의심+확인)</th><th>AUC</th><th>위치 적중</th></tr>`;
  const c=cnt(nn),[l1,h1]=wilson(c.H,nn.length),[l2,h2]=wilson(c.H+c.M,nn.length);
  t+=`<tr class="click" data-g="정상"><td><b>정상 문서</b> <span class="sub">(의심·확인 = 오탐)</span></td><td>${nn.length}</td><td>${np(c.H,nn.length)}</td><td>${np(c.M,nn.length)}</td><td>${np(c.L,nn.length)}</td><td>오탐 <b>${pct((c.H+c.M)/Math.max(nn.length,1))}</b> (${pct(l2)}~${pct(h2)})</td><td></td><td></td></tr>`;
  const S={n:0,H:0,M:0,L:0,loc:0};
  for(const g of groups().filter(g=>g!=="정상")){
   const fs=ds.filter(d=>kind(d)===g);if(!fs.length)continue;const c=cnt(fs),got=c.H+c.M,[a,b]=wilson(got,fs.length);
-  const loc=fs.filter(d=>level(d.score)!=="L"&&d.cells.length&&d.cells[0].hit).length;
+  const loc=fs.filter(d=>levelDoc(d)!=="L"&&((d.boost&&d.boost.hit)||(!d.boost&&d.cells.length&&d.cells[0].hit))).length;
   if(g.startsWith("고도화")){S.n+=fs.length;S.H+=c.H;S.M+=c.M;S.L+=c.L;S.loc+=loc}
   t+=`<tr class="click" data-g="${g}"><td>${g}</td><td>${fs.length}</td><td>${np(c.H,fs.length)}</td><td>${np(c.M,fs.length)}</td><td>${np(c.L,fs.length)} <span class="sub">미탐</span></td><td><b>${pct(got/fs.length)}</b> (${pct(a)}~${pct(b)})</td><td>${auc(fs.map(d=>d.score),ns).toFixed(3)}</td><td>${loc}/${got}</td></tr>`}
  if(S.n){const[a,b]=wilson(S.H+S.M,S.n);t+=`<tr><td><b>고도화 변조 합계</b></td><td>${S.n}</td><td>${np(S.H,S.n)}</td><td>${np(S.M,S.n)}</td><td>${np(S.L,S.n)} <span class="sub">미탐</span></td><td><b>${pct((S.H+S.M)/S.n)}</b> (${pct(a)}~${pct(b)})</td><td></td><td>${S.loc}/${S.H+S.M}</td></tr>`}
@@ -108,13 +109,13 @@ function tabs(){
   (nf?`<span class="sub" style="margin-left:8px">위조 ${nf}장:</span>`+tab("FH","위조 의심",nf)+tab("FM","확인 필요",nf)+tab("FL","미탐",nf):"")+
   (nn?`<span class="sub" style="margin-left:8px">정상 ${nn}장:</span>`+tab("NH","위조 의심(오탐)",nn)+tab("NM","확인 필요(오탐)",nn)+tab("NL","통과",nn):"");
  document.querySelectorAll(".tab").forEach(e=>e.onclick=()=>{OUT=e.dataset.o;PAGE=0;grid()})}
-function card(d,idx){const oc=outcome(d),c=d.cells[0],lv=level(d.score);
+function card(d,idx){const oc=outcome(d),c=d.cells[0],lv=levelDoc(d);
  const top=c?`점수 1등 칸 “${c.t}” ${c.s.toFixed(2)} → ${LV[level(c.s)]}`:"점수 없음 (비교할 금액 칸 부족)";
  const real=d.label==="forged"?(d.gt.length?crop(d,d.gt[0],"실제 고친 칸"):`<div class="crop"><div class="c"></div><div class="cap">고친 칸 정보 없음</div></div>`):"";
  const hitTxt=d.label==="forged"&&c?(c.hit?"· 위치 맞음 ✅":"· 위치 다름 ❌"):"";
  const why=c&&c.p?`<div class="meta" style="padding-top:0;color:var(--ink)">주된 이유: ${reason(c)}</div>`:"";
  return `<div class="card" data-i="${idx}"><div class="top"><b style="font-size:13px">${d.id}</b><span><span class="lv lv${lv}">${LV[lv]}</span> <span class="tag ${oc}">${SHORT[oc]}</span></span></div>
-  <div class="crops">${crop(d,c&&c.b,top)}${real}</div>
+  <div class="crops">${d.boost?crop({...d,cells:[{b:d.boost.b,s:99}]},d.boost.b,"복사 의심 칸"):crop(d,c&&c.b,top)}${real}</div>
   ${why}<div class="meta">실제: <b>${d.label==="forged"?"위변조":"정상"}</b> · ${kind(d)} · 문서점수 ${d.score>-90?d.score.toFixed(2):"없음"} ${hitTxt}</div></div>`}
 function grid(){
  table();tabs();const ds=list();let pages,html;
@@ -130,11 +131,12 @@ function grid(){
  const pg=pages>1?`<button ${PAGE?"":"disabled"} data-p="${PAGE-1}">이전</button><span class="sub">${PAGE+1} / ${pages}</span><button ${PAGE<pages-1?"":"disabled"} data-p="${PAGE+1}">다음</button>`:"";
  $("#pg1").innerHTML=$("#pg2").innerHTML=pg;document.querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{PAGE=+b.dataset.p;grid();scrollTo(0,$("#tabs").offsetTop-80)})}
 function show(d){
- const oc=outcome(d),lv=level(d.score);$("#mt").innerHTML=`${d.id} <span class="lv lv${lv}">${LV[lv]}</span> <span class="tag ${oc}">${NAME[oc]}</span>`;
- $("#mi").textContent=`실제: ${d.label==="forged"?"위변조":"정상"} · ${kind(d)} · 원본 ${d.src} · ${d.split==="test"?"시험용":"튜닝용"} · 문서점수 ${d.score>-90?d.score.toFixed(2):"없음 (비교할 금액 칸 부족)"} (위조 의심 > ${D.thr.hi.toFixed(2)}, 확인 필요 > ${D.thr.lo.toFixed(2)})`;
+ const oc=outcome(d),lv=levelDoc(d);$("#mt").innerHTML=`${d.id} <span class="lv lv${lv}">${LV[lv]}</span> <span class="tag ${oc}">${NAME[oc]}</span>`;
+ $("#mi").textContent=`실제: ${d.label==="forged"?"위변조":"정상"} · ${kind(d)} · 원본 ${d.src} · ${d.split==="test"?"시험용":"튜닝용"} · 문서점수 ${d.score>-90?d.score.toFixed(2):"없음 (비교할 금액 칸 부족)"} (위조 의심 > ${D.thr.hi.toFixed(2)}, 확인 필요 > ${D.thr.lo.toFixed(2)})${d.boost?` · 복사-붙여넣기 검사로 위조 의심: ${d.boost.why}`:""}`;
  const P=v=>100*v,COL={H:"var(--red)",M:"var(--org)",L:"var(--grey)"};let h=`<img src="${d.img}">`;
  d.gt.forEach(g=>h+=`<div class="box bG" style="left:${P(g[0]/d.W)}%;top:${P(g[1]/d.H)}%;width:${P(g[2]/d.W)}%;height:${P(g[3]/d.H)}%"></div><div class="lbl" style="background:var(--green);left:${P(g[0]/d.W)}%;top:${P((g[1]+g[3])/d.H)}%;transform:none">실제 고친 칸</div>`);
  d.cells.forEach((c,k)=>{const l=level(c.s);h+=`<div class="box b${l}" style="left:${P(c.b[0]/d.W)}%;top:${P(c.b[1]/d.H)}%;width:${P(c.b[2]/d.W)}%;height:${P(c.b[3]/d.H)}%"></div><div class="lbl" style="background:${COL[l]};left:${P(c.b[0]/d.W)}%;top:${P(c.b[1]/d.H)}%">${k+1}</div>`});
+ if(d.boost){const g=d.boost.b;h+=`<div class="box bH" style="border-style:dotted;left:${P(g[0]/d.W)}%;top:${P(g[1]/d.H)}%;width:${P(g[2]/d.W)}%;height:${P(g[3]/d.H)}%"></div><div class="lbl" style="background:var(--red);left:${P(g[0]/d.W)}%;top:${P(g[1]/d.H)}%">복사</div>`}
  $("#mw").innerHTML=h;const KS=["lapvar","inknoise","inkchroma","digit_lap"];
  const cv=(c,k)=>{const v=c.p?c.p[k]:undefined;if(v===undefined)return `<td style="color:#aaa">–</td>`;const hi=D.pq&&D.pq[k]!==undefined&&v>D.pq[k];return `<td style="${hi?"color:var(--red);font-weight:700":""}">${v.toFixed(2)}</td>`};
  $("#ml").innerHTML=`<table><tr><th>#</th><th>칸 글자</th><th>점수 (평균)</th><th>판정</th><th>실제 고친 칸?</th>${KS.map(k=>`<th>${PN[k]}</th>`).join("")}<th>비교한 칸 수</th></tr>
