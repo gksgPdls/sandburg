@@ -30,6 +30,7 @@
 | `decide.py` | 결합 방식 (`graded` 등급형 OR · `or` · `logic` · `pixel`) |
 | `pipeline.py` | 서류 한 장: `inspect(사진, 문서종류)` |
 | `run.py` | 폴더 · 평가셋 실행기 → 판정 · 답안 4개 · 채점 |
+| `web/` | 실험 화면 (`python -m combine.web`) |
 | `calibrate_pixel.py` | 픽셀 기준값 정하기 (정상 서류만, 로컬) → `pixel_thresholds.json` |
 
 ## 실행
@@ -51,6 +52,17 @@
 - 평가셋이면 `<평가셋>/답안/답안_합친_<방식>_<버전>.csv` 로도 복사 → `eval/score_testset.py` · `merge_answers.py` 그대로 사용
 - 비용: VLM 읽기 1회/장 (+ 로직이 걸린 서류만 위치 묻기 1회, `--위치없이` 로 끔). 원본 응답은 `outputs/combine/vlm_cache/` 에 남아 **같은 사진을 다시 돌리면 0원**
 - 옵션: `--모델 qwen27b` · `--크기 2500` · `-j 6`(VLM 동시 요청) · `--캐시없이` · `--픽셀없이`
+
+## 실험 화면 (logic_detector/web 과 같은 화면)
+
+```bash
+.venv/bin/python -m combine.web --demo <샘플 폴더>             # http://localhost:8771 — 미리 계산한 결과만 (외부 호출 없음)
+.venv/bin/python -m combine.web --demo <샘플 폴더> --실시간     # 결과가 없는 사진은 VLM 으로 읽어 검사 (합성 서류만)
+```
+
+- 샘플 폴더(git 제외): `samples/` · `originals/` · `정답.csv` · `info.json` · `결과.json`(사진 sha1 → 화면 결과, `combine/web/view.py` 형식)
+- 오른쪽에 최종 판정, 엔진 두 줄(로직 · 픽셀), 걸린 규칙과 픽셀 흔적 칸. 원본이 있으면 바뀐 곳(초록 점선)과 나란히
+- 로직 근거 상자는 VLM 위치 묻기(`vlm_read.locate`)를 거친 결과에만 있음. 픽셀 근거는 언제나 상자가 있음
 
 ## 꼭 지킬 것
 
