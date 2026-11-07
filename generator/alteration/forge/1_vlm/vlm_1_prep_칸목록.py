@@ -42,8 +42,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     (out / "프롬프트.txt").write_text(prompt_text(), encoding="utf-8")
     (out / "안내.txt").write_text(
-        "VLM 계정으로 할 때: docs/VLM_답쓰기.md 순서대로 (VLM에게 이 폴더의 VLM 답을 써달라고 요청)\n\n"
-        "손으로 할 때 (사진 한 장마다)\n"
+        "사진 한 장마다\n"
         "1. VLM 채팅에 원본 사진 + <사진이름>_ocr.txt 내용 + 프롬프트.txt 내용을 넣는다\n"
         "2. 답(JSON)을 이 폴더에 <사진이름>_vlm.json 으로 저장한다\n"
         "3. 다 되면: python generator/alteration/forge/1_vlm/vlm_2_apply_답확인.py --name " + a.name + "\n"
