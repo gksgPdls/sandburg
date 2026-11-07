@@ -15,13 +15,13 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 import edit_ops
-from detector import detect
+from detector.pixel import detect
 
 LABEL_FONT = next((p for p in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
                                "/System/Library/Fonts/AppleSDGothicNeo.ttc") if Path(p).exists()), None)
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 
 

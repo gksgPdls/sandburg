@@ -1,5 +1,5 @@
 # 주목 규칙 표 — 보험금이 걸린 칸을 짚고(주목), 같은 서류 안의 다른 칸과 모순이면 판정(검사)한다.
-# 설계·결과: docs/주목규칙_설계.md. 코드: logic_detector/logic/focus.py
+# 설계·결과: docs/주목규칙_설계.md. 코드: detector/logic/focus.py
 #
 # 원칙
 #   - 모든 줄에 출처 원문(quote)과 링크(url)를 단다. 출처를 못 찾은 것은 not_found 에만 적고 규칙으로 쓰지 않는다.

@@ -1,4 +1,4 @@
-"""OpenRouter 호출 공통 도구 (week4 AI 판단 실험 E0~E4 가 같이 쓴다).
+"""OpenRouter 호출 공통 도구 (VLM 판독기가 쓴다).
 
 - 키는 환경변수 OPENROUTER_API_KEY 또는 ~/.openrouter_key 파일에서만 읽는다. 화면·로그·결과 파일에 절대 남기지 않는다.
   (키 저장: save_key.py — 키를 화면에 안 보이게 입력받아 ~/.openrouter_key 에 저장)
@@ -26,15 +26,14 @@ Image.MAX_IMAGE_PIXELS = None
 # 같은 모델이라도 업체에 따라 결과가 달라지므로 업체는 결과마다 기록한다.
 PROVIDER_ONLY = {"deepseek/deepseek-v4.1-flash-1017": ["Cohere", "ModelRun", "Wafer"]}
 # 실서류(와 실서류로 만든 1차 과제 데이터)를 알아보는 표시. 폴더 위치가 사람마다 달라도 막히게 이름으로 본다
-# (이 맥 repo/real_docs · dataset/, 소영 님 저장소 dataset/original/real_docs, 혜인 님 실제 문서 실험 demo_real/, 'real_docs').
 REAL_PARTS = {"real_docs", "dataset", "demo_real"}
-REAL_PATHS = ("logic_detector/demo/",)          # 혜인 님 실험 화면 샘플: 1차 과제(실서류로 만든) 변조가 섞여 있음
+REAL_PATHS = ("detector/logic/demo/",)          # 혜인 님 실험 화면 샘플: 1차 과제(실서류로 만든) 변조가 섞여 있음
 REAL_NAME = re.compile(r"(\d{6,})_\d{3}_(?:med|surg|dig)_\d{8}_DTB\d{3}_F\d+", re.I)   # 사고번호_순번_med_날짜_DTB코드_F번호
 
 
 def refuse_real(path):
     """실서류로 보이면 멈춘다: 경로에 real_docs · dataset 폴더 · 'real_docs' 가 있거나, 파일 이름이 실서류 형식이면.
-    가짜 사고번호 999… 로 시작하는 이름은 합성 서류 (week3 pack_서비스.py)."""
+    가짜 사고번호 999… 로 시작하는 이름은 합성 서류 (합성 서류 패키징 스크립트)."""
     p = Path(path).resolve()
     parts = [s.lower() for s in p.parts]
     m = REAL_NAME.search(p.name)

@@ -1,7 +1,7 @@
 """
 A 검사(픽셀·글자 쪽 새 탐지) 평가셋 만들기 (2026-10-30).
 
-  python scripts/detect/v2/build_evalset.py [--max-seconds 150]   # 끊기면 다시 실행하면 이어서
+  python detector/pixel/scripts/v2/build_evalset.py [--max-seconds 150]   # 끊기면 다시 실행하면 이어서
 
 결과: outputs/평가셋/manifest.csv  (+ outputs/평가셋/jpg/ 다시 저장한 위조본)
   id, path, label(normal/forged), group, method, mask, split(tune/test), source_id
@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, JpegImagePlugin
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 DATA = ROOT / "dataset"
 OUT = ROOT / "outputs" / "평가셋"
 FIELDS = ["id", "path", "label", "group", "method", "mask", "split", "source_id"]
@@ -110,7 +110,7 @@ def main():
                 rows.append({"id": r["id"] + "_orig", "path": rel(orig), "label": "normal", "group": "정상",
                              "method": "샘플원본", "mask": "", "split": sp, "source_id": r["id"]})
     # 고도화 변조 (오늘 만든 세 방식): 오탐 확인용
-    # v2_한칸_평가용 (run/8, 300장): 원본의 튜닝/시험 나눔을 그대로 따라감 -> v2 탐지기 기준값 튜닝에도 씀
+    # v2_한칸_평가용 (generator/alteration/run/8, 300장): 원본의 튜닝/시험 나눔을 그대로 따라감 -> v2 탐지기 기준값 튜닝에도 씀
     for folder, method in (("v2_한칸_평가용", "고도화_한칸"), ("VLM_8", "고도화_VLM"), ("이전논리_8", "고도화_자동규칙"), ("한칸_8", "고도화_한칸_8장")):
         d = ROOT / "outputs/고도화" / folder / "AI"
         if not d.exists():
@@ -123,7 +123,7 @@ def main():
                 sp = ("tune" if base in tune else "test") if folder == "v2_한칸_평가용" else "test"
                 rows.append({"id": f"{folder}_{sid}", "path": rel(p), "label": "forged", "group": "고도화변조",
                              "method": method, "mask": rel(f), "split": sp, "source_id": base})
-    # 복사-붙여넣기 평가용 (scripts/generate/make_copymove.py, 11-06): 원본의 튜닝/시험 나눔을 그대로
+    # 복사-붙여넣기 평가용 (generator/alteration/forge/make_copymove.py, 11-06): 원본의 튜닝/시험 나눔을 그대로
     cm = ROOT / "outputs/고도화/copymove_평가용/AI"
     if (cm / "목록.csv").exists():
         for r in csv.DictReader(open(cm / "목록.csv", encoding="utf-8-sig")):

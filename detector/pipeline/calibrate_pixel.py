@@ -1,11 +1,11 @@
 """픽셀 엔진 기준값 정하기: 정상 서류만 돌려 문서 점수 분포에서 두 기준을 잡는다 (호출 없음, 로컬).
 
-    .venv/bin/python combine/calibrate_pixel.py testsets/개발지_v1            # 정답.csv 의 '정상' 서류만 씀
-    .venv/bin/python combine/calibrate_pixel.py <정상 사진만 있는 폴더> --hi 0.02 --lo 0.10
+    .venv/bin/python detector/pipeline/calibrate_pixel.py detector/eval/evalsets/개발지_v1            # 정답.csv 의 '정상' 서류만 씀
+    .venv/bin/python detector/pipeline/calibrate_pixel.py <정상 사진만 있는 폴더> --hi 0.02 --lo 0.10
 
   hi = 정상 오탐 2% 지점 → 넘으면 픽셀 '의심' (strong)
   lo = 정상 오탐 10% 지점 → 넘으면 픽셀 '확인필요'
-결과: combine/pixel_thresholds.json. **평가셋으로 정하지 않는다** (평가셋으로 학습 금지) — 개발지나 따로 둔 정상 서류로.
+결과: detector/pipeline/pixel_thresholds.json. **평가셋으로 정하지 않는다** (평가셋으로 학습 금지) — 개발지나 따로 둔 정상 서류로.
 """
 import argparse
 import csv
@@ -16,10 +16,10 @@ from pathlib import Path
 
 import numpy as np
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
-from combine import engines as E  # noqa: E402
-from combine.run import IMG_EXT, rows  # noqa: E402
+from detector.pipeline import engines as E  # noqa: E402
+from detector.pipeline.run import IMG_EXT, rows  # noqa: E402
 
 
 def normals(base):

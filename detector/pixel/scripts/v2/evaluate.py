@@ -1,7 +1,7 @@
 """
 A 검사 평가 (원본 없이, 칸 위치도 안 알려주고 문서 전체를 검사하는 실사용 방식).
 
-  python scripts/detect/v2/evaluate.py [--checks A0_기존탐지기,A8_형식] [--fpr 0.10] [--max-seconds 150]
+  python detector/pixel/scripts/v2/evaluate.py [--checks A0_기존탐지기,A8_형식] [--fpr 0.10] [--max-seconds 150]
 
 1. 검사마다 모든 문서의 칸 점수를 계산해 outputs/평가셋/scores_<검사>.jsonl 에 저장 (끊기면 이어서)
 2. 문서 점수 = 가장 의심스러운 칸 점수. 기준값 = 튜닝용 정상 문서에서 오탐이 --fpr 되는 지점
@@ -22,10 +22,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-from detector.common.cells import group_cells  # noqa: E402
-from detector.v2.checks import CHECKS  # noqa: E402
+from detector.pixel.common.cells import group_cells  # noqa: E402
+from detector.pixel.v2.checks import CHECKS  # noqa: E402
 
 OUT = Path(os.environ.get("EVALSET_DIR", ROOT / "outputs" / "평가셋"))   # 시험할 때 다른 폴더로
 
@@ -37,7 +37,7 @@ def load_manifest():
 def load_ocr():
     p = OUT / "ocr.jsonl"
     if not p.exists():
-        sys.exit("먼저 OCR 캐시: python scripts/detect/v2/ocr_cache.py")
+        sys.exit("먼저 OCR 캐시: python detector/pixel/scripts/v2/ocr_cache.py")
     return {r["id"]: r.get("cells") for r in map(json.loads, open(p, encoding="utf-8"))}
 
 

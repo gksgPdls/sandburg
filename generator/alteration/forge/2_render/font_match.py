@@ -36,7 +36,7 @@ _CANDIDATES = [
     ("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", [0]),
 ]
 # 맥에서 따로 설치한 한글 글꼴 찾기 (서체 관리자에서 내려받은 글꼴, 사용자 설치 글꼴, 정식 MS Office에 들어 있는 글꼴)
-_EXTRA_DIRS = [Path(__file__).resolve().parents[3] / "fonts",            # 저장소 fonts/ (git 제외)
+_EXTRA_DIRS = [Path(__file__).resolve().parents[4] / "generator" / "alteration" / "fonts",            # 저장소 fonts/ (git 제외)
                Path.home() / "Library" / "Fonts", Path("/Library/Fonts"),
                Path("/System/Library/AssetsV2"),                      # 서체 관리자에서 받은 글꼴
                Path("/Applications/Microsoft Word.app/Contents/Resources/DFonts"),

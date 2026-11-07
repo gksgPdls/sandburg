@@ -1,7 +1,7 @@
 """
 문서의 글자 칸 찾기 + 같은 종류 칸끼리 묶기 (A 검사 공통, 2026-10-30).
 
-    from detector.common.cells import read_cells, group_cells
+    from detector.pixel.common.cells import read_cells, group_cells
     cells = read_cells("문서.jpg")          # RapidOCR, [{id, text, kind, bbox:(x,y,w,h), conf}]
     groups = group_cells(cells)             # {group_id: [cell, ...]}  같은 열 금액 / 같은 줄 / 같은 모양 날짜
 

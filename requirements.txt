@@ -12,5 +12,5 @@ python-dotenv==1.2.1
 requests==2.32.5
 google-generativeai==0.8.6
 PyWavelets==1.6.0
-opencv-python==4.10.0.84  # 김동현 조작 코드(dataset/scripts)용
+opencv-python==4.10.0.84  # 김동현 조작 코드(generator/alteration/methods/scripts)용
 rapidocr-onnxruntime==1.4.4  # 논리 맞추기 목록용 OCR (logic_list.py)

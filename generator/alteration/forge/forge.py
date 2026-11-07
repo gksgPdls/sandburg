@@ -6,10 +6,10 @@
   3. 비교   2_render/forge_v2.py compare (원본 | 결과 비교 이미지, 점수)
 
 예)
-  python scripts/generate/forge.py --src ~/Desktop/새사진 --out 새사진
-  python scripts/generate/forge.py --src outputs/고도화/원본목록.csv --out 최종_내방식 --limit 10
-  python scripts/generate/forge.py --src ~/Desktop/새사진 --out 새사진 --logic 엄격 --off b6,c2
-설정 기본값: scripts/generate/forge_config.json
+  python generator/alteration/forge/forge.py --src ~/Desktop/새사진 --out 새사진
+  python generator/alteration/forge/forge.py --src outputs/고도화/원본목록.csv --out 최종_내방식 --limit 10
+  python generator/alteration/forge/forge.py --src ~/Desktop/새사진 --out 새사진 --logic 엄격 --off b6,c2
+설정 기본값: generator/alteration/forge/forge_config.json
 결과: outputs/고도화/<out>/AI/ (위조 이미지, 마스크, 생성기록.csv), 비교이미지/, 점수.csv"""
 import argparse
 import json
@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = HERE.parents[2]
 OFF_FLAGS = {"sd": "--no-sd", "c6": "--no-c6", "tilt": "--no-tilt", "persp": "--no-persp", "b3": "--no-b3", "b4": "--no-b4",
              "b6": "--no-b6", "c1": "--no-c1", "c2": "--no-c2", "c5": "--no-c5"}
 

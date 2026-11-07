@@ -2,14 +2,14 @@
 결과는 사진마다 outputs/고도화/_ocr_ko/<파일이름>.json 에 저장해 두고 다시 읽음 (한 장에 몇 초 걸려서).
 맥에서만 돌림 (torch 필요). 모델은 처음 실행 때 GitHub에서 자동으로 받음 (로컬 실행, 사진은 밖으로 안 나감).
 
-python scripts/generate/3_logic/ocr_ko.py --src dataset/original/bankbook --limit 60   # 미리 읽어 두기"""
+python generator/alteration/forge/3_logic/ocr_ko.py --src dataset/original/bankbook --limit 60   # 미리 읽어 두기"""
 import argparse
 import json
 import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 CACHE = ROOT / "outputs" / "고도화" / "_ocr_ko"
 _READER = None
 

@@ -2,9 +2,9 @@
 공식 근거 데이터 읽기 (data/ 폴더, 한 번만 읽고 재사용).
 
   prices_<연도>.yaml   심평원 공식 단가표 — 2024·2025: 그 해 「건강보험요양급여비용」 책자 점수 × 환산지수,
-                      2026: 심평원 수가기준정보 오픈 API. 만든 곳: 이전 합성 서류 생성기/tools (종별가산 전 금액)
+                      2026: 심평원 수가기준정보 오픈 API. 만든 곳: generator/forgery/tools (종별가산 전 금액)
   hira_kcd_master_2025_9.csv   심평원 상병마스터 2025.9 (공공데이터포털 15067467, cp949)
-  rules_data.yaml     부담률·종별가산율·공휴일·관할 세무서 코드 (이전 합성 서류 생성기 codebook.yaml에서 옮김)
+  rules_data.yaml     부담률·종별가산율·공휴일·관할 세무서 코드 (generator/forgery/config/codebook.yaml에서 옮김)
 """
 import csv
 from datetime import date

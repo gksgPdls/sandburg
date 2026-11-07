@@ -310,10 +310,10 @@ def cell_boxes(mask, gap=6):
 def _det_noise(bgr, box):
     """탐지기 노이즈분석 값 (칸 안 ÷ 비슷한 주변), 칸 하나만 따로."""
     import sys
-    root = str(Path(__file__).resolve().parents[3])
+    root = str(Path(__file__).resolve().parents[4])
     if root not in sys.path:
         sys.path.insert(0, root)
-    from detector import measure
+    from detector.pixel import measure
     rgb = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
     m = measure(rgb, bbox=box, padding=0, methods=["noise"])["noise"]
     return m["score"] if m else None

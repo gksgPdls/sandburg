@@ -3,8 +3,8 @@ import json, sys, numpy as np
 from multiprocessing import Pool
 from pathlib import Path
 from PIL import Image
-ROOT = Path(__file__).resolve().parents[4]; sys.path.insert(0, str(ROOT))
-from detector import detect, load_config
+ROOT = Path(__file__).resolve().parents[5]; sys.path.insert(0, str(ROOT))
+from detector.pixel import detect, load_config
 D = ROOT / "dataset"
 VARIANTS = {"정답 칸 그대로": (0, 0, 0), "사방 4px 넓게": (4, 4, 0), "사방 10px 넓게": (10, 10, 0),
             "가로세로 30% 넓게": ("30%", "30%", 0), "오른쪽으로 5px 밀림": (0, 0, 5)}

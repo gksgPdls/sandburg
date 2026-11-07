@@ -1,7 +1,7 @@
 """
 복사-붙여넣기(카피앤무브) 평가용 위조 만들기 (2026-11-06). 실제 문서 기반이라 로컬 전용.
 
-  python scripts/generate/make_copymove.py [--n 400] [--max-seconds 150]
+  python generator/alteration/forge/make_copymove.py [--n 400] [--max-seconds 150]
 정상 원본마다(평가셋 manifest의 '원본') 금액 칸 A를 같은 문서의 크기가 비슷한 다른 금액 칸 B 위에 픽셀 그대로 붙인다
 (오른쪽 끝·세로 가운데 맞춤, 크기 변경 없음). A가 B를 다 덮도록 A 높이 ±2px, 폭 B 이상 1.6배 이하인 쌍만.
 원본이 JPEG이면 원본과 같은 압축표로 저장 (harmonize.save_like 와 같은 방식). 고친 위치 마스크 = 붙인 직사각형.
@@ -14,9 +14,9 @@ import cv2
 import numpy as np
 from PIL import Image, JpegImagePlugin
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from detector.v2.cellfilter import money_like  # noqa: E402
+from detector.pixel.v2.cellfilter import money_like  # noqa: E402
 
 OUT = ROOT / "outputs" / "고도화" / "copymove_평가용" / "AI"
 

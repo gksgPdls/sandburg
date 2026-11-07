@@ -13,7 +13,7 @@
   4) 처음 보는 검증용 절반으로 최종 성능 보고
 
 사용: python tune.py              # 결과만 출력
-      python tune.py --write      # detector/v1/config.json에 반영
+      python tune.py --write      # detector/pixel/v1/config.json에 반영
 """
 import argparse
 import itertools
@@ -24,9 +24,9 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-from detector.v1.core import DEFAULT_CONFIG, apply_rule, load_config  # noqa: E402
+from detector.pixel.v1.core import DEFAULT_CONFIG, apply_rule, load_config  # noqa: E402
 
 CACHE = ROOT / "outputs/reports/detector_measurements.jsonl"
 REPORT = ROOT / "outputs/reports/detector_tuning.json"
@@ -69,7 +69,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max-fp", type=float, default=0.10, help="종합 판정 오탐 상한 (기본 10%%)")
-    ap.add_argument("--write", action="store_true", help="결과를 detector/v1/config.json에 반영")
+    ap.add_argument("--write", action="store_true", help="결과를 detector/pixel/v1/config.json에 반영")
     args = ap.parse_args()
 
     cfg = load_config()

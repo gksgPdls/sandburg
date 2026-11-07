@@ -2,11 +2,11 @@
 
 같은 원본 30장으로 단계를 하나씩 쌓아가며 비교한다. 결과는 outputs/고도화/.
 
-    python scripts/generate/2_render/forge_v2.py select                 원본 30장 고르기 (원본목록.csv)
-    python scripts/generate/2_render/forge_v2.py baseline               00_기존 (내 방식 복사, 동현님 방식 재현)
-    python scripts/generate/2_render/forge_v2.py run --branch reuse --steps 1 --out 01_배경
-    python scripts/generate/2_render/forge_v2.py run --branch ai --steps 1 --out 01_배경    (SD 필요, 맥에서 실행)
-    python scripts/generate/2_render/forge_v2.py compare --out 01_배경 --prev 00_기존       비교 이미지와 점수
+    python generator/alteration/forge/2_render/forge_v2.py select                 원본 30장 고르기 (원본목록.csv)
+    python generator/alteration/forge/2_render/forge_v2.py baseline               00_기존 (내 방식 복사, 동현님 방식 재현)
+    python generator/alteration/forge/2_render/forge_v2.py run --branch reuse --steps 1 --out 01_배경
+    python generator/alteration/forge/2_render/forge_v2.py run --branch ai --steps 1 --out 01_배경    (SD 필요, 맥에서 실행)
+    python generator/alteration/forge/2_render/forge_v2.py compare --out 01_배경 --prev 00_기존       비교 이미지와 점수
 
 갈래
 - ai     AI 인페인팅 (내 방식 개선): 글자 획 자리를 SD가 채우고 숫자는 폰트로 쓴다
@@ -17,7 +17,7 @@
 4  [AI] 폰트 맞추기: 원래 값을 후보 폰트로 그려 원본과 가장 닮은 폰트, 굵기, 흐림, 자간을 골라 새 값을 씀 (font_match.py)
 6  [AI] SD 블렌딩: 글자 바깥 테두리만 SD로 약하게 다시 그린다 (기존 내 방식과 같은 처리)
 
-    python scripts/generate/2_render/forge_v2.py run --branch ai --steps 1,6 --out 06_AI블렌딩 --name AI_블렌딩있음
+    python generator/alteration/forge/2_render/forge_v2.py run --branch ai --steps 1,6 --out 06_AI블렌딩 --name AI_블렌딩있음
 """
 import argparse
 import csv
@@ -32,8 +32,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 sys.path.insert(0, str(ROOT / "dataset" / "scripts"))
 sys.path.insert(0, str(ROOT))

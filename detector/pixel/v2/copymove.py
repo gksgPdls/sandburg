@@ -2,7 +2,7 @@
 A7 복사-붙여넣기 검사 (2026-11-06). 위치를 모르는 상태에서, 같은 문서 안 두 칸이 '노이즈까지 똑같은지' 본다.
 진짜 인쇄는 같은 숫자를 두 번 찍어도 종이 결·카메라 노이즈가 서로 다르다. 복사한 칸은 원래 칸과 픽셀까지 같다.
 
-  from detector.v2.copymove import copymove_scores
+  from detector.pixel.v2.copymove import copymove_scores
   copymove_scores(gray, cells) -> {cell_id: {"score": 1 - 차이, "with": 짝 칸 id, "pairs": 거의 같은 쌍 수}}
 
 1. 금액·날짜·형식 깨진 금액 칸 중 높이 비가 0.75~1.33인 겹치지 않는 두 칸: 한 칸의 글자 부분을 다른 칸 주변 ±8px에서 밀어 보며 가장 잘 맞는 자리를 찾는다 (OCR 상자 흔들림 대응, 11-06)

@@ -1,6 +1,6 @@
 """읽기: VLM(OpenRouter) 한 번으로 서류 칸을 읽고 → 로직 엔진(logic_detector)의 판독 형식 Reading 으로 바꾼다.
 
-- 지시문은 ai_judge/ai_reader.READ_PROMPT 를 그대로 쓰고, 로직 규칙이 쓰는 칸(요양기관 종류 · 입원/외래 · 야간/공휴 ·
+- 지시문은 detector/reader/ai_reader.READ_PROMPT 를 그대로 쓰고, 로직 규칙이 쓰는 칸(요양기관 종류 · 입원/외래 · 야간/공휴 ·
   환자 구분 · 주민번호 · 입원일/퇴원일)만 덧붙여 묻는다
 - 같은 사진 · 같은 모델 · 같은 지시문이면 원본 응답을 캐시에서 꺼낸다 → 같은 평가셋을 다시 돌릴 때 비용 0
 - 합성 서류만 보낸다 (or_client.refuse_real 이 보내기 전에 막음)
@@ -11,14 +11,14 @@ import re
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "ai_judge"))
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "detector" / "reader"))
 import ai_reader as ar  # noqa: E402
 import or_client as oc  # noqa: E402
 
 sys.path.insert(0, str(REPO))
-from logic_detector.logic.reading import Reading  # noqa: E402
-from logic_detector.logic.read_receipt import ROW_ORDER  # noqa: E402
+from detector.logic.reading import Reading  # noqa: E402
+from detector.logic.read_receipt import ROW_ORDER  # noqa: E402
 
 CACHE = REPO / "outputs" / "combine" / "vlm_cache"
 MODELS = {"qwen27b": "qwen/qwen3.8-27b", "deepseek41f": "deepseek/deepseek-v4.1-flash-1017",
@@ -76,7 +76,7 @@ def read(image, doc, model="qwen27b", size=2500, use_cache=True):
         r = json.loads(cf.read_text(encoding="utf-8"))
         return {**r, "cached": True, "cost": 0, "seconds": 0}
     r = ar.ask(model_id, image, prompt(doc), size)
-    if r.get("ok") and not ar.usable(r.get("json"), doc):             # 빈 틀만 돌려주면 크기를 바꿔 한 번 더 (ai_judge 와 같음)
+    if r.get("ok") and not ar.usable(r.get("json"), doc):             # 빈 틀만 돌려주면 크기를 바꿔 한 번 더
         r2 = ar.ask(model_id, image, prompt(doc), 3200)
         r2["cost"] = (r2.get("cost") or 0) + (r.get("cost") or 0)
         r2["seconds"] = (r2.get("seconds") or 0) + (r.get("seconds") or 0)

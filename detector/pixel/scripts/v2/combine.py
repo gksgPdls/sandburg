@@ -2,7 +2,7 @@
 A 검사 합치기 (2026-11-06): 검사마다 문서 점수(가장 의심 칸)를 '튜닝용 정상 문서 중 이보다 높은 비율'(p)로 바꾸고
 문서 p = 검사들 중 가장 작은 p. 기준값은 다시 튜닝용 정상 문서에서 오탐 --fpr 지점 (검사 수만큼의 다중비교가 자동 반영됨).
 
-  python scripts/detect/v2/combine.py --checks A11_다시그린칸,A5_흰박스 [--fpr 0.10]
+  python detector/pixel/scripts/v2/combine.py --checks A11_다시그린칸,A5_흰박스 [--fpr 0.10]
 먼저 evaluate.py 로 각 검사의 scores_<검사>.jsonl 을 만들어 둔다. 결과는 화면 표 (평가 방식은 evaluate.py와 같음)
 """
 import argparse, csv, json, os, sys
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).parent))
 from evaluate import auc, hit, mask_boxes, wilson  # noqa: E402
 

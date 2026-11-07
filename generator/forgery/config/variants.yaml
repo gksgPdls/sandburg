@@ -1,5 +1,5 @@
 # 서식은 공식 PDF 레이아웃 그대로 다시 그리고, "값을 적는 방식"만 병원(EMR)마다 다르게 뽑음 (값 자체는 바꾸지 않음)
-# 각 값은 사건마다 확률로 하나를 뽑음 (generator/generate.py › pick_variant)
+# 각 값은 사건마다 확률로 하나를 뽑음 (docgen/generate.py › pick_variant)
 
 receipt:
   zero_fill:        {true: 0.9, false: 0.1}       # 금액 없는 칸에 0 표기 / 공란

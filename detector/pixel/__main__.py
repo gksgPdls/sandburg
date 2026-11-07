@@ -1,9 +1,9 @@
 """
 CLI: 이미지 1장 + 의심영역 → 탐지 결과
 
-    python -m detector --image 의심문서.jpg --bbox 893 224 122 26
-    python -m detector --image 의심문서.jpg --mask 마스크.png --json
-    python -m detector --image 문서.jpg --auto        # 좌표 없이 OCR로 금액·날짜 칸 자동 탐색 (tesseract 필요)
+    python -m detector.pixel --image 의심문서.jpg --bbox 893 224 122 26
+    python -m detector.pixel --image 의심문서.jpg --mask 마스크.png --json
+    python -m detector.pixel --image 문서.jpg --auto        # 좌표 없이 OCR로 금액·날짜 칸 자동 탐색 (tesseract 필요)
 """
 import argparse
 import json
@@ -12,11 +12,11 @@ from .v1.core import detect
 
 
 def main():
-    ap = argparse.ArgumentParser(prog="python -m detector", description="의심 영역 위변조 탐지")
+    ap = argparse.ArgumentParser(prog="python -m detector.pixel", description="의심 영역 위변조 탐지")
     ap.add_argument("--image", required=True)
     ap.add_argument("--bbox", nargs=4, type=int, metavar=("X", "Y", "W", "H"))
     ap.add_argument("--mask", help="의심영역 마스크 png (bbox 대신)")
-    ap.add_argument("--config", help="기준값 파일 (기본: detector/v1/config.json)")
+    ap.add_argument("--config", help="기준값 파일 (기본: detector/pixel/v1/config.json)")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     ap.add_argument("--auto", action="store_true", help="좌표 없이 OCR로 금액·날짜 칸을 찾아 전부 검사")
     a = ap.parse_args()

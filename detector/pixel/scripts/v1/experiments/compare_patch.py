@@ -14,10 +14,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT))
-from detector.v1 import features as F  # noqa: E402
-from detector.v1.core import mask_to_bbox  # noqa: E402
+from detector.pixel.v1 import features as F  # noqa: E402
+from detector.pixel.v1.core import mask_to_bbox  # noqa: E402
 
 DATA = ROOT / "dataset"
 OUT = ROOT / "outputs/reports/experiments/compare_patch.jsonl"

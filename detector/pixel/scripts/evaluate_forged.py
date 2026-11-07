@@ -1,7 +1,7 @@
 """
 우리 변조 결과가 탐지기에 얼마나 걸리는지 (2026-10-30).
 
-  python scripts/detect/evaluate_forged.py --runs VLM_8:VLM 이전논리_8:이전논리맞춤 한칸_8:논리끔
+  python detector/pixel/scripts/evaluate_forged.py --runs VLM_8:VLM 이전논리_8:이전논리맞춤 한칸_8:논리끔
 
 각 결과 폴더(outputs/고도화/<폴더>/AI)의 이미지마다 두 가지로 잰다.
   1) 모든 칸 스캔 (실사용과 같음): 좌표 없이 RapidOCR로 찾은 모든 글자 칸에 탐지기를 돌리고, 가장 이상한 칸의 희귀도가
@@ -22,13 +22,13 @@ import cv2
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts/generate"))
+sys.path.insert(0, str(ROOT / "generator/alteration/forge"))
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
-from detector import detect  # noqa: E402
-from detector.v1.core import load_config  # noqa: E402
-from detector.v1.locate import locate  # noqa: E402
+from detector.pixel import detect  # noqa: E402
+from detector.pixel.v1.core import load_config  # noqa: E402
+from detector.pixel.v1.locate import locate  # noqa: E402
 import harmonize as HZ  # noqa: E402
 
 OUT = ROOT / "outputs/고도화"

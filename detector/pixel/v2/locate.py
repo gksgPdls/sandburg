@@ -1,14 +1,14 @@
 """
 v2 입구 (2026-11-06): 사진 한 장 → 칸을 스스로 찾아(로컬 OCR) 3단계 판정 + 의심 칸 + 이유. 사진은 밖으로 안 나감.
 
-    from detector.v2.locate import locate
+    from detector.pixel.v2.locate import locate
     r = locate("문서.jpg")            # ocr="rapid" (기본) | "tesseract"
     r["verdict"]    -> "의심" | "확인필요" | "정상"
     r["score"]      -> 문서 점수 (A11 가장 높은 칸)
     r["candidates"] -> [{"bbox", "text", "score", "check", "level", "why"}, ...]  점수 높은 순 (A7 복사 칸 먼저)
     r["summary"], r["n_candidates"], r["thresholds"]
 
-판정 (detector/v2/config.json, 튜닝용 정상 576장에서 정함):
+판정 (detector/pixel/v2/config.json, 튜닝용 정상 576장에서 정함):
   A7 복사-붙여넣기 점수 > A7_위조의심 (정상 상위 0.5%)  → 의심
   A11 다시 그린 칸 점수 > A11_위조의심 (정상 상위 2%)  → 의심
   A11 점수 > A11_확인필요 (정상 상위 10%)               → 확인필요

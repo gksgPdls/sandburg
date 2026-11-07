@@ -18,9 +18,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-from detector.v1.core import judge, load_config, measure  # noqa: E402
+from detector.pixel.v1.core import judge, load_config, measure  # noqa: E402
 
 DATA = ROOT / "dataset"
 META_DIR, MASK_DIR = DATA / "labels/meta", DATA / "labels/masks"
@@ -103,7 +103,7 @@ def table():
     pct = lambda a, b: a / b * 100 if b else 0.0
     hdr = ["탐지법", "사용", "TP(정탐)", "FN(미탐)", "FP(오탐)", "TN", "정밀도", "정확도", "AUC"]
     rows = []
-    print(f"\n평가 {n}쌍 (위조본 {n} + 정상 원본 {n}), 기준: detector/v1/config.json")
+    print(f"\n평가 {n}쌍 (위조본 {n} + 정상 원본 {n}), 기준: detector/pixel/v1/config.json")
     print("\t".join(hdr))
     for c in cols:
         x = cm[c]

@@ -1,13 +1,13 @@
-"""합친 탐지기 실험 화면 (logic_detector/web 과 같은 화면, 이 맥에서만 도는 작은 서버).
+"""합친 탐지기 실험 화면 (detector/logic/web 과 같은 화면, 이 맥에서만 도는 작은 서버).
 
-    .venv/bin/python -m combine.web --demo <샘플 폴더>              # http://localhost:8771, 저장된 결과만 보여 줌 (외부 호출 없음)
-    .venv/bin/python -m combine.web --demo <샘플 폴더> --실시간      # 저장된 결과가 없는 사진은 VLM 으로 읽어 검사 (합성 서류만)
+    .venv/bin/python -m detector.pipeline.web --demo <샘플 폴더>              # http://localhost:8771, 저장된 결과만 보여 줌 (외부 호출 없음)
+    .venv/bin/python -m detector.pipeline.web --demo <샘플 폴더> --실시간      # 저장된 결과가 없는 사진은 VLM 으로 읽어 검사 (합성 서류만)
 
 샘플 폴더 (git 에 넣지 않음)
   samples/     검사할 사진          originals/  변조 전 원본 (있으면 나란히)
   정답.csv     파일 · 원래 번호 · 서류 · 조작 방식 · 바뀐 내용 · 바뀐 곳(x,y,w,h) · 원본 파일 · 케이스
   info.json   화면 제목 · 목록 이름
-  결과.json    {사진 sha1: 화면 결과} — 미리 계산한 결과 (combine.web.view 로 만든 것). 같은 사진이면 다시 보내지 않음
+  결과.json    {사진 sha1: 화면 결과} — 미리 계산한 결과 (detector.pipeline.web.view 로 만든 것). 같은 사진이면 다시 보내지 않음
 
   GET  /  /api/samples  /api/answers  /api/info  /samples/<파일>  /originals/<파일>
   POST /api/inspect     본문 = 이미지 바이트 → 화면 결과 (verdict · engines · findings · reading · notes)
@@ -26,9 +26,9 @@ from pathlib import Path
 from urllib.parse import unquote
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parents[2]
 sys.path.insert(0, str(REPO))
-from combine.web.view import view  # noqa: E402
+from detector.pipeline.web.view import view  # noqa: E402
 
 IMAGE_EXT = {".jpg", ".jpeg", ".png"}
 DEMO = None
@@ -95,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
                                              "(VLM 으로 외부 전송 — 합성 서류만)."})
         try:
             from PIL import Image
-            from combine import pipeline
+            from detector.pipeline import pipeline
             with tempfile.TemporaryDirectory() as td:
                 f = Path(td) / "upload.png"
                 f.write_bytes(body)

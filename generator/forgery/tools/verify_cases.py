@@ -32,8 +32,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from generator import calc, ids, kcd, pricing  # noqa: E402
-from generator.generate import day_kind  # noqa: E402
+from docgen import calc, ids, kcd, pricing  # noqa: E402
+from docgen.generate import day_kind  # noqa: E402
 
 
 def check(c: dict, cb: dict, master: dict, holidays: set) -> list:

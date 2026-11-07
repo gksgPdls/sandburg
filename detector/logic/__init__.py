@@ -1,6 +1,6 @@
 """로직 엔진: 서류 이미지 → 판독(Reading) → 공식 근거 규칙 검사. 설계: docs/로직엔진_설계.md
 
-    from logic_detector.logic import inspect
+    from detector.logic import inspect
     r = inspect("영수증.jpg")
     r["verdict"]     # 위변조 의심 / 확인 필요 / 정상
     r["findings"]    # [{rule, grade, title, boxes, expected, actual, source}]  주목 규칙 검사는 rule = "F:<id>"

@@ -5,7 +5,7 @@ A 검사 모음 (픽셀·글자 쪽, AI 없이). 검사 하나 = 함수 하나.
       image : PIL RGB, cells/groups : detector.cells 결과
       score : 클수록 의심 (검사마다 단위가 달라도 됨 — 평가에서 검사별로 기준값을 따로 정함)
 
-CHECKS 에 등록하면 scripts/detect/v2/evaluate.py 가 평가한다.
+CHECKS 에 등록하면 detector/pixel/scripts/v2/evaluate.py 가 평가한다.
 A0 = 지금 탐지기(노이즈·FFT·픽셀통계)를 금액·날짜 칸마다 돌린 것. 새 검사의 비교 기준.
 """
 import numpy as np

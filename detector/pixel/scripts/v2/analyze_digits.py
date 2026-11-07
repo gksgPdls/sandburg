@@ -1,7 +1,7 @@
 """
 같은 숫자 비교(digit_shape)가 고친 칸과 안 고친 칸을 얼마나 가르는지 (AUC) — 변조 위치는 채점에만 씀.
 
-  python scripts/detect/v2/analyze_digits.py [--group 고도화변조] [--normal 40]
+  python detector/pixel/scripts/v2/analyze_digits.py [--group 고도화변조] [--normal 40]
 결과: 화면 표 + outputs/평가셋/숫자비교_<group>.csv
 """
 import argparse, csv, json, os, sys
@@ -10,11 +10,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).parent))
 from analyze_diff import auc, mask_boxes, overlap  # noqa: E402
-from detector.v2.digit_shape import digit_scores  # noqa: E402
+from detector.pixel.v2.digit_shape import digit_scores  # noqa: E402
 
 OUT = Path(os.environ.get("EVALSET_DIR", ROOT / "outputs" / "평가셋"))
 KEYS = ["score", "shape", "aspect", "height", "dark"]

@@ -1,4 +1,4 @@
-# 로직 엔진 규칙 데이터 — 이전 합성 서류 생성기/config/codebook.yaml 에서 규칙에 필요한 공식 근거 값만 옮김 (생성 확률은 뺌)
+# 로직 엔진 규칙 데이터 — generator/forgery/config/codebook.yaml 에서 규칙에 필요한 공식 근거 값만 옮김 (생성 확률은 뺌)
 # 근거 (codebook.yaml 주석 원문 요약)
 #  institution_types.outpatient_rate : 국민건강보험법 시행령 [별표 2] 제1호 외래 본인부담률 (동 지역)
 #  institution_types.addon_rate      : 「건강보험요양급여비용」 제1편 제1부 Ⅱ 요양기관 종별가산율

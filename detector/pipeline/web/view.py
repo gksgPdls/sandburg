@@ -1,4 +1,4 @@
-"""합친 탐지기 결과(로직 · 픽셀 · 판정) → 실험 화면이 그리는 형식 (logic_detector/web 화면과 같은 모양).
+"""합친 탐지기 결과(로직 · 픽셀 · 판정) → 실험 화면이 그리는 형식 (detector/logic/web 화면과 같은 모양).
 
     view(logic, pixel, 판정, 판독 칸 dict, 문서 종류, 메모) → {verdict, kind, engines, findings, focus, reading, notes}
 """

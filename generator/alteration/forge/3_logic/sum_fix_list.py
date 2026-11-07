@@ -2,7 +2,7 @@
 '맨 아래 금액 = 위 금액들의 합'이 성립하는 열을 찾고, 항목 하나와 합계를 같이 바꾸는 목록을 만든다.
 항목을 바꾼 만큼 합계도 바꿔서 열 합계는 맞는다 (내용 검사로는 이 열에서 못 잡는 위조).
 
-python scripts/generate/3_logic/sum_fix_list.py [--limit 초]   # 시간 제한마다 끊어서 여러 번 실행 (이어서 함)
+python generator/alteration/forge/3_logic/sum_fix_list.py [--limit 초]   # 시간 제한마다 끊어서 여러 번 실행 (이어서 함)
 결과: outputs/고도화/원본목록_합계맞춤.csv (forge_v2 run 에 FORGE_LIST 로 넣음), 검사 기록 outputs/고도화/_합계스캔.csv"""
 import argparse
 import csv
@@ -14,9 +14,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "dataset" / "scripts"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 OUT = ROOT / "outputs" / "고도화"
 SCAN = OUT / "_합계스캔.csv"

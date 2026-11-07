@@ -7,7 +7,7 @@
 생성 순서 (보고서 2장과 같은 순서):
   1. 진료과 → 2. 기관 종류 → 3. 진단 → 4. 기관 정보 → 5. 입원 여부·날짜·시각
   6. 처방(세부내역) → 7. 금액 계산·검산 → 8. 결제 → 9. 진단서·계산서 기재값
-모든 확률·목록은 config/codebook.yaml, 모든 단가는 generator/pricing.py (공식 단가표).
+모든 확률·목록은 config/codebook.yaml, 모든 단가는 docgen/pricing.py (공식 단가표).
 """
 import random
 from datetime import date, timedelta

@@ -20,8 +20,8 @@ dataset/original/**/*.jpeg
 dataset/original/**/*.png
 dataset/original/real_docs/
 dataset/tampered/
-dataset/samples/**/*.jpg
-dataset/samples/**/*.png
+generator/alteration/methods/samples/**/*.jpg
+generator/alteration/methods/samples/**/*.png
 dataset/labels/masks/
 
 # 결과물: 텍스트 결과(성능표, 튜닝 결과)만 포함, 이미지·업로드용 폴더·zip은 제외
@@ -37,8 +37,8 @@ outputs/reports/detector_raw_scores.jsonl
 *.tar
 
 # 평가셋 · 개발지 (사진 · 정답, 공유). 안내 README 만 올림
-testsets/*
-!testsets/README.md
+detector/eval/evalsets/*
+!detector/eval/evalsets/README.md
 
 # 실제 문서 실험 샘플 (민감정보, 로컬 전용)
 demo_real/

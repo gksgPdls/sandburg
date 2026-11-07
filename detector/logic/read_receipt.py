@@ -1,7 +1,7 @@
 """
 판독기: 진료비 계산서·영수증 이미지 → Reading (칸 값 + 위치 + 불확실 표시).
 
-원리 (레포 scripts/generate/3_logic/receipt_form.py, real_data_analyzer/core/receipt.py와 같음)
+원리 (레포 generator/alteration/forge/3_logic/receipt_form.py, real_data_analyzer/core/receipt.py와 같음)
   1. 한글 OCR(Apple Vision)으로 칸 이름을 읽는다. 머리글(본인부담금·공단부담금·전액·비급여)로 열 위치를 정한다
   2. 표 안 숫자를 같은 높이끼리 묶어 '숫자 줄'을 만들고, 줄 왼쪽 라벨을 서식 행 순서(진찰료 → … → 합계)에
      순서를 지키며 맞춘다(동적계획법) → 라벨을 조금 틀리게 읽어도 위치·순서로 보정

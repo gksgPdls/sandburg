@@ -12,7 +12,7 @@
         --description "무엇을 어떻게 바꿨는지" --detection "어떻게 잡히는지"
 
 자동화 코드에서:
-    sys.path.insert(0, "dataset/scripts")
+    sys.path.insert(0, "generator/alteration/methods/scripts")
     from register_sample import register
     sid = register(method="copymove", axis="copy_move", original=..., tampered=...,
                    mask=..., description="...")

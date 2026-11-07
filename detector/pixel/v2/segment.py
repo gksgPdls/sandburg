@@ -1,7 +1,7 @@
 """
 칸 안 숫자를 하나씩 잘라 0~9 이름 붙이기 (OCR 글자를 길잡이로, 2026-11-06).
 
-    from detector.v2.segment import segment_digits
+    from detector.pixel.v2.segment import segment_digits
     segs = segment_digits(gray, bbox, "13,160")   # [{"ch": "1", "box": (x, y, w, h), "mask": bool배열(box 크기)}, ...] 또는 None
 
 방법

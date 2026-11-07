@@ -1,7 +1,7 @@
 """
 v2 변조가 '같은 문서의 같은 종류 칸'과 어떤 글자 특징에서 다른지 분석 (어떤 검사를 만들지 정하는 용도, 2026-11-06).
 
-  python scripts/detect/v2/analyze_diff.py [--group 고도화변조] [--max-seconds 150]
+  python detector/pixel/scripts/v2/analyze_diff.py [--group 고도화변조] [--max-seconds 150]
 
 위조 문서마다: 칸 찾기(평가셋 OCR 캐시를 같이 씀, 없으면 여기서 읽고 캐시에 추가) -> 칸마다 글자 특징 -> 같은 묶음 안에서
 튀는 정도 z = |값 - 중앙값| / (1.4826 x MAD). 정답 마스크와 겹치는 칸 = 고친 칸.
@@ -20,10 +20,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-from detector.common.cells import group_cells, read_cells  # noqa: E402
-from detector.v2.glyph import cell_features  # noqa: E402
+from detector.pixel.common.cells import group_cells, read_cells  # noqa: E402
+from detector.pixel.v2.glyph import cell_features  # noqa: E402
 
 OUT = Path(os.environ.get("EVALSET_DIR", ROOT / "outputs" / "평가셋"))
 FEATS = ["height", "stroke_w", "ink", "contrast", "edge_w", "halo", "gap", "gap_comma", "angle"]

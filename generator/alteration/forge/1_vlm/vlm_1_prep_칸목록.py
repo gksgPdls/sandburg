@@ -1,6 +1,6 @@
 """VLM 논리 맞추기 1단계: 사진 폴더 -> 사진마다 OCR 칸 목록 (VLM에게 사진과 같이 줄 것).
 
-python scripts/generate/1_vlm/vlm_1_prep_칸목록.py --src <사진 폴더> --name <이름> [--limit 10]
+python generator/alteration/forge/1_vlm/vlm_1_prep_칸목록.py --src <사진 폴더> --name <이름> [--limit 10]
 결과: outputs/고도화/_vlm/<이름>/
   <사진이름>_ocr.txt   VLM에게 줄 칸 목록 ([번호] "글자" (x, y, w, h))
   <사진이름>_ocr.json  같은 내용 (vlm_2_apply_답확인.py 가 씀)
@@ -16,9 +16,9 @@ from pathlib import Path
 import cv2
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
+ROOT = HERE.parents[3]
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 sys.path.insert(0, str(ROOT / "dataset" / "scripts"))
 OUT = ROOT / "outputs" / "고도화" / "_vlm"
@@ -46,7 +46,7 @@ def main():
         "손으로 할 때 (사진 한 장마다)\n"
         "1. VLM 채팅에 원본 사진 + <사진이름>_ocr.txt 내용 + 프롬프트.txt 내용을 넣는다\n"
         "2. 답(JSON)을 이 폴더에 <사진이름>_vlm.json 으로 저장한다\n"
-        "3. 다 되면: python scripts/generate/1_vlm/vlm_2_apply_답확인.py --name " + a.name + "\n"
+        "3. 다 되면: python generator/alteration/forge/1_vlm/vlm_2_apply_답확인.py --name " + a.name + "\n"
         "주의: VLM도 외부 서비스. 가짜로 만든 문서만 쓴다 (실제 의료 문서는 넣지 않는다)\n",
         encoding="utf-8")
     files = sorted(p for p in src.iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png"))

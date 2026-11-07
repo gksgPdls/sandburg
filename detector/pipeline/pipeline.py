@@ -3,7 +3,7 @@
     사진 ─┬─ VLM 읽기(OpenRouter) → Reading → 로직 엔진 ─┐
           └─ 픽셀 엔진 (읽기와 상관없이 바로 시작) ────────┴→ decide (등급형 OR) → 판정 · 근거 · 위치
 
-    from combine.pipeline import inspect
+    from detector.pipeline.pipeline import inspect
     r = inspect("영수증.png", "영수증")          # 문서 종류: 영수증 / 진단서 / 자동(VLM 이 판별)
     r["판정"], r["이유"], r["위치"]
 """
@@ -13,9 +13,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from combine import decide as D  # noqa: E402
-from combine import engines as E  # noqa: E402
-from combine import vlm_read as V  # noqa: E402
+from detector.pipeline import decide as D  # noqa: E402
+from detector.pipeline import engines as E  # noqa: E402
+from detector.pipeline import vlm_read as V  # noqa: E402
 
 CLASSIFY = """이 사진의 서류 종류를 하나만 골라라: "진료비 계산서·영수증", "진단서", "기타". JSON 하나로만: {"종류": "…"}"""
 _PIXEL_POOL = ThreadPoolExecutor(2)       # 픽셀은 CPU 작업이라 동시에 2장까지만 (VLM 기다리는 동안 돌게)

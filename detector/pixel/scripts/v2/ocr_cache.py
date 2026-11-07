@@ -1,7 +1,7 @@
 """
 평가셋 모든 이미지의 글자 칸(RapidOCR)을 미리 읽어 둔다 (A 검사 평가가 매번 OCR을 안 하게).
 
-  python scripts/detect/v2/ocr_cache.py [--max-seconds 150] [--workers 4]   # 끊기면 이어서
+  python detector/pixel/scripts/v2/ocr_cache.py [--max-seconds 150] [--workers 4]   # 끊기면 이어서
 결과: outputs/평가셋/ocr.jsonl  한 줄 = {"id", "cells": [...]}
 """
 import argparse
@@ -13,14 +13,14 @@ import time
 from multiprocessing import Pool
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
 OUT = Path(os.environ.get("EVALSET_DIR", ROOT / "outputs" / "평가셋"))   # 시험할 때 다른 폴더로
 CACHE = OUT / "ocr.jsonl"
 
 
 def work(row):
-    from detector.common.cells import read_cells
+    from detector.pixel.common.cells import read_cells
     try:
         return {"id": row["id"], "cells": read_cells(ROOT / row["path"])}
     except Exception as e:  # noqa: BLE001

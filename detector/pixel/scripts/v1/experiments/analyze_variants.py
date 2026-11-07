@@ -2,11 +2,11 @@
 import json, sys
 from pathlib import Path
 import numpy as np
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/detect/v1"))
+ROOT = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(ROOT / "detector/pixel/scripts/v1"))
 from tune import FP_GRID, thresholds, rates  # noqa: E402
 sys.path.insert(0, str(ROOT))
-from detector.v1.core import apply_rule  # noqa: E402
+from detector.pixel.v1.core import apply_rule  # noqa: E402
 
 recs = [r for r in map(json.loads, open(ROOT / "outputs/reports/experiments/compare_patch.jsonl")) if "skip" not in r]
 DIR = {"noise": "low", "fft": "two_sided", "pixel_std": "two_sided"}

@@ -1,5 +1,5 @@
 {
-  "_설명": "탐지기 기준값. 숫자를 바꾸면 코드 수정 없이 판정이 바뀐다. evidence는 scripts/detect/tune.py가 채움.",
+  "_설명": "탐지기 기준값. 숫자를 바꾸면 코드 수정 없이 판정이 바뀐다. evidence는 detector/pixel/scripts/tune.py가 채움.",
   "verdict": {
     "min_votes": 1,
     "evidence": {

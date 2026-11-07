@@ -1,7 +1,7 @@
 """
 탐지기 본체: detect(이미지, 의심영역) → 탐지법별 측정값·판정 + 종합 판정.
 
-    from detector import detect          # (= detector.v1.core.detect)
+    from detector.pixel import detect          # (= detector.v1.core.detect)
     result = detect("의심문서.jpg", bbox=(893, 224, 122, 26))   # x, y, w, h
     result["verdict"]["suspicious"]   # True = 위조 의심
 

@@ -1,7 +1,7 @@
 """
 칸 질감 비교 (2026-11-06): 고친 칸은 다시 그려져서 글자 안 미세 노이즈·경계 거칠기가 주변 칸보다 '적다'.
 
-    from detector.v2.texture import texture_scores
+    from detector.pixel.v2.texture import texture_scores
     texture_scores(gray, cells) -> {cell_id: {"inknoise": z, "lapvar": z, "con": z, "score": z최대}}
 
 같은 문서 금액·숫자 칸끼리 robust z를 '낮은 쪽만' 본다 (z = (중앙값 - 값) / 1.4826·MAD, 클수록 매끈함).

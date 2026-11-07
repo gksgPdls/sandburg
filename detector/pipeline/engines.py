@@ -8,14 +8,14 @@
 
 - 로직 = logic_detector 규칙 (A 산식 · B 수가 · C 상병 · D 날짜·번호 · F 주목 칸). 판독은 VLM 이 한 것(Reading)을 받는다
 - 픽셀 = detector v2 A11 '다시 그린 칸' (원본·칸 위치 없이 문서 전체). 칸 찾기만 로컬 RapidOCR (읽기가 아니라 글자 상자 위치)
-  문서 점수 = 가장 의심스러운 칸 점수. 기준값은 정상 서류로 정한 combine/pixel_thresholds.json (calibrate_pixel.py)
+  문서 점수 = 가장 의심스러운 칸 점수. 기준값은 정상 서류로 정한 detector/pipeline/pixel_thresholds.json (calibrate_pixel.py)
 """
 import json
 import sys
 import time
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 THRESHOLDS = Path(__file__).resolve().parent / "pixel_thresholds.json"
 
@@ -23,8 +23,8 @@ THRESHOLDS = Path(__file__).resolve().parent / "pixel_thresholds.json"
 # ── 로직 ─────────────────────────────────────────────────────────────────────
 
 def logic(reading):
-    from logic_detector.logic import focus
-    from logic_detector.logic.rules import GRADES, check
+    from detector.logic import focus
+    from detector.logic.rules import GRADES, check
     t0 = time.time()
     found = sorted(check(reading) + focus.check(reading), key=lambda f: GRADES.index(f["grade"]))
     strong = [f for f in found if f["grade"] in ("확정", "강함")]
@@ -40,8 +40,8 @@ def pixel_score(image):
     """사진 → (문서 점수, 칸 결과 [{bbox, score, why}] 점수 높은 순). 칸을 못 찾으면 (None, [])."""
     from PIL import Image, ImageOps
 
-    from detector.common.cells import group_cells, read_cells
-    from detector.v2.checks import a11_redrawn
+    from detector.pixel.common.cells import group_cells, read_cells
+    from detector.pixel.v2.checks import a11_redrawn
     img = ImageOps.exif_transpose(Image.open(image)).convert("RGB")
     cells = read_cells(img)
     if not cells:
@@ -70,7 +70,7 @@ def pixel(image, thr=None):
     if score is None:
         return {**out, "level": "보류", "note": "글자 칸을 못 찾음"}
     if not thr:
-        return {**out, "level": "보류", "note": "기준값 없음 (combine/calibrate_pixel.py 먼저)"}
+        return {**out, "level": "보류", "note": "기준값 없음 (detector/pipeline/calibrate_pixel.py 먼저)"}
     hi, lo = thr["hi"], thr["lo"]
     out["level"] = "의심" if score > hi else "확인필요" if score > lo else "정상"
     out["strong"] = score > hi

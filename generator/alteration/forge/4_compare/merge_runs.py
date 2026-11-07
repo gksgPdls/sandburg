@@ -1,7 +1,7 @@
 """
 여러 변조 방식 결과를 한 곳에 합친다 (2026-10-30).
 
-  python scripts/generate/4_compare/merge_runs.py --out 통합_8장 --runs 한칸_8:논리끔 이전논리_8:이전논리맞춤 VLM_8:VLM
+  python generator/alteration/forge/4_compare/merge_runs.py --out 통합_8장 --runs 한칸_8:논리끔 이전논리_8:이전논리맞춤 VLM_8:VLM
 
 - outputs/고도화/<out>/비교/<원본>.jpg : 고친 칸마다 한 줄, [원본 | 방식1 | 방식2 | ...] (방식이 안 고친 칸도 그대로 보여줌)
 - outputs/고도화/<out>/통합점수.csv  : 장마다 방식별 고친 칸 수, 변경 내용, 배경결·노이즈(원본 대비), 탐지기(고친 칸마다 따로)
@@ -16,11 +16,11 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
-from detector import detect  # noqa: E402
+from detector.pixel import detect  # noqa: E402
 import harmonize as HZ  # noqa: E402
 
 OUT = ROOT / "outputs/고도화"

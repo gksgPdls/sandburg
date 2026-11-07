@@ -1,7 +1,7 @@
 """
 같은 숫자끼리 모양 비교 (0은 0끼리 ~ 9는 9끼리, 위치를 모르는 상태에서, 2026-11-06).
 
-    from detector.v2.digit_shape import digit_scores
+    from detector.pixel.v2.digit_shape import digit_scores
     per_cell = digit_scores(gray, cells)    # {cell_id: {"shape": z, "aspect": z, "height": z, "dark": z, "score": z최대, "worst": "3"}}
 
 1. 금액·숫자 칸마다 segment_digits로 숫자를 잘라 0~9 이름을 붙인다 (OCR 글자 기준, 못 자른 칸은 건너뜀)

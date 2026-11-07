@@ -11,7 +11,7 @@ import csv
 import shutil
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 EV = ROOT / "outputs/reports/evidence"
 LABELS = ROOT / "outputs/reports/catalog_v1/labels.csv"
 

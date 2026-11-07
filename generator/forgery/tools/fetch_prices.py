@@ -9,7 +9,7 @@
   fee   건강보험심사평가원_수가기준정보조회서비스     https://www.data.go.kr/data/15021028/openapi.do
         mdfeeCrtrInfoService/getDiagnossMdfeeList          수가코드로 조회
         unprc1 = 의원, unprc2 = 병원·종합병원 (진찰료는 종별 코드가 따로 있어 한쪽 칸만 값이 있음)
-        종별가산 전 금액 (점수 × 환산지수, 10원 반올림). 가산은 생성 시 generator/pricing.py 에서
+        종별가산 전 금액 (점수 × 환산지수, 10원 반올림). 가산은 생성 시 docgen/pricing.py 에서
   drug  건강보험심사평가원_약가기준정보조회서비스     https://www.data.go.kr/data/15054445/openapi.do
         dgamtCrtrInfoService1.2/getDgamtList               품목명으로 조회 → 주성분코드로 거름
         급여구분 '급여'·'임의불가' 품목의 상한금액(mxCprc) 최빈값

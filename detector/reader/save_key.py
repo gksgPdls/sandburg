@@ -1,6 +1,6 @@
 """OpenRouter 키를 화면에 보이지 않게 입력받아 ~/.openrouter_key 에 저장한다 (나만 읽기 권한 600).
 
-    .venv/bin/python ai_judge/save_key.py
+    .venv/bin/python detector/reader/save_key.py
     → '키를 붙여 넣고 Enter' 가 나오면 키를 붙여 넣는다 (Cmd+V). 입력한 글자는 화면에 보이지 않는다.
 
 키는 저장소 밖(홈 폴더)에만 저장되고, 화면·명령 기록·git 에 남지 않는다. 키를 채팅에 붙여 넣지 않는다.

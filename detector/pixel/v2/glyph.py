@@ -1,7 +1,7 @@
 """
 칸 안 글자(숫자) 특징 재기 — A1~A4·A6 공통 (2026-11-06).
 
-    from detector.v2.glyph import cell_features
+    from detector.pixel.v2.glyph import cell_features
     f = cell_features(gray, (x, y, w, h))      # gray: 문서 전체 흑백 numpy, bbox: OCR 칸 상자
     f -> {"n_digits", "height", "stroke_w", "ink", "contrast", "edge_w", "halo", "gap", "gap_comma",
           "bottom", "angle", "digit_boxes"}   (못 재면 None)

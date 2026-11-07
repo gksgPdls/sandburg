@@ -1,8 +1,8 @@
 """합친 탐지기 실행기: 사진 폴더 · 평가셋 → 서류마다 VLM 읽기 + 로직 · 픽셀 병렬 → 판정 · 답안.
 
-    .venv/bin/python combine/run.py testsets/평가셋_v3                 # 평가셋: 답안 4개(등급형OR·순수OR·로직만·픽셀만) + 채점
-    .venv/bin/python combine/run.py <사진 폴더> --처음 5
-    .venv/bin/python combine/run.py --다시판정 outputs/combine/<결과 폴더>   # 호출 없이 문서별.jsonl 로 판정만 다시 (기준값 바꾼 뒤 등)
+    .venv/bin/python detector/pipeline/run.py detector/eval/evalsets/평가셋_v3                 # 평가셋: 답안 4개(등급형OR·순수OR·로직만·픽셀만) + 채점
+    .venv/bin/python detector/pipeline/run.py <사진 폴더> --처음 5
+    .venv/bin/python detector/pipeline/run.py --다시판정 outputs/combine/<결과 폴더>   # 호출 없이 문서별.jsonl 로 판정만 다시 (기준값 바꾼 뒤 등)
 옵션: --모델 qwen27b · --크기 2500 · -j 6 (VLM 동시 요청 수) · --위치없이 · --캐시없이 · --픽셀없이
 
 결과: outputs/combine/<폴더>_<시각>/
@@ -25,11 +25,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
-from combine import decide as D  # noqa: E402
-from combine import engines as E  # noqa: E402
-from combine import pipeline as P  # noqa: E402
+from detector.pipeline import decide as D  # noqa: E402
+from detector.pipeline import engines as E  # noqa: E402
+from detector.pipeline import pipeline as P  # noqa: E402
 
 OUT = REPO / "outputs" / "combine"
 DTB = {"DOC210": "영수증", "DOC205": "영수증", "DOC203": "진단서"}
@@ -163,7 +163,7 @@ def main():
     for q in items:                                                   # 한 장이라도 실서류로 보이면 아무것도 보내기 전에 멈춤
         P.V.oc.refuse_real(base / q["파일"])
     if not P.V.oc.api_key():
-        raise SystemExit("OpenRouter 키가 없습니다: .venv/bin/python ai_judge/save_key.py")
+        raise SystemExit("OpenRouter 키가 없습니다: .venv/bin/python detector/reader/save_key.py")
     thr = E.load_thresholds()
     if not thr and not a.픽셀없이:
         print("주의: 픽셀 기준값이 없어 픽셀은 '보류'로 남깁니다 (점수는 저장 → 기준값을 만든 뒤 --다시판정).")

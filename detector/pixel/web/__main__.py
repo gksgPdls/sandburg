@@ -2,8 +2,8 @@
 탐지기 웹 화면 (내 컴퓨터에서만 동작, 이미지는 밖으로 나가지 않음)
 
     cd ~/dev/repo
-    .venv/bin/python -m detector.web          # 브라우저가 http://localhost:8765 로 열림
-    .venv/bin/python -m detector.web --port 9000 --no-browser
+    .venv/bin/python -m detector.pixel.web          # 브라우저가 http://localhost:8765 로 열림
+    .venv/bin/python -m detector.pixel.web --port 9000 --no-browser
 
 추가 설치 없음 (파이썬 기본 웹서버 사용). 자동 탐색은 tesseract가 있어야 동작.
 """
@@ -86,7 +86,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    ap = argparse.ArgumentParser(prog="python -m detector.web")
+    ap = argparse.ArgumentParser(prog="python -m detector.pixel.web")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()

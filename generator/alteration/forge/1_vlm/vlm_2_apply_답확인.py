@@ -1,6 +1,6 @@
 """VLM 논리 맞추기 2단계: VLM 답(JSON)을 계산으로 확인하고, 통과한 것만 위조 목록 CSV로.
 
-python scripts/generate/1_vlm/vlm_2_apply_답확인.py --name <이름>
+python generator/alteration/forge/1_vlm/vlm_2_apply_답확인.py --name <이름>
 읽는 것: outputs/고도화/_vlm/<이름>/<사진이름>_ocr.json, <사진이름>_vlm.json
 결과:   outputs/고도화/원본목록_<이름>.csv  -> forge.py --src 이 CSV 로 위조 생성
         outputs/고도화/_vlm/<이름>/확인결과.csv  사진마다 통과/탈락과 이유
@@ -23,9 +23,9 @@ from pathlib import Path
 import cv2
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
+ROOT = HERE.parents[3]
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # scripts/generate
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # generator/alteration/forge
 import genpath  # noqa: E402,F401  (하위 폴더 1_vlm·2_render·3_logic·4_compare 경로)
 sys.path.insert(0, str(ROOT / "dataset" / "scripts"))
 OUT = ROOT / "outputs" / "고도화"
@@ -211,7 +211,7 @@ def main():
         w.writeheader(); w.writerows(report)
     n_ok = sum(1 for x in report if x["결과"] == "통과")
     print(f"통과 {n_ok} / 답 있음 {sum(1 for x in report if x['결과'] != '답 없음')} / 전체 {len(report)}")
-    print(f"목록: {lst}\n다음: .venv/bin/python scripts/generate/forge.py --src {lst} --out {a.name}")
+    print(f"목록: {lst}\n다음: .venv/bin/python generator/alteration/forge/forge.py --src {lst} --out {a.name}")
 
 
 if __name__ == "__main__":

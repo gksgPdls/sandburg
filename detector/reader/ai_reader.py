@@ -1,6 +1,6 @@
-"""AI 판독기 v2: 서류 사진 → 검증기에 바로 넣을 수 있는 '문서에 찍힌 값' + 다시 읽기(재확인).
+"""VLM 판독기: 서류 사진 → '문서에 찍힌 값' (OpenRouter).
 
-E2 에서 배운 것: AI 는 읽기는 잘하고 계산·날짜 비교는 틀린다 → AI 는 읽기만, 검사는 doc_checks(검증기 34종 + 한 장 검사).
+AI 는 읽기는 잘하고 계산·날짜 비교는 틀린다 → AI 는 읽기만 하고, 판정은 로직 엔진(detector/logic)이 한다.
 - read(): 서류 한 장의 칸을 모두 읽는다 (납부 칸·발행일시·영수증번호·내원일·사업자번호·병명·소견까지)
 - to_values(): 읽은 값 → export_values(visible) 형식 (행 이름·병명 표기 맞춤, 빈 칸 0)
 - reread(): 검산에서 실패한 칸만 더 큰 사진으로 다시 읽고 위치(상자)도 받는다 → 잘못 읽어 생긴 실패를 걸러 내고, 맞으면 근거 위치가 된다
@@ -17,8 +17,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import or_client as oc  # noqa: E402
 
-from paths import CHECKS  # noqa: E402
-sys.path.insert(0, str(CHECKS))                              # 규칙 검증기 (verify_case 등)
+KCD_MASTER = Path(__file__).resolve().parents[1] / "logic" / "data" / "hira_kcd_master_2025_9.csv"   # 심평원 상병마스터
 
 READ_PROMPT = {
     "영수증": """너는 '진료비 계산서·영수증'의 값을 그대로 옮겨 적는 판독기다. 판단하지 말고 사진에 적힌 값만 적는다.
@@ -120,8 +119,14 @@ _MASTER = None
 def master():
     global _MASTER
     if _MASTER is None:
-        import verify_case as vc
-        _MASTER = vc.load_disease_master()
+        import csv
+        _MASTER = {}
+        with open(KCD_MASTER, encoding="cp949", newline="") as f:   # 첫 줄 = 공식 병명, 둘째 줄부터 동의어
+            for r in csv.DictReader(f):
+                if r["상병기호"] in _MASTER:
+                    _MASTER[r["상병기호"]]["synonyms"].append(r["한글명"])
+                else:
+                    _MASTER[r["상병기호"]] = {**r, "synonyms": []}
     return _MASTER
 
 

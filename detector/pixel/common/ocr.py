@@ -1,5 +1,5 @@
 """
-글자 칸 찾기 OCR (v1·v2 공통, 2026-11-06 detector/v1/locate.py에서 분리).
+글자 칸 찾기 OCR (v1·v2 공통, 2026-11-06 detector/pixel/v1/locate.py에서 분리).
 
   ocr_candidates(image)              tesseract, 금액·날짜 모양 칸만 (v1 자동 탐색 기본값)
   rapid_candidates(image, only=...)  RapidOCR, 모든 글자 줄 (기울고 흐린 사진에서 위조 칸 후보 포함률 47% -> 90%)

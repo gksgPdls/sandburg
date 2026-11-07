@@ -17,9 +17,9 @@ from pathlib import Path
 
 import yaml
 
-from generator import ids, kcd, pricing
-from generator.generate import make_case, pick, pick_variant
-from generator.render_rebuild import FAMILY_WEIGHTS, render
+from docgen import ids, kcd, pricing
+from docgen.generate import make_case, pick, pick_variant
+from docgen.render_rebuild import FAMILY_WEIGHTS, render
 
 # 결과 폴더
 DEFAULT_OUT = "out"

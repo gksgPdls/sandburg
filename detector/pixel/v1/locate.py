@@ -1,7 +1,7 @@
 """
 의심 위치 자동 탐색 — 좌표 없이 문서 이미지만 넣으면, OCR로 금액·날짜 칸을 찾아 칸마다 탐지기를 돌린다.
 
-    from detector.v1.locate import locate
+    from detector.pixel.v1.locate import locate
     r = locate("문서.jpg")
     r["suspicious"]        # 문서 단위 판정
     r["candidates"][0]     # 가장 의심스러운 칸 (희귀도 순 정렬)

@@ -1,7 +1,7 @@
 """
 탐지기 v2 결과 뷰어 만들기 (2026-11-06). 이미지는 Mac 안 파일을 그대로 가리키고 밖으로 보내지 않는다.
 
-  python scripts/detect/v2/make_viewer.py [--check A11_다시그린칸]
+  python detector/pixel/scripts/v2/make_viewer.py [--check A11_다시그린칸]
 결과: outputs/평가셋/뷰어/index.html + img/ (문서 작은 사본, 최대 1400px). 파일로 바로 열어도 됨. 이미지는 이 Mac 안에만 있음 (outputs/ 는 git 제외)
 문서마다: 실제 정상/위조, 탐지기 판정(의심/통과), 의심 칸(빨강), 실제 고친 칸(초록 점선), 위치 맞았는지, 점수.
 3단계: 위조 의심(튜닝용 정상 오탐 2% 지점 초과) / 확인 필요(10% 지점 초과) / 정상.
@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).parent))
 from evaluate import hit, mask_boxes  # noqa: E402
 

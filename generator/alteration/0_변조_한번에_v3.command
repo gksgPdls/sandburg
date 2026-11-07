@@ -3,7 +3,7 @@
 #   앞 K장(기본 15): (1) 칸 목록 -> (2) VLM가 VLM 답 작성 -> (3) 계산 확인 -> 위조 이미지   [합계까지 맞춤]
 #   나머지 사진:     (4) 자동 규칙으로 위조 이미지 (VLM 토큰 안 씀)                     [영수증 서식이면 합계까지, 못 알아보면 칸 하나]
 # (2)는 각자 VLM 계정으로 한다. VLM 채팅에 문장을 붙여넣으면 이어서 진행.
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../.."   # 저장소 루트로
 PY=.venv/bin/python
 $PY -c "import rapidocr_onnxruntime" 2>/dev/null || .venv/bin/pip install rapidocr-onnxruntime
 
@@ -12,7 +12,7 @@ read -r -p "이름 (Enter면 vlm_$(date +%m%d_%H%M)): " NAME; NAME=${NAME:-vlm_$
 read -r -p "VLM에게 맡길 장수 (Enter면 15, 나머지는 자동 규칙. 전부 VLM는 0): " N; N=${N:-15}
 
 echo; echo "===== 1/4 칸 목록 만들기 (VLM에게 맡길 사진) ====="
-$PY scripts/generate/1_vlm/vlm_1_prep_칸목록.py --src "$SRC" --name "$NAME" --limit "$N" || exit 1
+$PY generator/alteration/forge/1_vlm/vlm_1_prep_칸목록.py --src "$SRC" --name "$NAME" --limit "$N" || exit 1
 DIR="outputs/고도화/_vlm/$NAME"
 TOTAL=$(ls "$DIR"/*_ocr.json 2>/dev/null | wc -l | tr -d ' ')
 BATCH=15   # 한 대화(한 번 부르기)에 맡길 장수. 많이 맡기면 대화가 길어져 실수가 늘어남
@@ -52,10 +52,10 @@ if [ "$DONE" -lt "$TOTAL" ]; then
 fi
 
 echo; echo "===== 3/4 계산 확인 + 위조 이미지 만들기 (VLM 답) ====="
-$PY scripts/generate/1_vlm/vlm_2_apply_답확인.py --name "$NAME" || exit 1
+$PY generator/alteration/forge/1_vlm/vlm_2_apply_답확인.py --name "$NAME" || exit 1
 ROWS=$(($(wc -l < "outputs/고도화/원본목록_$NAME.csv" 2>/dev/null || echo 1) - 1))
 if [ "$ROWS" -gt 0 ]; then
-  $PY scripts/generate/forge.py --src "outputs/고도화/원본목록_$NAME.csv" --out "VLM_$NAME"
+  $PY generator/alteration/forge/forge.py --src "outputs/고도화/원본목록_$NAME.csv" --out "VLM_$NAME"
   open "outputs/고도화/VLM_$NAME" 2>/dev/null || true
 else
   echo "통과한 사진이 없습니다. $DIR/확인결과.csv 의 이유를 확인하세요."
@@ -73,7 +73,7 @@ done
 NREST=$(ls "$REST" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$NREST" -gt 0 ]; then
   echo; echo "===== 4/4 나머지 ${NREST}장: 자동 규칙으로 위조 이미지 (VLM 안 씀) ====="
-  $PY scripts/generate/forge.py --src "$REST" --out "자동_$NAME" --logic 시도 --limit 0
+  $PY generator/alteration/forge/forge.py --src "$REST" --out "자동_$NAME" --logic 시도 --limit 0
   open "outputs/고도화/자동_$NAME" 2>/dev/null || true
 fi
 

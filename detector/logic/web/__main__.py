@@ -3,7 +3,7 @@
 
     python -m logic_detector.web            # http://localhost:8766 이 열림
     python -m logic_detector.web --port 9000 --no-open
-    python -m logic_detector.web --demo demo_real --port 8767   # 다른 샘플 폴더 (samples/ originals/ 정답.csv info.json)
+    python detector/logic/web/__main__.py --demo <샘플 폴더> --port 8767   # 다른 샘플 폴더 (samples/ originals/ 정답.csv info.json)
 
   GET  /                  화면 (index.html)
   GET  /api/samples       demo/samples 의 사진 목록
@@ -11,7 +11,7 @@
   GET  /originals/<파일>   샘플의 원본 사진 (demo/originals, 나란히 비교용)
   GET  /api/answers       demo/정답.csv (조작 방식·바뀐 곳 좌표·현재 탐지기 결과)
   GET  /api/info          demo/info.json (화면 제목·목록 이름, 없으면 기본값)
-  POST /api/inspect       본문 = 이미지 바이트 → logic_detector.logic.inspect 결과 JSON
+  POST /api/inspect       본문 = 이미지 바이트 → detector.logic.inspect 결과 JSON
 """
 import argparse
 import csv
@@ -27,12 +27,12 @@ from urllib.parse import unquote
 
 from PIL import Image, ImageOps
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from logic_detector.logic import inspect  # noqa: E402
+from detector.logic import inspect  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-DEMO = HERE.parent / "demo"                      # 기본 샘플: logic_detector/demo (11-06 폴더 정리 때 맨 위 demo/ 에서 옮김)
+DEMO = HERE.parent / "demo"                      # 기본 샘플: detector/logic/demo (11-06 폴더 정리 때 맨 위 demo/ 에서 옮김)
 SAMPLES, ORIGINALS, ANSWERS, INFO = DEMO / "samples", DEMO / "originals", DEMO / "정답.csv", DEMO / "info.json"
 
 
@@ -106,7 +106,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8766)
     ap.add_argument("--no-open", action="store_true")
-    ap.add_argument("--demo", default="logic_detector/demo", help="샘플 폴더 (레포 기준 상대 경로, 실제 문서는 demo_real)")
+    ap.add_argument("--demo", default="detector/logic/demo", help="샘플 폴더 (레포 기준 상대 경로)")
     a = ap.parse_args()
     use_demo(a.demo)
     url = f"http://localhost:{a.port}"

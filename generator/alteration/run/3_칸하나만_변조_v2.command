@@ -1,9 +1,9 @@
 #!/bin/bash
-# 위조 이미지 만들기 (AI 인페인팅 방식 전용. 동현님 방식은 dataset/scripts 코드를 따로 실행). 더블클릭하면 터미널이 열리고 사진 폴더(또는 목록 CSV)를 물어봄
-# 같은 일을 터미널에서: .venv/bin/python scripts/generate/forge.py --src <폴더 또는 CSV> --out <결과 이름> [--limit N]
+# 위조 이미지 만들기 (AI 인페인팅 방식 전용. 동현님 방식은 generator/alteration/methods/scripts 코드를 따로 실행). 더블클릭하면 터미널이 열리고 사진 폴더(또는 목록 CSV)를 물어봄
+# 같은 일을 터미널에서: .venv/bin/python generator/alteration/forge/forge.py --src <폴더 또는 CSV> --out <결과 이름> [--limit N]
 # 자세한 건 docs/고도화_사용법.md
 set -e
-cd "$(dirname "$0")/.."   # run/ 에서 저장소 루트로
+cd "$(dirname "$0")/../../.."   # 저장소 루트로
 mkdir -p outputs/고도화
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 PY=.venv/bin/python
@@ -26,6 +26,6 @@ if [ -z "$LIMIT" ]; then
   LIMIT=${LIMIT:-10}
 fi
 exec > >(tee "outputs/고도화/실행로그_$OUT.txt") 2>&1
-$PY scripts/generate/forge.py --src "$SRC" --out "$OUT" --limit "$LIMIT" $EXTRA
+$PY generator/alteration/forge/forge.py --src "$SRC" --out "$OUT" --limit "$LIMIT" $EXTRA
 echo "결과: outputs/고도화/$OUT/ (위조 이미지는 AI/, 비교는 비교이미지/)"
 open "outputs/고도화/$OUT" 2>/dev/null || true

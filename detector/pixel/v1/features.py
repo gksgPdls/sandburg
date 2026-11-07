@@ -1,7 +1,7 @@
 """
 측정 계산식 모음 (판정 없음, 숫자만 계산).
 
-scripts/detect/v1/_legacy/detectors.py에 있던 계산을 그대로 옮긴 것 — 결과값이 기존과 동일해야 한다.
+detector/pixel/scripts/v1/_legacy/detectors.py에 있던 계산을 그대로 옮긴 것 — 결과값이 기존과 동일해야 한다.
 """
 from io import BytesIO
 

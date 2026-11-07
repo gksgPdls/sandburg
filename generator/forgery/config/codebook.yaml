@@ -43,7 +43,7 @@ lowest_grade: {general: "5", hospital: "6"}   # 소재지(서울특별시·광�
 meal_addons: {MEAL_DIETITIAN: 0.80, MEAL_COOK: 0.80, MEAL_DIRECT: 0.60}
 
 # ── 3. 수가 항목 ────────────────────────────────────────────────
-#  name: 계산서·data.json 표기 / row: 계산서 행 (generator/render.py RECEIPT_ROWS)
+#  name: 계산서·data.json 표기 / row: 계산서 행 (docgen/render.py RECEIPT_ROWS)
 #  모든 항목은 급여 일부본인부담. 금액 = 단가 × 수량 × 일수. 단가 = config/prices*.yaml 의 같은 키
 #  addon: true → 종별가산 대상 (제2부 제2~10·13·14·19·20장 행위)
 #                대상 아님: 제1장(진찰료·입원료·의약품관리료), 검체검사(제2장 제1절),

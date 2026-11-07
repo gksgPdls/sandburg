@@ -6,9 +6,9 @@
 import json, sys
 from pathlib import Path
 import numpy as np
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT))
-from detector.v1.core import load_config, judge  # noqa: E402
+from detector.pixel.v1.core import load_config, judge  # noqa: E402
 recs = [r for r in map(json.loads, open(ROOT / "outputs/reports/detector_measurements.jsonl")) if "skip" not in r]
 cfg = load_config()
 DIR = {"noise": "low", "fft": "two_sided", "pixel_std": "two_sided"}
