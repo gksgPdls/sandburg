@@ -1,0 +1,38 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "0",
+  "essSelPayDpApvYn": "N",
+  "korNm": "기본식사-일반식(1식당)-병원,정신병원,요양병원,치과병원,한방병원/",
+  "mdfeeCd": "Y2300",
+  "mdfeeDivNo": "파51가(1)(다)",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "0",
+  "unprc2": "5150",
+  "unprc3": "5150",
+  "unprc4": "0",
+  "unprc5": "0",
+  "unprc6": "5150"
+ },
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "0",
+  "essSelPayDpApvYn": "N",
+  "korNm": "기본식사-일반식(1식당)-병원,정신병원,요양병원,치과병원,한방병원/인력기준 미충족",
+  "mdfeeCd": "Y2300001",
+  "mdfeeDivNo": "파51가(1)(다)",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "0",
+  "unprc2": "4710",
+  "unprc3": "4710",
+  "unprc4": "0",
+  "unprc5": "0",
+  "unprc6": "4710"
+ }
+]

@@ -1,0 +1,20 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "15.08",
+  "essSelPayDpApvYn": "N",
+  "korNm": "심층열치료[1일당]/",
+  "mdfeeCd": "MM020",
+  "mdfeeDivNo": "사102",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "1440",
+  "unprc2": "1260",
+  "unprc3": "1520",
+  "unprc4": "1490",
+  "unprc5": "0",
+  "unprc6": "1570"
+ }
+]

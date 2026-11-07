@@ -1,0 +1,202 @@
+# 항목별 공식 단가 출처 — 단가표를 만드는 도구가 읽음
+#   2026: tools/fetch_prices.py → config/prices.yaml (심평원 오픈 API)
+#   2024·2025: tools/build_book_prices.py (수가) + tools/build_list_prices.py (약가) → config/prices_<연도>.yaml
+#
+#  fee:  수가기준정보조회서비스 getDiagnossMdfeeList, 수가코드(mdfeeCd)
+#        단가: 의원 = unprc1, 병원·종합병원 = unprc2 (종별가산 전 금액 = 점수 × 환산지수, 10원 반올림)
+#  drug: 약가기준정보조회서비스 getDgamtList, 주성분코드(gnlNmCd) + 검색어(q, 품목명)
+#        단가: 같은 주성분코드 급여 품목의 상한금액(mxCprc) 최빈값 (동률이면 낮은 값)
+#              valid_from 이후에 상한금액이 바뀐 품목은 제외
+#        식대(Y·Z코드)는 점수 없이 금액으로 고시됨 → 금액 그대로
+#        모든 수가코드는 기본 코드(세부 코드 없음)를 씀: 검체검사 질가산·수탁, 영상의학과전문의 판독 가산,
+#        소아 가산, 식대 인력기준 미충족 등 기관·환자 조건에 따른 세부 코드는 쓰지 않음
+#  notice: 보건복지부 고시 금액 (API 아님) — 제증명수수료 상한
+#  name: 기록용 이름 (약제는 제품명 대신 성분명·함량)
+#  n:    수량 배수 (경구약 1일 복용 정수)
+#  항목 하나가 여러 코드의 합이면 목록으로 적음 (예: CBC = 4개 항목)
+#  진찰료·입원료·식대·의약품관리료는 종별 수가코드가 따로 있어 항목키에 종별(clinic/hospital/general)을 붙임
+
+valid_from: "2026-01-01"   # 2026 단가표 기준일 (2026년 수가 적용일)
+
+items:
+  # ── 진찰료 (가-1) ──────────────────────────────────────
+  CONSULT_FIRST_clinic:     {fee: AA154}   # 초진진찰료-의원
+  CONSULT_REVISIT_clinic:   {fee: AA254}   # 재진진찰료-의원
+  CONSULT_FIRST_hospital:   {fee: AA155}   # 초진진찰료-병원
+  CONSULT_REVISIT_hospital: {fee: AA255}   # 재진진찰료-병원
+  CONSULT_FIRST_general:    {fee: AA156}   # 초진진찰료-종합병원
+  CONSULT_REVISIT_general:  {fee: AA256}   # 재진진찰료-종합병원
+  # 야간·공휴일 진찰료 (가-1 주3): 평일 18시(토요일 13시)~익일 09시 → 야간, 공휴일(일요일 포함) → 공휴일
+  #   진찰료 + 기본진찰료(초진 155.57점, 재진 98.03점)의 30%. API 의 …010(야간)·…050(공휴일) 코드
+  # 토요일 09시 후~13시 전 (가-1 주5): 기본진찰료의 30% 를 별도 산정 → API 의 …030 코드 (진찰료와 별도 1줄)
+  CONSULT_FIRST_clinic_NIGHT:   {fee: AA154010}
+  CONSULT_FIRST_clinic_HOLIDAY: {fee: AA154050}
+  CONSULT_FIRST_clinic_SAT:     {fee: AA154030}
+  CONSULT_FIRST_hospital_NIGHT:   {fee: AA155010}
+  CONSULT_FIRST_hospital_HOLIDAY: {fee: AA155050}
+  CONSULT_FIRST_hospital_SAT:     {fee: AA155030}
+  CONSULT_FIRST_general_NIGHT:   {fee: AA156010}
+  CONSULT_FIRST_general_HOLIDAY: {fee: AA156050}
+  CONSULT_FIRST_general_SAT:     {fee: AA156030}
+  CONSULT_REVISIT_clinic_NIGHT:   {fee: AA254010}
+  CONSULT_REVISIT_clinic_HOLIDAY: {fee: AA254050}
+  CONSULT_REVISIT_clinic_SAT:     {fee: AA254030}
+  CONSULT_REVISIT_hospital_NIGHT:   {fee: AA255010}
+  CONSULT_REVISIT_hospital_HOLIDAY: {fee: AA255050}
+  CONSULT_REVISIT_hospital_SAT:     {fee: AA255030}
+  CONSULT_REVISIT_general_NIGHT:   {fee: AA256010}
+  CONSULT_REVISIT_general_HOLIDAY: {fee: AA256050}
+  CONSULT_REVISIT_general_SAT:     {fee: AA256030}
+
+  # ── 의약품관리료 (가-11, 제1장) ────────────────────────
+  #  외래: 원내에서 약(주사제 포함)을 투약한 방문. 의원 = 1일분, 병원·종합병원 = 방문당
+  #  입원: 입원기간 중 투약일수별 코드 (병원·종합병원, 1~9일분)
+  MEDKEEP_OUT_clinic:   {fee: AL801}   # 외래환자 의약품관리료 1일분(의원)
+  MEDKEEP_OUT_hospital: {fee: AL300}   # 외래환자 의약품관리료(병원)[방문당]
+  MEDKEEP_OUT_general:  {fee: AL200}   # 외래환자 의약품관리료(종합병원)[방문당]
+  MEDKEEP_IN_general_1: {fee: AL651}
+  MEDKEEP_IN_general_2: {fee: AL652}
+  MEDKEEP_IN_general_3: {fee: AL653}
+  MEDKEEP_IN_general_4: {fee: AL654}
+  MEDKEEP_IN_general_5: {fee: AL655}
+  MEDKEEP_IN_general_6: {fee: AL656}
+  MEDKEEP_IN_general_7: {fee: AL657}
+  MEDKEEP_IN_general_8: {fee: AL658}
+  MEDKEEP_IN_general_9: {fee: AL659}
+  MEDKEEP_IN_hospital_1: {fee: AL751}
+  MEDKEEP_IN_hospital_2: {fee: AL752}
+  MEDKEEP_IN_hospital_3: {fee: AL753}
+  MEDKEEP_IN_hospital_4: {fee: AL754}
+  MEDKEEP_IN_hospital_5: {fee: AL755}
+  MEDKEEP_IN_hospital_6: {fee: AL756}
+  MEDKEEP_IN_hospital_7: {fee: AL757}
+  MEDKEEP_IN_hospital_8: {fee: AL758}
+  MEDKEEP_IN_hospital_9: {fee: AL759}
+
+  # ── 입원료 (가-2, 1일당) — 간호관리료 차등제 등급별 코드 ─
+  #  종합병원: 1등급 = 기준(소정점수), A = 1등급 +12%, S = A +12%, 2~4등급 = 직전 등급 −10%,
+  #           5등급 = 4등급 −30%(서울특별시·광역시 구, _metro) / −25%(그 외)
+  #  병원:     4등급 = 기준, 3·2·1·A = 직전 등급 +10%, 5등급 = 4등급 −10%,
+  #           6등급 = 5등급 −30%(서울특별시·광역시 구, _metro) / −20%(그 외)
+  #  키: ROOM_<병실>_<종별>_G<등급>[_metro]  (근거: 책자 제2부 제1장 산정지침 2-마, 가-2 입원료)
+  ROOM_4_general_GS: {fee: AB2JS}
+  ROOM_4_general_GA: {fee: AB2JA}
+  ROOM_4_general_G1: {fee: AB2J1}
+  ROOM_4_general_G2: {fee: AB2J2}
+  ROOM_4_general_G3: {fee: AB2J3}
+  ROOM_4_general_G4: {fee: AB2J4}
+  ROOM_4_general_G5_metro: {fee: AB2L5}
+  ROOM_4_general_G5: {fee: AB2M5}
+  ROOM_3_general_GS: {fee: AB2NS}
+  ROOM_3_general_GA: {fee: AB2NA}
+  ROOM_3_general_G1: {fee: AB2N1}
+  ROOM_3_general_G2: {fee: AB2N2}
+  ROOM_3_general_G3: {fee: AB2N3}
+  ROOM_3_general_G4: {fee: AB2N4}
+  ROOM_3_general_G5_metro: {fee: AB2Q5}
+  ROOM_3_general_G5: {fee: AB2R5}
+  ROOM_2_general_GS: {fee: AB2SS}
+  ROOM_2_general_GA: {fee: AB2SA}
+  ROOM_2_general_G1: {fee: AB2S1}
+  ROOM_2_general_G2: {fee: AB2S2}
+  ROOM_2_general_G3: {fee: AB2S3}
+  ROOM_2_general_G4: {fee: AB2S4}
+  ROOM_2_general_G5_metro: {fee: AB2U5}
+  ROOM_2_general_G5: {fee: AB2V5}
+  ROOM_4_hospital_GA: {fee: AB3JA}
+  ROOM_4_hospital_G1: {fee: AB3J1}
+  ROOM_4_hospital_G2: {fee: AB3J2}
+  ROOM_4_hospital_G3: {fee: AB3J3}
+  ROOM_4_hospital_G4: {fee: AB3J4}
+  ROOM_4_hospital_G5: {fee: AB3J5}
+  ROOM_4_hospital_G6_metro: {fee: AB3L6}
+  ROOM_4_hospital_G6: {fee: AB3M6}
+  ROOM_3_hospital_GA: {fee: AB3NA}
+  ROOM_3_hospital_G1: {fee: AB3N1}
+  ROOM_3_hospital_G2: {fee: AB3N2}
+  ROOM_3_hospital_G3: {fee: AB3N3}
+  ROOM_3_hospital_G4: {fee: AB3N4}
+  ROOM_3_hospital_G5: {fee: AB3N5}
+  ROOM_3_hospital_G6_metro: {fee: AB3Q6}
+  ROOM_3_hospital_G6: {fee: AB3R6}
+  ROOM_2_hospital_GA: {fee: AB3SA}
+  ROOM_2_hospital_G1: {fee: AB3S1}
+  ROOM_2_hospital_G2: {fee: AB3S2}
+  ROOM_2_hospital_G3: {fee: AB3S3}
+  ROOM_2_hospital_G4: {fee: AB3S4}
+  ROOM_2_hospital_G5: {fee: AB3S5}
+  ROOM_2_hospital_G6_metro: {fee: AB3U6}
+  ROOM_2_hospital_G6: {fee: AB3V6}
+
+  # ── 식대 (파-51, 1식당 금액) ───────────────────────────
+  MEAL_hospital:  {fee: Y2300}   # 기본식사-일반식-병원
+  MEAL_general:   {fee: Y2200}   # 기본식사-일반식-종합병원
+  MEAL_DIETITIAN: {fee: Z0010}   # 일반식 가산-영양사(1식당)
+  MEAL_COOK:      {fee: Z0011}   # 일반식 가산-조리사(1식당)
+  MEAL_DIRECT:    {fee: Z0030}   # 식대 직영 가산
+
+  # ── 투약 및 조제 (라-) ─────────────────────────────────
+  MED_ACT_DAY: {fee: J2000}      # 입원환자 조제·복약지도료(1일당)
+
+  # ── 영상진단 (다-) ─────────────────────────────────────
+  XR_KNEE:     {fee: G7202}   # 슬관절 2매
+  XR_SHOULDER: {fee: G3302}   # 견관절 2매
+  XR_LSPINE:   {fee: G4503}   # 요추 3매
+  XR_CHEST:    {fee: G2101}   # 흉부[직접] 1매
+  XR_ABD:      {fee: G2401}   # 복부 1매
+  XR_PNS:      {fee: G1201}   # 부비동 1매
+
+  # ── 이학요법 (사-) ─────────────────────────────────────
+  PT_HOT:      {fee: MM010}   # 표층열치료
+  PT_HOT_HALF: {fee: MM015}   # 표층열치료(심층열 동시) = MM010 소정점수의 50% (사-101 주2)
+  PT_DEEP:     {fee: MM020}   # 심층열치료[1일당]
+  PT_ICT:      {fee: MM080}   # 간섭파전류치료
+  PT_TENS:     {fee: MM070}   # 경피적전기신경자극치료
+  INJ_TPI:     {fee: MM131}   # 근막동통유발점주사자극치료[1일당]
+  PRC_NEB:     {fee: MM303}   # 상기도 증기흡입치료
+
+  # ── 주사 행위료 (마-) ──────────────────────────────────
+  INJ_IM:     {fee: KK010}   # 피하 또는 근육내주사
+  INJ_IV:     {fee: KK020}   # 정맥내 일시주사[1일당]
+  INJ_IVDRIP: {fee: KK053}   # 정맥내 점적주사-501~1000mL
+
+  # ── 처치 및 수술 (자-) ─────────────────────────────────
+  INJ_IL:     {fee: N0091}   # 병변내주입요법-25㎠미만
+  PRC_CRYO:   {fee: N1434}   # 사마귀제거술-소작술[전기·레이저·냉동]-기타
+  PRC_EAR:    {fee: S5571}   # 외이도이물 또는 이구전색 제거-복잡한 것
+  PRC_LID:    {fee: S5400}   # 맥립종 절개술
+  PRC_LID_OFFHOURS: {fee: S5400080}   # 맥립종 절개술 — 의원 야간·토요일·공휴일 30% 가산 (제9장 산정지침 ⒇, 별표8)
+
+  # ── 검사 (나-) ─────────────────────────────────────────
+  LAB_CBC:  [{fee: D0002010}, {fee: D0002030}, {fee: D0002050}, {fee: D0002040}]   # 백혈구·적혈구·혈색소·헤마토크리트
+  LAB_CRP:  {fee: D0113}       # C-반응성단백 정밀면역(정량)
+  LAB_LFT:  [{fee: D1860}, {fee: D1850}]   # AST + ALT
+  LAB_BUN:  [{fee: D2300}, {fee: D2280}]   # 요소질소 + 크레아티닌
+  LAB_HBA1C: {fee: D3061}      # 헤모글로빈A1c
+  LAB_LIPID: [{fee: D2611}, {fee: D2263}, {fee: D2613}, {fee: D2614}]   # 총콜레스테롤·트리글리세라이드·HDL·LDL
+  LAB_KOH:  {fee: D6203}       # 일반진균검사-KOH도말
+  LAB_IGE:  {fee: D7440010}    # 항원특이 IgE 정량
+  LAB_ECG:  {fee: E6541}       # 심전도-표준12유도
+  LAB_PTA:  {fee: F6341}       # 표준순음청력검사
+  LAB_TYMP: {fee: F6361}       # 고막운동성계측
+  LAB_ENDO: {fee: E7540}       # 비인강경검사
+  LAB_SLIT: {fee: E6810}       # 세극등현미경검사
+  LAB_IOP:  {fee: E6752}       # 안압측정-기타
+  LAB_REF:  {fee: E6710}       # 굴절 및 조절검사
+
+  # ── 약제 (1앰플·1병·1백) ───────────────────────────────
+  D_DICLO:  {drug: 143535BIJ, q: 디클로페낙, name: 디클로페낙나트륨 75mg/2mL}
+  D_DEXA:   {drug: 142232BIJ, q: 덱사, name: 덱사메타손포스페이트이나트륨 5mg/1mL}
+  D_TRIAM:  {drug: 243335BIJ, q: 트리암, name: 트리암시놀론아세토니드 40mg/1mL}
+  D_CHLOR:  {drug: 131830BIJ, q: 클로르페니라민, name: 클로르페니라민말레산염 4mg/2mL}
+  D_LIDO:   {drug: 183935BIJ, q: 리도카인, name: 리도카인염산염 2% 20mL}
+  D_HS1000: {drug: 349500BIJ, q: 하트만, name: 하트만 1000mL}
+  D_FAMO:   {drug: 157302BIJ, q: 파모티딘, name: 파모티딘 20mg 주}
+  D_METO:   {drug: 193730BIJ, q: 메토클로프라미드, name: 메토클로프라미드 10mg/2mL}
+  D_CEFA:   {drug: 125701BIJ, q: 세파졸린, name: 세파졸린나트륨 1g}
+  # 입원 경구약 1일분 = 1일 복용 정수 × 정당 상한금액
+  MED_PO_A: [{drug: 100901ATB, q: 아세클로페낙, name: 아세클로페낙 100mg, n: 2}, {drug: 222901ATB, q: 레바미피드, name: 레바미피드 100mg, n: 3}]   # 진통소염제 1일 2정 + 위점막보호제 1일 3정
+
+  # ── 제증명수수료 (비급여) ──────────────────────────────
+  # 보건복지부고시 제2021-34호 「의료기관의 제증명수수료 항목 및 금액에 관한 기준」 상한금액
+  CERT_DX: {notice: 20000, label: 제2021-34호 제증명수수료 상한, name: 일반진단서 발급 수수료, ref: "보건복지부고시 제2021-34호 (2021-02-05 시행) 일반진단서 상한금액"}

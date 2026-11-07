@@ -1,0 +1,20 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "46.95",
+  "essSelPayDpApvYn": "N",
+  "korNm": "경피적전기신경자극치료[TENS]/",
+  "mdfeeCd": "MM070",
+  "mdfeeDivNo": "사104",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "4490",
+  "unprc2": "3930",
+  "unprc3": "4750",
+  "unprc4": "4630",
+  "unprc5": "0",
+  "unprc6": "4900"
+ }
+]

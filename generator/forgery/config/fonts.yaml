@@ -1,0 +1,34 @@
+# 방식 2(rebuild) 글씨체 후보 — 사건(case)마다 하나를 뽑아 그 사건의 진단서·계산서 전체에 사용
+# (같은 병원 EMR에서 출력한 두 문서는 같은 글씨체라고 가정)
+#
+# 조건: 서식에 쓰인 모든 글자(①~⑪, ㎜, ㎡ 등) + 완성형 한글 2,350자를 지원하는 무료(OFL) 글꼴
+#   - 나눔고딕·나눔명조는 ①~⑪, ㎜, ㎡ 가 없어 제외
+#   - IBM Plex Sans KR, Gothic A1 은 '註'(계산서 하단 '주(註)') 한 글자만 없음
+#     → 그 글자만 fallback 글꼴로 씀 (한글 프로그램도 한자는 별도 '한자 글꼴'로 표시함)
+#
+# weight: 선택 확률 / regular·bold: [원본 파일, 가변 폰트 굵기(고정 폰트면 null)]
+# 폰트 파일 생성: .venv/bin/python tools/make_font_subset.py
+
+families:
+  noto_sans:
+    label: "Noto Sans KR (본고딕)"
+    weight: 0.35
+    regular: [NotoSansKR-VF.ttf, 400]
+    bold:    [NotoSansKR-VF.ttf, 700]
+  noto_serif:
+    label: "Noto Serif KR (본명조)"
+    weight: 0.15
+    regular: [NotoSerifKR-VF.ttf, 400]
+    bold:    [NotoSerifKR-VF.ttf, 700]
+  ibm_plex:
+    label: "IBM Plex Sans KR"
+    weight: 0.25
+    regular: [IBMPlexSansKR-Regular.ttf, null]
+    bold:    [IBMPlexSansKR-Bold.ttf, null]
+  gothic_a1:
+    label: "Gothic A1"
+    weight: 0.25
+    regular: [GothicA1-Regular.ttf, null]
+    bold:    [GothicA1-Bold.ttf, null]
+
+fallback: noto_sans    # 글자가 없을 때 그 글자만 대신 쓸 글꼴

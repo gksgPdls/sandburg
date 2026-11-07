@@ -1,0 +1,20 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "35.01",
+  "essSelPayDpApvYn": "N",
+  "korNm": "안압측정-기타/",
+  "mdfeeCd": "E6752",
+  "mdfeeDivNo": "나675다",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "3350",
+  "unprc2": "2930",
+  "unprc3": "3540",
+  "unprc4": "3450",
+  "unprc5": "0",
+  "unprc6": "3650"
+ }
+]

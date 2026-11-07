@@ -1,0 +1,38 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "12.75",
+  "essSelPayDpApvYn": "N",
+  "korNm": "일반혈액검사(CBC)-[혈구세포-장비측정]_혈색소[광전비색법]/",
+  "mdfeeCd": "D0002050",
+  "mdfeeDivNo": "누000나",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "1220",
+  "unprc2": "1070",
+  "unprc3": "1290",
+  "unprc4": "1260",
+  "unprc5": "0",
+  "unprc6": "1330"
+ },
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "11.09",
+  "essSelPayDpApvYn": "N",
+  "korNm": "일반혈액검사(CBC)-[혈구세포-장비측정]_혈색소[광전비색법]/수탁기관으로 위탁하는 경우",
+  "mdfeeCd": "D0002050Z",
+  "mdfeeDivNo": "누000나",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "1060",
+  "unprc2": "930",
+  "unprc3": "1120",
+  "unprc4": "1090",
+  "unprc5": "0",
+  "unprc6": "1160"
+ }
+]

@@ -1,0 +1,38 @@
+[
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "0",
+  "essSelPayDpApvYn": "N",
+  "korNm": "기본식사-일반식(1식당)-종합병원/",
+  "mdfeeCd": "Y2200",
+  "mdfeeDivNo": "파51가(1)(나)",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "0",
+  "unprc2": "5410",
+  "unprc3": "0",
+  "unprc4": "0",
+  "unprc5": "0",
+  "unprc6": "0"
+ },
+ {
+  "adtStaDd": "20260101",
+  "cvalPnt": "0",
+  "essSelPayDpApvYn": "N",
+  "korNm": "기본식사-일반식(1식당)-종합병원/인력기준 미충족",
+  "mdfeeCd": "Y2200001",
+  "mdfeeDivNo": "파51가(1)(나)",
+  "payTpCd": "급여",
+  "slfBrdnRtCzaApvYn": "N",
+  "slfBrdnRtCzbApvYn": "N",
+  "soprTpNm": "비수술",
+  "unprc1": "0",
+  "unprc2": "4710",
+  "unprc3": "0",
+  "unprc4": "0",
+  "unprc5": "0",
+  "unprc6": "0"
+ }
+]
