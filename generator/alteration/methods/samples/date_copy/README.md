@@ -14,7 +14,7 @@
 **외래 영수증은 진료기간이 하루짜리(`03.10 ~ 03.10`)라 일이 다른 날짜 짝이 거의 없다**(663장 중 2개). 그런 짝이 없으면 **끝 날짜 일의 끝자리 한 글자**를 문서 안 다른 숫자 글자(날짜·금액 칸)로 덮어 날짜를 뒤로 미룬다(예: `03.10` → `03.13`). 기간이 늘어 보험금이 늘어나는 방향이다. CM_016~017은 두 자리, CM_018~020은 끝자리 한 글자 방식이다.
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py date_copy 5 --pool ../_work/pool/DOC210 ../_work/pool/DOC205 --seed 0
 ```
 

@@ -14,7 +14,7 @@
 3. 괄호를 포함한 단어 범위를 다시 읽어 **원래 단어에서 코드만 바뀐 글**이 나올 때만 채택한다
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_diag.py 5 --seed 0
 ```
 

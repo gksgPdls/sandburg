@@ -10,6 +10,6 @@
 
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python make_normals.py DOC210=20 DOC205=4 DOC203=6 --seed 0
 ```

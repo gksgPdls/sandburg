@@ -5,8 +5,8 @@
 
 | 예전 | 대체 |
 |---|---|
-| validate.py (정상 원본 오탐률) | `scripts/detect/v1/evaluate.py` |
-| evaluate_detectors.py (혼동행렬 표) | `scripts/detect/v1/evaluate.py` |
-| measure_auc.py (탐지법별 AUC) | `scripts/detect/v1/evaluate.py` (AUC 열) |
-| analyze_thresholds.py, tune_noise_threshold.py (기준값 분포·튜닝) | `scripts/detect/v1/tune.py` |
+| validate.py (정상 원본 오탐률) | `detector/pixel/scripts/v1/evaluate.py` |
+| evaluate_detectors.py (혼동행렬 표) | `detector/pixel/scripts/v1/evaluate.py` |
+| measure_auc.py (탐지법별 AUC) | `detector/pixel/scripts/v1/evaluate.py` (AUC 열) |
+| analyze_thresholds.py, tune_noise_threshold.py (기준값 분포·튜닝) | `detector/pixel/scripts/v1/tune.py` |
 | detectors.py (구버전 탐지 함수, 예전 기준값) | `detector/` 패키지 — export_catalog.py도 2026-10-16부터 패키지 사용 |

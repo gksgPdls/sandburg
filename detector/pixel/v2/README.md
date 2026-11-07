@@ -14,10 +14,10 @@
 | A7 카피앤무브 거르기 | 우연히 같은 픽셀로 잡힌 오탐 제외 (노이즈 상관) |
 | A8 숫자·날짜 형식 | 쉼표 자리, 없는 날짜, 영수증번호 연월 |
 
-검사는 `checks.py`의 CHECKS에 등록 → `scripts/detect/v2/evaluate.py`로 평가 (정탐·오탐·미탐, 위치 적중). A0 = v1 탐지기 기준선.
+검사는 `checks.py`의 CHECKS에 등록 → `detector/pixel/scripts/v2/evaluate.py`로 평가 (정탐·오탐·미탐, 위치 적중). A0 = v1 탐지기 기준선.
 
 ## 현재 상태 (2026-11-06)
 - 주 검사: **A11_다시그린칸** (`smooth.py`). 시험용 정상 581장 오탐 9.8%, 고도화 변조 167장 재현율 28.7%, v1 위조 503장 33.6% (튜닝 정상 10% 기준).
 - 자세한 수치·해 본 것: `outputs/reports/탐지기v2_진행_20261106.md`
-- 실행: `run/9_탐지기v2_전체평가.command`
+- 실행: `detector/pixel/run/9_탐지기v2_전체평가.command`
 - 파일: segment.py(숫자 자르기) · digit_shape.py(같은 숫자 비교) · cellfilter.py(비교 칸) · texture.py(A9) · smooth.py(A11) · whitebox.py(A5) · checks.py(등록)

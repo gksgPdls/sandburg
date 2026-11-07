@@ -1,6 +1,6 @@
-# eval — 팀 평가셋 채점 도구
+# eval — 평가셋 채점 도구
 
-세 엔진(이미지 · 규칙 · AI 판단)을 **같은 평가셋 · 같은 채점기**로 재기 위한 도구입니다.
+여러 엔진(픽셀 · 로직 · 합친 탐지기)을 **같은 평가셋 · 같은 채점기**로 재기 위한 도구입니다.
 평가셋 폴더 안의 `채점.py` · `합치기.py` · `풀이_틀.py` 와 같은 파일입니다.
 
 | 파일 | 하는 일 |
@@ -10,12 +10,12 @@
 | `solve_template.py` (= 풀이_틀.py) | `판단()` 함수만 채우면 평가셋 전체를 풀어 답안 CSV 를 만듦 |
 
 ```bash
-.venv/bin/python eval/score_testset.py testsets/평가셋_v3/답안/답안_혜인_규칙_v1.csv --평가셋 testsets/평가셋_v3
-.venv/bin/python eval/merge_answers.py <답안1> <답안2> <답안3> --이름 합친_v1 --방식 다수결 --평가셋 testsets/평가셋_v3
+.venv/bin/python detector/eval/score_testset.py detector/eval/evalsets/평가셋_v3/답안/답안_합친_graded_v1.csv --평가셋 detector/eval/evalsets/평가셋_v3
+.venv/bin/python detector/eval/merge_answers.py <답안1> <답안2> <답안3> --이름 합친_v1 --방식 다수결 --평가셋 detector/eval/evalsets/평가셋_v3
 ```
 
 - 답안 형식: `문제_id · 판정(의심/확인필요/정상) · 점수 · 위치(x,y,w,h;…) · 근거_종류 · 이유` (평가셋의 `답안_양식.csv`)
 - '확인필요'를 어느 쪽으로 셀지: `--확인필요 정상|의심` (기본 정상)
 - 위치 적중: 정답 영역과 1픽셀이라도 겹치면 적중, 서류 넓이의 10% 넘는 상자는 위치로 인정하지 않음
 - 꼭 지킬 것: 한 장씩 따로 판단(다른 문제와 비교 금지), 풀기 전에 정답 안 보기, 평가셋으로 학습 금지, 사진을 줄였으면 상자 좌표는 원래 크기로
-- 합친 뒤에는 한 번에 약 200장(정상 100 + 변조 100) 단위로 — AI 읽기 비용
+- 합친 뒤에는 한 번에 약 200장(정상 100 + 변조 100) 단위로 — VLM 읽기 비용

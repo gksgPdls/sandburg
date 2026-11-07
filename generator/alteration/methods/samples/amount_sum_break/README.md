@@ -11,7 +11,7 @@
 - 새 글자는 원본 숫자의 높이·오른쪽 끝·진하기를 재서 맞춘다. 폰트는 맥 기본 폰트(Apple SD Gothic Neo)
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py sum_break 5 --seed 0
 ```
 

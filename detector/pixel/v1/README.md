@@ -7,13 +7,13 @@
 
 ```bash
 # 프로젝트 루트(repo)에서
-python -m detector --image 의심문서.jpg --bbox 937 414 45 12      # x y w h
-python -m detector --image 의심문서.jpg --mask 마스크.png --json
-python -m detector --image 문서.jpg --auto                         # 좌표 없이 자동 탐색 (실험 단계)
+python -m detector.pixel --image 의심문서.jpg --bbox 937 414 45 12      # x y w h
+python -m detector.pixel --image 의심문서.jpg --mask 마스크.png --json
+python -m detector.pixel --image 문서.jpg --auto                         # 좌표 없이 자동 탐색 (실험 단계)
 ```
 
 ```python
-from detector import detect
+from detector.pixel import detect
 r = detect("의심문서.jpg", bbox=(937, 414, 45, 12))
 r["verdict"]["suspicious"]   # True = 위조 의심
 r["methods"]["noise"]        # 탐지법별 측정값·판정
@@ -25,10 +25,10 @@ r["methods"]["noise"]        # 탐지법별 측정값·판정
 
 ```bash
 cd ~/dev/repo
-.venv/bin/python -m detector.web        # http://localhost:8765 가 자동으로 열림
+.venv/bin/python -m detector.pixel.web        # http://localhost:8765 가 자동으로 열림
 ```
 
-또는 Finder에서 `run/6_탐지기_웹화면.command`를 더블클릭. 추가 설치 없음 (자동 칸 찾기만 tesseract 필요).
+또는 Finder에서 `detector/pixel/run/6_탐지기_웹화면.command`를 더블클릭. 추가 설치 없음 (자동 칸 찾기만 tesseract 필요).
 
 ## 구조
 
@@ -68,7 +68,7 @@ cd ~/dev/repo
 **비교 패치 (2026-10-16 개선):** 노이즈분석은 비교 패치 1개 대신 가장 비슷한 5개의 중앙값을 쓰고, 엣지밀도가
 의심영역의 절반 미만인 빈 종이 칸은 뺀다. 패치 하나가 빈 칸이나 굵은 글씨 칸으로 잘못 골리면 판정이 틀어졌기 때문
 (사례: AIP_0026 미탐, AIP_0046 오탐). 노이즈 AUC 0.817에서 0.881, 종합 정확도 85.7%에서 88.3%.
-FFT와 픽셀통계는 여러 개를 쓰면 오히려 나빠져서 1개 유지. (실험: `scripts/detect/v1/experiments/`)
+FFT와 픽셀통계는 여러 개를 쓰면 오히려 나빠져서 1개 유지. (실험: `detector/pixel/scripts/v1/experiments/`)
 
 **희귀도(rarity):** 결과의 `rarity`는 "정상 문서 중 이 값만큼 이상한 비율"(0.02 = 100장 중 2장 수준).
 판정 근거 설명과 자동 탐색 시 칸 순위에 쓴다. 정상 분포는 `normal_reference.json` (tune.py --write가 생성).
@@ -95,7 +95,7 @@ OCR(tesseract)로 금액·날짜 칸을 찾아 칸마다 탐지기를 돌리고,
 ## 다시 튜닝·평가하기
 
 ```bash
-cd scripts/detect
+cd detector/pixel/scripts
 python evaluate.py --collect   # 이미지에서 측정값 수집 (데이터가 바뀌었을 때만, 수 분)
 python tune.py                 # 기준값 후보와 검증 성능 확인 (수 초)
 python tune.py --write         # config.json에 반영

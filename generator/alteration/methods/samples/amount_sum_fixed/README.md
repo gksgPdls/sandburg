@@ -7,7 +7,7 @@
 **"항목들의 합 = 합계 칸"이 OCR로 확인된 열**에서 항목 금액 하나와 그 열의 합계를 같은 차이만큼 바꾼다. 방법론 문서의 케이스 2(금액 치환 + 합계 보정)다. 두 칸 모두 지우고 다시 쓴다.
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py sum_fixed 5 --seed 0
 ```
 

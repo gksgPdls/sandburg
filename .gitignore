@@ -1,11 +1,12 @@
-# 비밀, 실행환경
+# 비밀 · 실행환경
 .env
 .venv/
 __pycache__/
 *.pyc
 .DS_Store
+.openrouter_key
 
-# 모든 이미지 제외 (문서 사진이 들어 있어 git에는 올리지 않음, 공유)
+# 서류 사진은 올리지 않음 (개인정보)
 *.jpg
 *.jpeg
 *.png
@@ -13,32 +14,21 @@ __pycache__/
 *.bmp
 *.tif
 *.tiff
+*.heic
+*.pdf
 
-# 이미지 데이터 폴더 (용량 큼, 공유). 라벨·CSV·README는 git에 포함
-dataset/original/**/*.jpg
-dataset/original/**/*.jpeg
-dataset/original/**/*.png
-dataset/original/real_docs/
-dataset/tampered/
-generator/alteration/methods/samples/**/*.jpg
-generator/alteration/methods/samples/**/*.png
-dataset/labels/masks/
-
-# 결과물: 텍스트 결과(성능표, 튜닝 결과)만 포함, 이미지·업로드용 폴더·zip은 제외
-outputs/*
-!outputs/reports/
-outputs/reports/evidence/
-outputs/reports/catalog_v1/catalog.html
-outputs/reports/catalog_v1/detection_cache.jsonl
-outputs/reports/_archive/
-outputs/reports/*_cache*.jsonl
-outputs/reports/detector_raw_scores.jsonl
+# 데이터 · 결과물
+dataset/
+generator/alteration/methods/samples/**/*.csv
+outputs/
+detector/eval/evalsets/*
+!detector/eval/evalsets/README.md
+demo/
+demo_real/
+*.jsonl
 *.zip
 *.tar
 
-# 평가셋 · 개발지 (사진 · 정답, 공유). 안내 README 만 올림
-detector/eval/evalsets/*
-!detector/eval/evalsets/README.md
-
-# 실제 문서 실험 샘플 (민감정보, 로컬 전용)
-demo_real/
+# 라이선스 글꼴
+generator/alteration/fonts/*.ttf
+generator/alteration/fonts/*.ttc

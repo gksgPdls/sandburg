@@ -25,7 +25,7 @@
 - `notes`에 조작 종류(`op=`)와 변형 값이 있다
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python make_edms.py --per-axis 5 --normal 5 --seed 0
 ```
 

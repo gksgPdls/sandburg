@@ -17,7 +17,7 @@
 추가할 병명은 [`kcd_add_list.csv`](../../kcd_add_list.csv)에서 고른다. 코드와 병명이 맞는 흔한 진단(요통, 추간판전위, 염좌, 위염 등)이다. **KCD 공식 표기는 코드표로 확인이 필요하다.**
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python pick_session.py add_diag pick 14   # 찍기 (좌표는 _work/picks/add_diag.json)
 ../.venv/bin/python pick_session.py add_diag apply     # 찍어 둔 좌표로 다시 만들기
 ```

@@ -14,7 +14,7 @@
 구분 기호(`-` `.`)가 있는 날짜와, 앞뒤가 숫자가 아닌 정확히 8자리 날짜만 쓴다. 두 날짜가 붙어 16자리로 읽히는 경우는 일의 위치가 모호해서 뺀다.
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py date_shift 10 --pool ../_work/pool/DOC210 ../_work/pool/DOC205 --seed 0
 ```
 

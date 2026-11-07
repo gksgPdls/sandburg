@@ -7,4 +7,4 @@
 - malgun.ttf, malgunbd.ttf, malgunsl.ttf  맑은 고딕 (보통, 굵게, 얇게)
 
 Arial, Times New Roman, Courier New, Tahoma, Verdana는 맥에 이미 있어서 넣지 않았다.
-확인: 저장소 최상위의 글꼴확인.command 실행 -> outputs/고도화/글꼴후보.txt 에 위 글꼴이 보이면 된다.
+확인: generator/alteration/run/도구_글꼴확인.command 실행 -> outputs/고도화/글꼴후보.txt 에 위 글꼴이 보이면 된다.

@@ -9,7 +9,7 @@
 일 두 자리만 바꾸는 방식과 다시 읽기 검증은 [`date_shift`](../date_shift/README.md)와 같다. 검증에서는 시작 날짜가 그대로이고 끝 날짜가 새 값으로 읽히는지 확인한다.
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py date_conflict 5 --pool ../_work/pool/DOC205 ../_work/pool/DOC210 --seed 0
 ```
 

@@ -27,7 +27,7 @@ cd dataset
 3. 괘선 안쪽만 복사해 붙이고, 조작 전후에 바뀐 픽셀로 마스크를 만든다
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py copymove 9 --seed 0
 ```
 

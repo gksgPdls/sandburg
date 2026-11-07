@@ -4,11 +4,11 @@
 
 ## 1. 폴더에 `labels.csv`를 둔다
 
-`dataset/samples/` 아래에 폴더를 만들고(이름 자유, 조작 방법별 권장) 그 안에 이미지와 `labels.csv`를 둔다.
+`generator/alteration/methods/samples/` 아래에 폴더를 만들고(이름 자유, 조작 방법별 권장) 그 안에 이미지와 `labels.csv`를 둔다.
 하위 폴더를 써도 되고, 파일 이름도 자유다.
 
 ```
-dataset/samples/
+generator/alteration/methods/samples/
   copymove/
     labels.csv
     README.md          (권장) 조작 방식, 사용한 스크립트
@@ -68,7 +68,7 @@ dataset/samples/
 자동화 코드에서 `register_sample`을 함수로 쓸 수도 있다(선택).
 
 ```python
-import sys; sys.path.insert(0, "dataset/scripts")
+import sys; sys.path.insert(0, "generator/alteration/methods/scripts")
 from register_sample import register
 register(method="copymove", axis="copy_move", original=src, tampered=out,
          mask=mask_path, description="...", detection="...", author="김동현")
@@ -81,7 +81,7 @@ register(method="copymove", axis="copy_move", original=src, tampered=out,
 열 이름이 다르면 `import_labels.py`로 짝지어 가져온다. ID가 겹치면 `--id-prefix`로 앞에 문자를 붙인다.
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python import_labels.py ~/팀원결과/결과.csv --dest teammate_ai \
     --map id=번호 original=원본 tampered=조작본 mask=정답 description=설명 \
     --set target_axis=c2pa author=팀원 --id-prefix T_

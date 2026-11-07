@@ -12,7 +12,7 @@
 4. 대상 칸을 다시 읽어 새 금액이 정확히 나올 때만 채택한다
 
 ```bash
-cd dataset/scripts
+cd generator/alteration/methods/scripts
 ../.venv/bin/python auto_receipt.py digit_combo 5 --seed 0
 ```
 
