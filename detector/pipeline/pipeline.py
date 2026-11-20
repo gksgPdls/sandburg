@@ -55,7 +55,7 @@ def read_and_logic(image, doc, model, size, use_cache, locate):
     res["note"] = "; ".join(notes)
     if locate and res["fields"]:                                      # 걸린 칸만 위치를 한 번 더 묻는다
         try:
-            pos, c = V.locate(image, res["fields"], model, size)
+            pos, c = V.locate(image, res["fields"], model, size, reading.get("amount_table"))
             rec["비용"] += c
             res["boxes"] = list(dict.fromkeys(pos.values()))
         except Exception as e:  # noqa: BLE001

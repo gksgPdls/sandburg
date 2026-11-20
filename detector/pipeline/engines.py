@@ -26,7 +26,16 @@ def logic(reading):
     from detector.logic import focus
     from detector.logic.rules import GRADES, check
     t0 = time.time()
-    found = sorted(check(reading) + focus.check(reading), key=lambda f: GRADES.index(f["grade"]))
+    from detector.pipeline import printed_formula as PF
+    found = check(reading) + focus.check(reading)
+    cells = reading.get("printed_cells")
+    if cells and PF.usable(cells):                                    # 서류에 인쇄된 식을 읽었으면 박아 둔 식 대신 그 식으로
+        found = [f for f in found if not (f["rule"] == "A1" and f["title"].startswith("산식 불일치"))] + PF.check(cells)
+    from detector.pipeline import table_sums as TS
+    table = reading.get("amount_table")
+    if table:                                                         # 표를 보이는 그대로 읽었으면 열 합계(A2)는 그 표로 (서식 무관)
+        found = [f for f in found if f["rule"] != "A2"] + TS.check(table, bool(reading.get("visit.inpatient")))
+    found = sorted(found, key=lambda f: GRADES.index(f["grade"]))
     strong = [f for f in found if f["grade"] in ("확정", "강함")]
     level = "의심" if strong else "확인필요" if found else "정상"
     return {"engine": "logic", "level": level, "strong": bool(strong), "findings": found,

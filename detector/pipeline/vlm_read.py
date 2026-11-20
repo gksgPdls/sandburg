@@ -32,13 +32,23 @@ EXTRA = {
  "야간": 야간 칸이 체크되어 있으면 true, 아니면 false,
  "공휴일": 공휴일 칸이 체크되어 있으면 true, 아니면 false,
  "환자구분": 적힌 그대로 (예: 건강보험, 의료급여, 자보),
- "주민등록번호": 적힌 그대로 (가려진 자리는 빼고, 예: 891203-1)""",
+ "주민등록번호": 적힌 그대로 (가려진 자리는 빼고, 예: 891203-1),
+ "번호칸": 서식에서 동그라미 번호(①②③…)가 붙은 금액 칸을 모두, 위에서 아래·왼쪽에서 오른쪽 순서로 —
+   [{"번호": "⑥", "이름": "번호 옆에 인쇄된 칸 이름 그대로 (예: 진료비 총액)", "식": "이름 옆이나 아래 괄호 안에 인쇄된 계산식 그대로 (예: ①+②+③+④), 인쇄돼 있지 않으면 null", "값": 0}]
+   합계 줄의 ①②③④⑤ 칸과 금액산정내용의 칸을 모두 넣는다. 번호는 서식에 인쇄된 번호 그대로 (서식마다 다를 수 있으니 위 예시 번호에 맞추지 않는다),
+ "금액표": 왼쪽 항목별 금액 표를 서식에 보이는 그대로 (위 "행" 과 달리 열 이름 · 줄 이름을 바꾸거나 합치지 않는다) —
+   {"열": ["금액 열 머리글을 왼쪽부터 인쇄된 그대로, 예: 본인부담금, 공단부담금, 전액본인부담, 선택진료료, 선택진료료 이외 (서식마다 다르다)"],
+    "줄": [{"항목": "줄 이름 그대로", "값": [열 순서대로 금액, 빈 칸은 null]}],
+    "합계": [표 맨 아래 합계 줄의 금액을 열 순서대로]}
+   · 머리글이 두 단(예: 급여 아래 일부본인부담 · 전액본인부담)이면 금액이 적히는 아래 단 이름만, 왼쪽부터
+   · 줄: 합계 줄 위에서 금액이 하나라도 적힌 줄만, 위에서 아래 순서로. 행위료 · 약품비 같은 작은 줄은 작은 줄 그대로 (큰 줄에 금액이 없으면 큰 줄은 빼고)
+   · 같은 금액을 두 번 적거나 두 줄을 합치지 않는다. 값 목록의 길이는 열 목록과 같게""",
     "진단서": """
 위 JSON 에 아래 칸도 함께 넣는다 (서식에 없으면 null):
  "주민등록번호": 적힌 그대로 (가려진 자리는 빼고, 예: 891203-1),
  "입원일": "YYYY-MM-DD", "퇴원일": "YYYY-MM-DD" (소견이 아니라 입원·퇴원 칸에 적힌 날짜만)""",
 }
-PROMPT_VERSION = "c1"     # 지시문을 고치면 올린다 (캐시가 섞이지 않게)
+PROMPT_VERSION = "c3"     # 지시문을 고치면 올린다 (캐시가 섞이지 않게). c3: 번호칸(인쇄된 산식) · 금액표(서식 무관 합계)
 
 # ai_reader.canon_row 가 돌려주는 이름 → 로직 엔진 행 이름
 CANON_TO_ROW = {"진찰료": "consult", "투약 및 조제료-행위료": "med_act", "투약 및 조제료-약품비": "med_drug",
@@ -160,6 +170,18 @@ def to_reading(j, doc):
             for src, dst in (("카드", "paid.card"), ("현금영수증", "paid.cash_receipt"), ("현금", "paid.cash"), ("합계", "paid.total")):
                 f[dst] = num(pay.get(src)) or 0
         f["rows_complete"] = bool(r.get("행")) and unknown == 0 and num(t.get("본인부담")) is not None
+        from detector.pipeline import printed_formula as PF                    # 서식에 인쇄된 번호칸 · 산식 (있으면 A1 을 이 식으로 계산)
+        cells = PF.parse(r.get("번호칸") or (j.get("번호칸") if isinstance(j, dict) else None))
+        if cells:
+            f["printed_cells"] = cells
+            if not PF.usable(cells):
+                notes.append("인쇄된 산식을 못 읽음 — A1 은 새 서식 기준 식으로 계산")
+        from detector.pipeline import table_sums as TS                         # 표를 보이는 그대로 읽은 것 (있으면 A2 를 이 표로 계산)
+        table = TS.parse(r.get("금액표") or (j.get("금액표") if isinstance(j, dict) else None))
+        if table:
+            f["amount_table"] = table
+        else:
+            notes.append("금액표를 못 읽음 — A2 는 새 서식 기준 열로 계산")
         return Reading("receipt", f), notes
     diag = []
     sick = sorted((x for x in (r.get("병명") or []) if isinstance(x, dict)),
@@ -187,7 +209,19 @@ FIELD_LABEL = {"totals.t1": "합계 줄 ① 본인부담금", "totals.t2": "합�
                "dates.admit": "입원일", "dates.discharge": "퇴원일"}
 
 
-def locate(image, fields, model="qwen27b", size=2500):
+def table_label(fld, table):
+    _, i, k = fld.split(".")
+    col = table["cols"][int(i)] if table else i
+    row = "합계" if k == "total" else (table["rows"][int(k)]["name"] if table else k)
+    return f"금액 표 {row} 줄의 {col} 열"
+
+
+def table_value(fld, table):
+    _, i, k = fld.split(".")
+    return (table["total"] if k == "total" else table["rows"][int(k)]["vals"])[int(i)]
+
+
+def locate(image, fields, model="qwen27b", size=2500, table=None):
     """칸 이름들 → {칸: 'x,y,w,h'(원래 사진 픽셀)}. 행(rows.*) 칸은 줄 이름으로 묻는다."""
     labels = {}
     for fld in fields:
@@ -195,6 +229,10 @@ def locate(image, fields, model="qwen27b", size=2500):
             _, row, col = fld.split(".")
             name = next((k for k, v in CANON_TO_ROW.items() if v == row), row)
             labels[fld] = f"{name} 줄의 {dict((c, s) for s, c in COLS).get(col, col)}"
+        elif fld.startswith("num."):                                  # 인쇄된 산식의 번호칸
+            labels[fld] = f"동그라미 번호 {fld[4:]} 가 붙은 금액 칸"
+        elif fld.startswith("table."):                                # 금액표 칸: table.<열>.<줄 번호 | total>
+            labels[fld] = table_label(fld, table)
         elif fld in FIELD_LABEL:
             labels[fld] = FIELD_LABEL[fld]
     if not labels:
