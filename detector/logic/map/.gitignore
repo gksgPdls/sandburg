@@ -1,0 +1,11 @@
+# 실제 서류에서 나온 것은 올리지 않음 (개인정보 · 회사 자료)
+examples_local.py
+index.html
+img/
+*.jsonl
+*.json
+*.csv
+b2_fee/
+b2_full/
+b6_dates/
+b6_forged/
